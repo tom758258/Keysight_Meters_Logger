@@ -638,11 +638,11 @@ class WebUiApiTests(unittest.TestCase):
 
         with (
             patch(
-                "meters_tool_webui.web_ui.VisaInstrument.list_resources",
+                "meters_tool_webui._run_manager.VisaInstrument.list_resources",
                 return_value=["USB::METER"],
             ),
             patch(
-                "meters_tool_webui.web_ui.VisaInstrument.verify_resource",
+                "meters_tool_webui._run_manager.VisaInstrument.verify_resource",
                 return_value=(True, "Keysight Technologies,34460A,MY123,1.0"),
             ),
         ):
@@ -666,11 +666,11 @@ class WebUiApiTests(unittest.TestCase):
 
         with (
             patch(
-                "meters_tool_webui.web_ui.VisaInstrument.list_resources",
+                "meters_tool_webui._run_manager.VisaInstrument.list_resources",
                 return_value=["USB::METER"],
             ),
             patch(
-                "meters_tool_webui.web_ui.VisaInstrument.verify_resource",
+                "meters_tool_webui._run_manager.VisaInstrument.verify_resource",
                 return_value=(True, "Keysight Technologies,34461A,MY123,1.0"),
             ),
         ):
@@ -696,11 +696,11 @@ class WebUiApiTests(unittest.TestCase):
             with self.subTest(detail=detail):
                 with (
                     patch(
-                        "meters_tool_webui.web_ui.VisaInstrument.list_resources",
+                        "meters_tool_webui._run_manager.VisaInstrument.list_resources",
                         return_value=["USB::UNKNOWN"],
                     ),
                     patch(
-                        "meters_tool_webui.web_ui.VisaInstrument.verify_resource",
+                        "meters_tool_webui._run_manager.VisaInstrument.verify_resource",
                         return_value=(True, detail),
                     ),
                 ):
@@ -719,10 +719,10 @@ class WebUiApiTests(unittest.TestCase):
 
         with (
             patch(
-                "meters_tool_webui.web_ui.VisaInstrument.list_resources",
+                "meters_tool_webui._run_manager.VisaInstrument.list_resources",
                 return_value=["USB::METER"],
             ),
-            patch("meters_tool_webui.web_ui.VisaInstrument.verify_resource") as verify,
+            patch("meters_tool_webui._run_manager.VisaInstrument.verify_resource") as verify,
         ):
             response = client.get("/api/resources")
 
@@ -1681,7 +1681,10 @@ class WebUiApiTests(unittest.TestCase):
                 "meters_tool_core.start_resolution.VisaInstrument.preflight_idn",
                 return_value="Keysight Technologies,34460A,MY123,1.0",
             ),
-            patch("meters_tool_webui.web_ui.run_start_session", return_value=fake_result) as runner,
+            patch(
+                "meters_tool_webui._run_manager.run_start_session",
+                return_value=fake_result,
+            ) as runner,
         ):
             response = client.post(
                 "/api/runs",
@@ -1744,7 +1747,7 @@ class WebUiApiTests(unittest.TestCase):
                         "meters_tool_core.start_resolution.VisaInstrument.preflight_idn",
                         return_value="Keysight Technologies,34460A,MY123,1.0",
                     ),
-                    patch("meters_tool_webui.web_ui.run_start_session") as runner,
+                    patch("meters_tool_webui._run_manager.run_start_session") as runner,
                 ):
                     response = client.post("/api/runs", json=payload)
 
@@ -1763,7 +1766,7 @@ class WebUiApiTests(unittest.TestCase):
                 "meters_tool_core.start_resolution.VisaInstrument.preflight_idn",
                 return_value="Keysight Technologies,34460A,MY123,1.0",
             ),
-            patch("meters_tool_webui.web_ui.run_start_session") as runner,
+            patch("meters_tool_webui._run_manager.run_start_session") as runner,
         ):
             response = client.post(
                 "/api/runs",
@@ -1795,9 +1798,12 @@ class WebUiApiTests(unittest.TestCase):
             return request_model, KEYSIGHT_34461A_PROFILE
 
         with (
-            patch("meters_tool_webui.web_ui.resolve_start_profile", side_effect=wrong_adapter_resolution),
-            patch("meters_tool_webui.web_ui.validate_start_request"),
-            patch("meters_tool_webui.web_ui.validate_start_workflow_support"),
+            patch(
+                "meters_tool_webui._run_manager.resolve_start_profile",
+                side_effect=wrong_adapter_resolution,
+            ),
+            patch("meters_tool_webui._run_manager.validate_start_request"),
+            patch("meters_tool_webui._run_manager.validate_start_workflow_support"),
             patch(
                 "meters_tool_core.start_resolution.VisaInstrument.preflight_idn",
                 return_value="Keysight Technologies,34460A,MY123,1.0",
