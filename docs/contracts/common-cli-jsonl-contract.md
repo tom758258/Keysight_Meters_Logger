@@ -1,11 +1,13 @@
 # Common CLI JSON / JSONL Contract
 
-Schema version: `1`
+Schema version: `2`
+
+Compatibility policy: `v2-only`
 
 This document defines shared JSON and JSONL envelope rules for command-line
-instrument workers and their client commands. Instrument-specific commands,
-event payloads, aliases, and artifact fields belong in instrument-specific
-contract documents.
+instrument Workers and their client commands. Instrument-specific commands,
+event payloads, aliases, execution context, identity fields, and artifact
+fields belong in instrument-specific contract documents.
 
 ## Machine Output
 
@@ -17,8 +19,12 @@ Human-readable text is diagnostic output, not the agent contract. Machine
 callers should parse JSONL events, single-response JSON, structured artifacts,
 and process exit codes instead of text-mode stdout.
 
+Every Common v2 machine-output object must contain exact integer
+`schema_version: 2`. Missing, boolean, string, floating-point, and schema
+version `1` values are invalid.
+
 Consumers must ignore unknown fields. Producers may add optional fields under
-schema version `1`. Removing required fields or changing required field types
+schema version `2`. Removing required fields or changing required field types
 requires a major schema version bump.
 
 ## Common Fields
@@ -26,13 +32,13 @@ requires a major schema version bump.
 Common JSON object fields:
 
 - `event`: object type or command result type.
-- `schema_version`: integer schema version, currently `1`.
+- `schema_version`: exact integer `2`.
 - `timestamp_utc`: UTC timestamp serialized as ISO 8601.
 - `run_id`: runtime correlation ID when the command creates a runtime session.
 - `ok`: boolean command or runtime health summary when the object represents a
   result.
 - `message`: diagnostic message intended for logs and operator context.
-- `fatal_error`: fatal runtime error text or object when a worker cannot
+- `fatal_error`: fatal runtime error text or object when a Worker cannot
   continue.
 - `exit_code`: intended process exit code when the object represents an error.
 
@@ -60,7 +66,7 @@ code, or a missing final summary should be treated as failed or incomplete by
 orchestrators.
 
 Usage and validation failures should exit `2`. Runtime, connection, request,
-and fatal worker failures should exit `3`. Success, accepted requests, and
+and fatal Worker failures should exit `3`. Success, accepted requests, and
 dry-run success should exit `0`.
 
 Argument parser usage errors may still be reported on process stderr with exit
@@ -69,7 +75,7 @@ or JSONL mode should be emitted as JSON objects.
 
 ## Client Diagnostics
 
-Client commands that contact a local worker should include request diagnostics
+Client commands that contact a local Worker should include request diagnostics
 when knowable:
 
 - `client_command`
