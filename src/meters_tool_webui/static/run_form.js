@@ -1,6 +1,26 @@
 import { api } from "./api.js";
 import { t } from "./i18n.js";
 import {
+  buildRunPayload,
+  numberOrNull,
+  textOrNull,
+} from "./run_form_payload.js";
+import {
+  featureAvailability,
+  findProductSupportScope,
+  isCustomMode,
+  isHardwareMode,
+  isSoftwareTriggeredMode,
+  modeScopeVisible,
+  supportsAcBandwidth,
+  supportsAutoZero,
+  supportsCurrentTerminal,
+  supportsDcvInputZ,
+  supportsFreqPeriodTimeout,
+  supportsGateTime,
+  usesTriggerTimeout as modeUsesTriggerTimeout,
+} from "./run_form_support.js";
+import {
   acBandwidthContainer,
   acBandwidthSelect,
   autoRangeCheckbox,
@@ -45,7 +65,6 @@ import {
   triggerTimeoutInput,
 } from "./dom.js";
 
-const DEFAULT_TRIGGER_TIMEOUT_MS = 10000;
 let measurementsByName = new Map();
 let supportedTriggerModes = [];
 let triggerModeMetadata = {};
@@ -139,77 +158,16 @@ function triggerOptionElement(mode) {
   );
 }
 
-function inferTransportScope(resource) {
-  const normalized = String(resource || "").trim().toUpperCase();
-  if (normalized.startsWith("USB")) {
-    return "usb";
-  }
-  if (normalized.startsWith("TCPIP")) {
-    return "tcpip";
-  }
-  return null;
-}
-
 function currentProductSupportScope() {
-  const resource = String(resourceInput?.value || "").trim();
-  const transport = inferTransportScope(resource) || (
-    resource ? null : liveSupport?.transport_scope
-  );
-  if (!transport) {
-    return null;
-  }
-  return (liveSupport?.scopes || []).find(
-    (scope) => scope.transport_scope === transport && scope.backend_scope === "system_visa"
-  ) || null;
-}
-
-function featureAvailability(featureKind, featureValue) {
-  const scope = currentProductSupportScope();
-  if (!scope) {
-    return {
-      available: false,
-      reasonKey: "support.reason.scope_unavailable",
-      validationStatus: "missing",
-    };
-  }
-  if (scope.validation_status !== "live_validated_full_suite") {
-    const notSupported = scope.validation_status === "not_supported_by_model";
-    return {
-      available: false,
-      reasonKey: notSupported
-        ? "support.reason.not_supported_by_model"
-        : "support.reason.pending_live_validation",
-      validationStatus: scope.validation_status || "missing",
-    };
-  }
-  const feature = scope.features?.[featureKind]?.[featureValue];
-  const validationStatus = feature?.validation_status || "missing";
-  if (validationStatus === "live_validated_full_suite") {
-    return { available: true, reasonKey: null, validationStatus };
-  }
-  if (validationStatus === "feature_pending") {
-    return {
-      available: false,
-      reasonKey: "support.reason.pending_live_validation",
-      validationStatus,
-    };
-  }
-  if (validationStatus === "not_supported_by_model") {
-    return {
-      available: false,
-      reasonKey: "support.reason.not_supported_by_model",
-      validationStatus,
-    };
-  }
-  return {
-    available: false,
-    reasonKey: "support.reason.scope_unavailable",
-    validationStatus,
-  };
+  return findProductSupportScope(resourceInput?.value, liveSupport);
 }
 
 function featureOptionElement(value, text, featureKind, textKey, textParams) {
-  const availability = featureAvailability(featureKind, value);
+  const availability = featureAvailability(
+    currentProductSupportScope(),
+    featureKind,
+    value
+  );
   const option = optionElement(value, text);
   if (availability.available && textKey) {
     setTranslatedText(option, textKey, textParams);
@@ -275,136 +233,55 @@ export function updateFeatureAvailability() {
   updateTriggerModeUi();
 }
 
-export function numberOrNull(value) {
-  if (value === null || value === undefined || value === "") {
-    return null;
-  }
-  return Number(value);
-}
-
-export function textOrNull(value) {
-  const text = String(value || "").trim();
-  return text ? text : null;
-}
+export { numberOrNull, textOrNull };
 
 export function capitalizeFirst(value) {
   const text = String(value || "");
   return text ? text.charAt(0).toUpperCase() + text.slice(1) : "";
 }
 
-export function supportsAutoZero(measurement) {
-  const options = measurement?.auto_zero_options;
-  return (
-    measurement?.supports_auto_zero === true &&
-    Array.isArray(options) &&
-    options.length > 1
-  );
-}
-
-function supportsAcBandwidth(measurement) {
-  return Boolean(measurement?.supports_ac_bandwidth);
-}
-
-function supportsCurrentTerminal(measurement) {
-  return Boolean(measurement?.supports_current_terminal);
-}
-
-function supportsGateTime(measurement) {
-  return Boolean(measurement?.supports_gate_time);
-}
-
-function supportsFreqPeriodTimeout(measurement) {
-  return Boolean(measurement?.supports_freq_period_timeout);
-}
-
-export function supportsDcvInputZ(measurement) {
-  const options = measurement?.dcv_input_impedance_options;
-  return (
-    measurement?.supports_dcv_input_impedance === true &&
-    Array.isArray(options) &&
-    options.length > 0
-  );
-}
+export { supportsAutoZero, supportsDcvInputZ };
 
 export function usesTriggerTimeout(mode) {
-  return triggerModeMetadata?.[mode]?.uses_trigger_timeout === true;
-}
-
-function triggerTimeoutMs(data, mode) {
-  return numberOrNull(
-    usesTriggerTimeout(mode) ? data.get("trigger_timeout_ms") : DEFAULT_TRIGGER_TIMEOUT_MS
-  );
+  return modeUsesTriggerTimeout(mode, triggerModeMetadata);
 }
 
 export function formPayload() {
   const data = new FormData(form);
-  const resource = String(data.get("resource") || "").trim();
-  const triggerMode = textOrNull(data.get("trigger_mode")) || "software";
-  const customMode = isCustomMode(triggerMode);
-  const hardwareMode = isHardwareMode(triggerMode);
-  const softwareTriggeredMode = isSoftwareTriggeredMode(triggerMode);
   const selectedMeasurement = String(data.get("measurement") || "current-dc");
-  const measurement = measurementsByName.get(selectedMeasurement);
-  const autoZeroVisible = supportsAutoZero(measurement);
-  const dcvInputZVisible = supportsDcvInputZ(measurement);
-
-  const payload = {
-    resource,
-    instrument_model: textOrNull(data.get("instrument_model")),
-    csv: textOrNull(data.get("csv")),
-    timeout_ms: numberOrNull(data.get("timeout_ms")),
-    trigger_timeout_ms: triggerTimeoutMs(data, triggerMode),
-    trigger_mode: triggerMode,
+  const values = {
+    resource: data.get("resource"),
+    instrument_model: data.get("instrument_model"),
+    csv: data.get("csv"),
+    timeout_ms: data.get("timeout_ms"),
+    trigger_timeout_ms: data.get("trigger_timeout_ms"),
+    trigger_mode: data.get("trigger_mode"),
     measurement: selectedMeasurement,
-    nplc: numberOrNull(data.get("nplc")),
-    auto_zero: autoZeroVisible ? (data.get("auto_zero") || "on") : "on",
-    auto_range: data.get("auto_range") === "on",
-    measurement_range: numberOrNull(data.get("measurement_range")),
-    dcv_input_impedance: dcvInputZVisible
-      ? String(data.get("dcv_input_impedance") || "default")
-      : null,
-    vm_comp_slope: textOrNull(data.get("vm_comp_slope")),
+    nplc: data.get("nplc"),
+    auto_zero: data.get("auto_zero"),
+    auto_range: data.get("auto_range"),
+    measurement_range: data.get("measurement_range"),
+    dcv_input_impedance: data.get("dcv_input_impedance"),
+    vm_comp_slope: data.get("vm_comp_slope"),
+    ac_bandwidth_hz: data.get("ac_bandwidth_hz"),
+    gate_time_s: data.get("gate_time_s"),
+    freq_period_timeout: data.get("freq_period_timeout"),
+    current_terminal: data.get("current_terminal"),
+    max_samples: data.get("max_samples"),
+    timer_interval_s: data.get("timer_interval_s"),
+    trigger_count: data.get("trigger_count"),
+    sample_count: data.get("sample_count"),
+    buffer_drain_size: data.get("buffer_drain_size"),
+    allow_buffer_overflow_risk: data.get("allow_buffer_overflow_risk"),
+    hw_trigger_slope: data.get("hw_trigger_slope"),
+    hw_trigger_delay_s: data.get("hw_trigger_delay_s"),
+    sw_min_interval_ms: data.get("sw_min_interval_ms"),
+    sw_queue_max: data.get("sw_queue_max"),
   };
-
-  if (supportsAcBandwidth(measurement) && data.get("ac_bandwidth_hz")) {
-    payload.ac_bandwidth_hz = numberOrNull(data.get("ac_bandwidth_hz"));
-  }
-  if (supportsGateTime(measurement) && data.get("gate_time_s")) {
-    payload.gate_time_s = numberOrNull(data.get("gate_time_s"));
-  }
-  if (supportsFreqPeriodTimeout(measurement) && data.get("freq_period_timeout")) {
-    payload.freq_period_timeout = String(data.get("freq_period_timeout"));
-  }
-  if (supportsCurrentTerminal(measurement) && data.get("current_terminal")) {
-    payload.current_terminal = numberOrNull(data.get("current_terminal"));
-  }
-  if (!customMode) {
-    payload.max_samples = numberOrNull(data.get("max_samples"));
-  }
-  if (triggerMode === "software") {
-    payload.timer_interval_s = numberOrNull(data.get("timer_interval_s"));
-  }
-  if (customMode) {
-    payload.trigger_count = numberOrNull(data.get("trigger_count"));
-    payload.sample_count = numberOrNull(data.get("sample_count"));
-    payload.buffer_drain_size = numberOrNull(data.get("buffer_drain_size"));
-    payload.allow_buffer_overflow_risk = data.get("allow_buffer_overflow_risk") === "on";
-  }
-  if (hardwareMode) {
-    payload.hw_trigger_slope = String(data.get("hw_trigger_slope") || "neg");
-    payload.hw_trigger_delay_s = numberOrNull(data.get("hw_trigger_delay_s"));
-  }
-  if (softwareTriggeredMode) {
-    payload.sw_min_interval_ms = numberOrNull(data.get("sw_min_interval_ms"));
-    payload.sw_queue_max = numberOrNull(data.get("sw_queue_max"));
-  }
-  return compactPayload(payload);
-}
-
-function compactPayload(payload) {
-  return Object.fromEntries(
-    Object.entries(payload).filter(([_key, value]) => value !== null)
-  );
+  return buildRunPayload(values, {
+    measurement: measurementsByName.get(selectedMeasurement),
+    triggerModeMetadata,
+  });
 }
 
 function applyInputLimits(limits) {
@@ -759,45 +636,15 @@ function formatNumberLabel(value) {
   return Number(value).toLocaleString("en-US", { maximumSignificantDigits: 10 });
 }
 
-function isCustomMode(mode) {
-  return String(mode || "").endsWith("-custom");
-}
-
-function isHardwareMode(mode) {
-  return mode === "external" || mode === "external-custom";
-}
-
-function isSoftwareTriggeredMode(mode) {
-  return mode === "software" || mode === "software-custom";
-}
-
-function modeScopeVisible(scope, mode) {
-  if (scope === "simple") {
-    return !isCustomMode(mode);
-  }
-  if (scope === "custom") {
-    return isCustomMode(mode);
-  }
-  if (scope === "hardware") {
-    return isHardwareMode(mode);
-  }
-  if (scope === "software") {
-    return mode === "software";
-  }
-  if (scope === "software-trigger") {
-    return isSoftwareTriggeredMode(mode);
-  }
-  if (scope === "trigger-timeout") {
-    return usesTriggerTimeout(mode);
-  }
-  return true;
-}
-
 export function updateTriggerModeUi() {
   const mode = triggerModeSelect.value || "software";
   const customMode = isCustomMode(mode);
   for (const element of modeScopedControls) {
-    const visible = modeScopeVisible(element.dataset.modeScope, mode);
+    const visible = modeScopeVisible(
+      element.dataset.modeScope,
+      mode,
+      triggerModeMetadata
+    );
     element.classList.toggle("is-hidden", !visible);
     for (const control of element.querySelectorAll("input, select, textarea")) {
       control.disabled = !visible;

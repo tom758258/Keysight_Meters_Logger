@@ -255,7 +255,11 @@ class WebUiStaticTests(unittest.TestCase):
         self.assertIn("Require 34460A</option>", index)
         self.assertIn("Require 34461A</option>", index)
         self.assertIn(
-            'instrument_model: textOrNull(data.get("instrument_model"))',
+            'instrument_model: data.get("instrument_model")',
+            app_js,
+        )
+        self.assertIn(
+            "instrument_model: textOrNull(values.instrument_model)",
             app_js,
         )
         self.assertIn(

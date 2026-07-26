@@ -643,6 +643,9 @@ process.stdout.write(JSON.stringify({ ok: true }));
 
 def test_p23_and_p25_source_boundaries_and_semantic_keys():
     source = (STATIC_DIR / "run_form.js").read_text(encoding="utf-8")
+    support_source = (STATIC_DIR / "run_form_support.js").read_text(encoding="utf-8")
+    payload_source = (STATIC_DIR / "run_form_payload.js").read_text(encoding="utf-8")
+    combined_source = source + support_source + payload_source
 
     for key in (
         "support.reason.scope_unavailable",
@@ -679,7 +682,7 @@ def test_p23_and_p25_source_boundaries_and_semantic_keys():
         "support.summary.unspecified_backend",
         "support.summary.none",
     ):
-        assert f'"{key}"' in source
+        assert f'"{key}"' in combined_source
 
     for migrated_literal in (
         "Use 0 to disable throttling, or use",
@@ -691,7 +694,7 @@ def test_p23_and_p25_source_boundaries_and_semantic_keys():
         'optionElement("", "Select range")',
         'optionElement("", "Auto-detect")',
     ):
-        assert migrated_literal not in source
+        assert migrated_literal not in combined_source
 
     for forbidden in (
         "setLocale(",
@@ -702,7 +705,7 @@ def test_p23_and_p25_source_boundaries_and_semantic_keys():
         "validation_allow_pending_live_support",
         "--validation-allow-pending-live-support",
     ):
-        assert forbidden not in source
+        assert forbidden not in combined_source
 
     for migrated_support_text in (
         "Support status unavailable.",
@@ -713,7 +716,7 @@ def test_p23_and_p25_source_boundaries_and_semantic_keys():
         "fallback capability view",
         'return values.length ? values.join(", ") : "None";',
     ):
-        assert migrated_support_text not in source
+        assert migrated_support_text not in combined_source
 
     for support_metadata_field in (
         "status_key",
@@ -730,8 +733,9 @@ def test_p23_and_p25_source_boundaries_and_semantic_keys():
     assert 'const validationStatus = summary?.validation_status || "unknown"' in source
     assert "/api/capabilities?locale=" not in source
 
-    assert 'scope.validation_status !== "live_validated_full_suite"' in source
+    assert 'scope.validation_status !== "live_validated_full_suite"' in support_source
     assert 'option.dataset.validationStatus = availability.validationStatus' in source
-    assert 'instrument_model: textOrNull(data.get("instrument_model"))' in source
-    assert 'trigger_mode: triggerMode' in source
-    assert 'measurement: selectedMeasurement' in source
+    assert "instrument_model: data.get(\"instrument_model\")" in source
+    assert "instrument_model: textOrNull(values.instrument_model)" in payload_source
+    assert "trigger_mode: triggerMode" in payload_source
+    assert "measurement: selectedMeasurement" in payload_source
