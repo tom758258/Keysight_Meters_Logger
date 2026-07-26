@@ -11,12 +11,29 @@ permissions:
 
 jobs:
   lint:
-    name: Ruff
+    name: Ruff and JavaScript syntax
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Check WebUI JavaScript syntax
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(git ls-files 'src/meters_tool_webui/static/*.js')
+          if (( ${#files[@]} == 0 )); then
+            echo "::error::No tracked WebUI JavaScript files found."
+            exit 1
+          fi
+          for file in "${files[@]}"; do
+            node --check "$file"
+          done
 
       - name: Set up Python
         uses: actions/setup-python@v6
