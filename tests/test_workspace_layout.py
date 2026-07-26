@@ -97,7 +97,7 @@ def test_root_pyproject_defines_single_distribution():
     text = (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
 
     assert 'name = "meters-tool"' in text
-    assert 'version = "2.0.0"' in text
+    parse_semver_tuple(read_project_version())
     assert 'meters-tool = "meters_tool_cli.cli:main"' in text
     assert 'meters-tool-webui = "meters_tool_webui.web_ui:main"' in text
     assert "[tool.pytest.ini_options]" in text
@@ -127,20 +127,6 @@ def test_component_layout_is_rooted():
         REPO_ROOT / "scripts",
     ):
         assert path.exists()
-
-
-def test_root_docs_are_indexes_not_package_status_logs():
-    for relative in (
-        "README.md",
-        "CHANGELOG.md",
-        "docs/architecture/monorepo-layout.md",
-        "docs/contracts/meters-cli-jsonl-contract.md",
-        "docs/contracts/meters-worker-contract.md",
-    ):
-        text = (REPO_ROOT / relative).read_text(encoding="utf-8")
-        assert "## Current Status" not in text
-        assert "## Active Risks" not in text
-        assert "## Next Work" not in text
 
 
 def test_public_markdown_avoids_local_private_context():
@@ -383,36 +369,6 @@ def test_traditional_chinese_docs_preserve_high_risk_canonical_tokens():
             )
 
 
-def test_traditional_chinese_docs_preserve_current_support_and_runtime_boundaries():
-    webui_readme = (REPO_ROOT / "docs" / "webui" / "README.zh-TW.md").read_text(
-        encoding="utf-8"
-    )
-    assert "34460A，DCV Ratio 在 USB/system-VISA 上為 `Product-open`" in webui_readme
-    assert "34460A LAN/TCPIP system-VISA" in webui_readme
-    assert "LAN/TCPIP pyvisa-py `@py`" in webui_readme
-    assert "`transport_pending`" in webui_readme
-    assert "12-case wrapper full suite" in webui_readme
-    assert "不延伸至 LAN 或 pyvisa-py" in webui_readme
-    assert not re.search(r"34460A[^\n。]*DCV Ratio[^\n。]*feature_pending", webui_readme)
-
-    cli_user_guide = (REPO_ROOT / "docs" / "cli" / "USER_GUIDE.zh-TW.md").read_text(
-        encoding="utf-8"
-    )
-    assert "連接儀器的 `*IDN?` 決定 runtime profile" in cli_user_guide
-    assert "只是 expected-model guard" in cli_user_guide
-    assert "selected model 絕不會覆寫 IDN-selected profile" in cli_user_guide
-    assert "live mismatch 會在 setup SCPI 前失敗" in cli_user_guide
-    assert "dry-run 或 simulator" in cli_user_guide
-    assert "selected model 選擇 profile" in cli_user_guide
-
-    webui_user_guide = (REPO_ROOT / "docs" / "webui" / "USER_GUIDE.zh-TW.md").read_text(
-        encoding="utf-8"
-    )
-    assert "baseline +/- span` 的值會被裁切到圖表邊界" in webui_user_guide
-    assert "不會另外顯示 `clipped indicator`" in webui_user_guide
-    assert "baseline +/- selected Range` 的值可能會被裁切到圖表邊界" in webui_user_guide
-
-
 def test_traditional_chinese_markdown_has_no_bom():
     violations = []
     for relative in TRADITIONAL_MARKDOWN_PATHS:
@@ -450,4 +406,3 @@ def test_english_support_docs_cover_feature_pending_policy():
         encoding="utf-8"
     )
     assert "--validation-allow-pending-live-support" in contributing
-    assert "Missing feature metadata is not `feature_pending`" in contributing

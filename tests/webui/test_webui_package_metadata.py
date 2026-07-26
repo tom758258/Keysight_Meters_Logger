@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import re
 from pathlib import Path
 
 from meters_tool_webui.web_ui import FALLBACK_WEBUI_VERSION
@@ -85,7 +86,7 @@ def test_webui_distribution_uses_adapter_metadata_and_console_script():
     all_dependencies = pyproject["project"]["optional-dependencies"]["all"]
 
     assert project["name"] == "meters-tool"
-    assert project["version"] == "2.0.0"
+    assert re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", project["version"])
     assert project["version"] == FALLBACK_WEBUI_VERSION
     assert "WebUI" in project["description"]
     assert "pyvisa>=1.14.1" in dependencies

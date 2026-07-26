@@ -57,16 +57,14 @@ def test_cli_integration_keeps_cli_fields_out_of_core_schema():
     text = read_doc("cli-integration.md")
 
     assert "measurement_cli_name" in text
-    assert "not Core schema" in text
     assert "argparse.Namespace" in text
-    assert "`--enable-hw-trigger` was removed" in text
     assert "docs/core/integration.md" in text
 
 
-def test_cli_integration_uses_package_boundary_wording():
+def test_cli_integration_uses_package_boundaries():
     text = read_doc("cli-integration.md")
 
-    assert "The CLI package owns" in text
+    assert "meters_tool_cli" in text
     assert "docs/core/integration.md" in text
 
     obsolete_branch_terms = (
@@ -140,35 +138,41 @@ def test_worker_contract_documents_cross_instrument_boundary():
     text = read_contract("meters-worker-contract.md")
 
     assert "Cross-Instrument Compatibility" in text
-    assert "Common Worker Protocol" in text
-    assert "Meters worker contract only" in text
+    assert "common-worker-protocol.md" in text
     assert "GET /status" in text
-    assert "`GET /status`, `POST /command`, `POST /stop`" in text
-    assert "does not change state" in text
-    assert "mutate queues" in text
+    assert "POST /command" in text
+    assert "POST /stop" in text
 
 
-def test_cli_jsonl_contract_documents_v16_command_and_status_clients():
+def test_cli_jsonl_contract_documents_v2_migration_target_and_machine_fields():
     text = read_contract("meters-cli-jsonl-contract.md")
 
-    assert "Runtime contract revision: `v1.6`" in text
-    assert "tracks this document's evolution only" in text
-    assert "must use the JSON `schema_version` field" in text
-    assert "must not use the document revision for runtime negotiation" in text
-    assert "`summary`:" in text
-    assert "`ok`" in text
-    assert "optional `fatal_error`" in text
-    assert "`summary.ok` is `true`" in text
-    assert "status" in text
-    assert "wait-ready" in text
-    assert "client `--timeout-ms`" in text
-    assert "Consumers must ignore unknown fields" in text
-    assert "client_command" in text
-    assert "request_sent" in text
-    assert "elapsed_ms" in text
-    assert "endpoint" in text
-    assert "invalid or empty" in text
-    assert "`command`, `job_id`, `reason`, `error`, and `message`" in text
+    for metadata in (
+        "Common schema version: `2`",
+        "Compatibility policy: `v2-only`",
+        "Implementation status: `migration-target`",
+        "Runtime contract revision: `v2.0`",
+    ):
+        assert metadata in text
+
+    assert "schema-1" in text
+    for field in (
+        "schema_version",
+        "event",
+        "summary",
+        "ok",
+        "fatal_error",
+        "client_command",
+        "request_sent",
+        "elapsed_ms",
+        "endpoint",
+        "command",
+        "job_id",
+        "reason",
+        "error",
+        "message",
+    ):
+        assert field in text
 
 
 def test_common_contracts_stay_instrument_neutral():

@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import importlib.util
+import re
 from pathlib import Path
+
+from meters_tool_core._version import FALLBACK_PACKAGE_VERSION
 
 
 def _read_pyproject(pyproject_path: Path) -> dict:
@@ -46,7 +49,8 @@ def test_core_distribution_has_no_console_script():
     scripts = pyproject.get("project.scripts", project.get("scripts", {}))
 
     assert project["name"] == "meters-tool"
-    assert project["version"] == "2.0.0"
+    assert re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", project["version"])
+    assert project["version"] == FALLBACK_PACKAGE_VERSION
     assert scripts["meters-tool"] == "meters_tool_cli.cli:main"
     assert scripts["meters-tool-webui"] == "meters_tool_webui.web_ui:main"
     assert importlib.util.find_spec("meters_tool") is None

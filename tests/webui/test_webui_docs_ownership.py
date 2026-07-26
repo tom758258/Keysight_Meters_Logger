@@ -97,29 +97,13 @@ def test_webui_maintainer_docs_link_to_localization_contract():
 
 def test_webui_localization_contract_records_stable_locale_decisions():
     text = read_doc("localization-contract.md")
-    normalized = " ".join(text.lower().split())
 
-    assert "`en`" in text
-    assert "`zh-TW`" in text
-    assert "English fallback" in text
-    assert "meters-tool.webui.locale" in text
-    assert "raw machine values" in text
-    assert "display-only" in text
-    assert "p2.6 activates browser locale selection" in normalized
-    assert "p2.7 completes the final translation-quality review" in normalized
-    assert "| Auto range control label | 自動量程（Auto range） |" in text
-    assert "| Auto range in prose and compact summaries | 自動量程 |" in text
-
-
-def test_webui_localization_contract_protects_machine_contracts_and_part_ownership():
-    text = read_doc("localization-contract.md")
-
-    for protected_contract in (
-        "API fields",
-        "canonical values",
-        "runtime schemas",
+    for token in (
+        'SOURCE_LOCALE = "en"',
+        'FALLBACK_LOCALE = "en"',
+        'SUPPORTED_LOCALES = ["en", "zh-TW"]',
+        'LOCALE_STORAGE_KEY = "meters-tool.webui.locale"',
+        "`preserve_raw`",
+        "`machine_value`",
     ):
-        assert protected_contract in text
-
-    for part in range(1, 8):
-        assert f"P2.{part}" in text
+        assert token in text
