@@ -48,6 +48,7 @@ import {
 const DEFAULT_TRIGGER_TIMEOUT_MS = 10000;
 let measurementsByName = new Map();
 let supportedTriggerModes = [];
+let triggerModeMetadata = {};
 let liveSupport = null;
 let inputLimits = {};
 let latestSupportSummary = null;
@@ -291,8 +292,12 @@ export function capitalizeFirst(value) {
   return text ? text.charAt(0).toUpperCase() + text.slice(1) : "";
 }
 
-function supportsAutoZero(measurementName) {
-  return ["current-dc", "voltage-dc", "resistance-2w"].includes(measurementName);
+export function supportsAutoZero(measurement) {
+  if (measurement?.supports_auto_zero !== true) {
+    return false;
+  }
+  const options = measurement.auto_zero_options;
+  return !Array.isArray(options) || options.length > 1;
 }
 
 function supportsAcBandwidth(measurement) {
@@ -311,12 +316,12 @@ function supportsFreqPeriodTimeout(measurement) {
   return Boolean(measurement?.supports_freq_period_timeout);
 }
 
-function supportsDcvInputZ(measurementName) {
-  return ["voltage-dc", "voltage-dc-ratio"].includes(measurementName);
+export function supportsDcvInputZ(measurement) {
+  return measurement?.supports_dcv_input_impedance === true;
 }
 
-function usesTriggerTimeout(mode) {
-  return mode === "external" || mode === "external-custom";
+export function usesTriggerTimeout(mode) {
+  return triggerModeMetadata?.[mode]?.uses_trigger_timeout === true;
 }
 
 function triggerTimeoutMs(data, mode) {
@@ -334,8 +339,8 @@ export function formPayload() {
   const softwareTriggeredMode = isSoftwareTriggeredMode(triggerMode);
   const selectedMeasurement = String(data.get("measurement") || "current-dc");
   const measurement = measurementsByName.get(selectedMeasurement);
-  const autoZeroVisible = supportsAutoZero(selectedMeasurement);
-  const dcvInputZVisible = supportsDcvInputZ(selectedMeasurement);
+  const autoZeroVisible = supportsAutoZero(measurement);
+  const dcvInputZVisible = supportsDcvInputZ(measurement);
 
   const payload = {
     resource,
@@ -468,20 +473,24 @@ export function triggerMetadataPayload() {
 export function updateMeasurementUi() {
   const selected = measurementSelect.value || "current-dc";
   const measurement = measurementsByName.get(selected);
-  const autoZeroVisible = supportsAutoZero(selected);
+  const autoZeroVisible = supportsAutoZero(measurement);
   autoZeroContainer.classList.toggle("is-hidden", !autoZeroVisible);
   autoZeroSelect.disabled = !autoZeroVisible;
 
   if (autoZeroVisible) {
     const existingAutoZero = autoZeroSelect.value || "on";
+    const autoZeroOptions = measurement.auto_zero_options;
     autoZeroSelect.replaceChildren(
-      translatedOptionElement("on", "common.on"),
-      translatedOptionElement("off", "common.off"),
-      translatedOptionElement("once", "measurement.auto_zero_once")
+      ...autoZeroOptions.map((value) =>
+        translatedOptionElement(
+          value,
+          value === "once" ? "measurement.auto_zero_once" : `common.${value}`
+        )
+      )
     );
-    autoZeroSelect.value = ["on", "off", "once"].includes(existingAutoZero)
+    autoZeroSelect.value = autoZeroOptions.includes(existingAutoZero)
       ? existingAutoZero
-      : "on";
+      : String(autoZeroOptions[0] || "on");
   } else {
     autoZeroSelect.value = "on";
   }
@@ -580,7 +589,11 @@ export function updateMeasurementUi() {
   populateNplcOptions(measurement);
   for (const element of measurementScopedControls) {
     const scopes = (element.dataset.measurementScope || "").split(",");
-    const visible = scopes.includes(selected);
+    const isDcvInputImpedanceControl =
+      element.querySelectorAll("[name='dcv_input_impedance']").length > 0;
+    const visible = isDcvInputImpedanceControl
+      ? supportsDcvInputZ(measurement)
+      : scopes.includes(selected);
     element.classList.toggle("is-hidden", !visible);
     for (const control of element.querySelectorAll("input, select, textarea")) {
       control.disabled = !visible;
@@ -644,11 +657,19 @@ function replaceOptionsPreservingValue(select, options) {
 function refreshMeasurementOptionPresentation() {
   const measurement = measurementsByName.get(measurementSelect.value);
   if (autoZeroSelect.options.length > 0) {
-    replaceOptionsPreservingValue(autoZeroSelect, [
-      translatedOptionElement("on", "common.on"),
-      translatedOptionElement("off", "common.off"),
-      translatedOptionElement("once", "measurement.auto_zero_once"),
-    ]);
+    const metadataValues = measurement?.auto_zero_options || [];
+    const values = metadataValues.length > 0
+      ? metadataValues
+      : [...autoZeroSelect.options].map((option) => option.value);
+    replaceOptionsPreservingValue(
+      autoZeroSelect,
+      values.map((value) =>
+        translatedOptionElement(
+          value,
+          value === "once" ? "measurement.auto_zero_once" : `common.${value}`
+        )
+      )
+    );
   }
   if (acBandwidthSelect.options.length > 0) {
     const includeKeepCurrent = [...acBandwidthSelect.options].some(
@@ -841,7 +862,7 @@ export function updatePanelSummaries() {
     const selectedMeasurement = measurementSelect.value || "current-dc";
     const measurement = measurementsByName.get(selectedMeasurement);
     const frequencyOrPeriod = ["frequency", "period"].includes(selectedMeasurement);
-    const autoZeroText = supportsAutoZero(selectedMeasurement) && autoZeroSelect.value
+    const autoZeroText = supportsAutoZero(measurement) && autoZeroSelect.value
       ? t("measurement.summary.auto_zero", {
         value: autoZeroSelect.value === "once"
           ? t("measurement.auto_zero_once")
@@ -1028,6 +1049,7 @@ export async function loadCapabilities(model = null) {
     capabilities.measurements.map((item) => [item.name, item])
   );
   supportedTriggerModes = [...capabilities.trigger_modes];
+  triggerModeMetadata = capabilities.trigger_mode_metadata || {};
   capabilitiesLoaded = true;
   populateFeatureOptions(previousMeasurement, previousTriggerMode);
   updateMeasurementUi();

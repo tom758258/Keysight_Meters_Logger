@@ -5,6 +5,7 @@ from typing import Any
 from meters_tool_core import (
     FEATURE_KIND_MEASUREMENT,
     FEATURE_KIND_TRIGGER_MODE,
+    get_core_capabilities,
     start_workflow_support,
 )
 from meters_tool_core.constants import UTC_PLUS_8
@@ -28,6 +29,8 @@ from meters_tool_core.validation import (
     supported_trigger_modes,
 )
 
+_TRIGGER_TIMEOUT_MODES = frozenset({"external", "external-custom"})
+
 
 def build_capabilities_payload(
     profile: Any,
@@ -38,17 +41,26 @@ def build_capabilities_payload(
 ) -> dict[str, Any]:
     measurements = []
     registered = set(registered_measurement_types())
+    core_measurements = {
+        measurement.measurement_type: measurement
+        for measurement in get_core_capabilities(profile).measurements
+    }
     for measurement_type in profile.supported_measurement_types:
         if measurement_type not in registered:
             continue
         definition = get_measurement_definition(measurement_type)
         options = profile.get_measurement_options(measurement_type)
+        core_measurement = core_measurements[measurement_type]
         ac_bandwidth_hz_options = list(getattr(options, "ac_bandwidth_hz_options", ()))
         gate_time_s_options = list(getattr(options, "gate_time_s_options", ()))
         freq_period_timeout_options = list(
             getattr(options, "freq_period_timeout_options", ())
         )
         current_terminal_options = list(getattr(options, "current_terminal_options", ()))
+        auto_zero_options = list(core_measurement.auto_zero_values)
+        dcv_input_impedance_options = list(
+            core_measurement.dcv_input_impedance_values
+        )
         measurements.append(
             {
                 "name": definition.canonical_name,
@@ -70,6 +82,12 @@ def build_capabilities_payload(
                 "supports_gate_time": bool(gate_time_s_options),
                 "supports_freq_period_timeout": bool(freq_period_timeout_options),
                 "supports_current_terminal": bool(current_terminal_options),
+                "auto_zero_options": auto_zero_options,
+                "supports_auto_zero": bool(auto_zero_options),
+                "dcv_input_impedance_options": dcv_input_impedance_options,
+                "supports_dcv_input_impedance": bool(
+                    dcv_input_impedance_options
+                ),
                 "defaults": {
                     "auto_range": options.default_auto_range,
                     "ac_bandwidth_hz": options.default_ac_bandwidth_hz,
@@ -114,6 +132,10 @@ def build_capabilities_payload(
         ],
         "measurements": measurements,
         "trigger_modes": list(supported_trigger_modes(profile)),
+        "trigger_mode_metadata": {
+            mode: {"uses_trigger_timeout": mode in _TRIGGER_TIMEOUT_MODES}
+            for mode in supported_trigger_modes(profile)
+        },
         "limits": {
             "timeout_ms": range_limit(TIMEOUT_MS_RANGE),
             "trigger_timeout_ms": range_limit(TRIGGER_TIMEOUT_MS_RANGE),

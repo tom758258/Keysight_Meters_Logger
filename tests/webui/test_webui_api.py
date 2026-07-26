@@ -111,6 +111,38 @@ class WebUiApiTests(unittest.TestCase):
         self.assertIn("software-custom", payload["trigger_modes"])
         measurements = {item["name"]: item for item in payload["measurements"]}
         self.assertEqual(
+            ["on", "off", "once"],
+            measurements["voltage-dc"]["auto_zero_options"],
+        )
+        self.assertTrue(measurements["voltage-dc"]["supports_auto_zero"])
+        self.assertEqual([], measurements["voltage-ac"]["auto_zero_options"])
+        self.assertFalse(measurements["voltage-ac"]["supports_auto_zero"])
+        self.assertEqual(
+            ["default", "10m", "auto"],
+            measurements["voltage-dc"]["dcv_input_impedance_options"],
+        )
+        self.assertTrue(
+            measurements["voltage-dc"]["supports_dcv_input_impedance"]
+        )
+        self.assertEqual(
+            [],
+            measurements["current-dc"]["dcv_input_impedance_options"],
+        )
+        self.assertFalse(
+            measurements["current-dc"]["supports_dcv_input_impedance"]
+        )
+        self.assertTrue(
+            payload["trigger_mode_metadata"]["external"]["uses_trigger_timeout"]
+        )
+        self.assertTrue(
+            payload["trigger_mode_metadata"]["external-custom"][
+                "uses_trigger_timeout"
+            ]
+        )
+        self.assertFalse(
+            payload["trigger_mode_metadata"]["software"]["uses_trigger_timeout"]
+        )
+        self.assertEqual(
             [
                 {"label": "100 mV", "value": 0.1},
                 {"label": "1 V", "value": 1.0},

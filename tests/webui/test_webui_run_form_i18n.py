@@ -201,10 +201,20 @@ const capabilities = {
     {
       name: "current-dc", unit: "A", nplc_options: [1],
       range_options: [{ value: 3, label: "3 A" }],
+      supports_auto_zero: true, auto_zero_options: ["on", "off", "once"],
       supports_current_terminal: true, current_terminal_options: [3], defaults: {},
     },
-    { name: "voltage-dc", unit: "V", nplc_options: [1], range_options: [], defaults: {} },
-    { name: "voltage-dc-ratio", unit: "ratio", nplc_options: [1], range_options: [], defaults: {} },
+    {
+      name: "voltage-dc", unit: "V", nplc_options: [1], range_options: [],
+      supports_dcv_input_impedance: true,
+      dcv_input_impedance_options: ["default", "10m", "auto"], defaults: {},
+    },
+    {
+      name: "voltage-dc-ratio", unit: "ratio", nplc_options: [1], range_options: [],
+      supports_auto_zero: true, auto_zero_options: ["on"],
+      supports_dcv_input_impedance: true,
+      dcv_input_impedance_options: ["default", "10m", "auto"], defaults: {},
+    },
     {
       name: "frequency", unit: "Hz", nplc_options: [], range_options: [],
       supports_ac_bandwidth: true, ac_bandwidth_hz_options: [20],
@@ -220,6 +230,10 @@ const capabilities = {
     { name: "future-measure", unit: "X", nplc_options: [], range_options: [], defaults: {} },
   ],
   trigger_modes: ["software", "external", "future-trigger"],
+  trigger_mode_metadata: {
+    software: { uses_trigger_timeout: false },
+    external: { uses_trigger_timeout: true },
+  },
 };
 
 let fetchCount = 0;
@@ -248,6 +262,23 @@ const runForm = await import(runFormUrl);
 const i18n = await import(new URL("./i18n.js", runFormUrl));
 await runForm.loadCapabilities();
 assert.equal(fetchCount, 1);
+assert.equal(runForm.supportsAutoZero({ supports_auto_zero: true }), true);
+assert.equal(runForm.supportsAutoZero({ supports_auto_zero: false }), false);
+assert.equal(runForm.supportsAutoZero({}), false);
+assert.equal(runForm.supportsAutoZero({
+  supports_auto_zero: true,
+  auto_zero_options: ["on"],
+}), false);
+assert.equal(runForm.supportsDcvInputZ({
+  supports_dcv_input_impedance: true,
+}), true);
+assert.equal(runForm.supportsDcvInputZ({
+  supports_dcv_input_impedance: false,
+}), false);
+assert.equal(runForm.supportsDcvInputZ({}), false);
+assert.equal(runForm.usesTriggerTimeout("external"), true);
+assert.equal(runForm.usesTriggerTimeout("software"), false);
+assert.equal(runForm.usesTriggerTimeout("future-trigger"), false);
 
 const supportStatus = element("#model-support-status");
 const supportOpen = element("#model-support-open");
