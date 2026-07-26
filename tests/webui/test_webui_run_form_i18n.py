@@ -262,18 +262,38 @@ const runForm = await import(runFormUrl);
 const i18n = await import(new URL("./i18n.js", runFormUrl));
 await runForm.loadCapabilities();
 assert.equal(fetchCount, 1);
-assert.equal(runForm.supportsAutoZero({ supports_auto_zero: true }), true);
-assert.equal(runForm.supportsAutoZero({ supports_auto_zero: false }), false);
-assert.equal(runForm.supportsAutoZero({}), false);
+assert.equal(runForm.supportsAutoZero({
+  supports_auto_zero: true,
+  auto_zero_options: ["on", "off", "once"],
+}), true);
+assert.equal(runForm.supportsAutoZero({ supports_auto_zero: true }), false);
+assert.equal(runForm.supportsAutoZero({
+  supports_auto_zero: true,
+  auto_zero_options: [],
+}), false);
 assert.equal(runForm.supportsAutoZero({
   supports_auto_zero: true,
   auto_zero_options: ["on"],
 }), false);
+assert.equal(runForm.supportsAutoZero({
+  supports_auto_zero: true,
+  auto_zero_options: "on",
+}), false);
+assert.equal(runForm.supportsAutoZero({
+  supports_auto_zero: false,
+  auto_zero_options: ["on", "off"],
+}), false);
+assert.equal(runForm.supportsAutoZero({}), false);
 assert.equal(runForm.supportsDcvInputZ({
   supports_dcv_input_impedance: true,
+  dcv_input_impedance_options: ["default", "10m", "auto"],
 }), true);
 assert.equal(runForm.supportsDcvInputZ({
-  supports_dcv_input_impedance: false,
+  supports_dcv_input_impedance: true,
+}), false);
+assert.equal(runForm.supportsDcvInputZ({
+  supports_dcv_input_impedance: true,
+  dcv_input_impedance_options: [],
 }), false);
 assert.equal(runForm.supportsDcvInputZ({}), false);
 assert.equal(runForm.usesTriggerTimeout("external"), true);

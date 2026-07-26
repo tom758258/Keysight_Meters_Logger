@@ -293,11 +293,12 @@ export function capitalizeFirst(value) {
 }
 
 export function supportsAutoZero(measurement) {
-  if (measurement?.supports_auto_zero !== true) {
-    return false;
-  }
-  const options = measurement.auto_zero_options;
-  return !Array.isArray(options) || options.length > 1;
+  const options = measurement?.auto_zero_options;
+  return (
+    measurement?.supports_auto_zero === true &&
+    Array.isArray(options) &&
+    options.length > 1
+  );
 }
 
 function supportsAcBandwidth(measurement) {
@@ -317,7 +318,12 @@ function supportsFreqPeriodTimeout(measurement) {
 }
 
 export function supportsDcvInputZ(measurement) {
-  return measurement?.supports_dcv_input_impedance === true;
+  const options = measurement?.dcv_input_impedance_options;
+  return (
+    measurement?.supports_dcv_input_impedance === true &&
+    Array.isArray(options) &&
+    options.length > 0
+  );
 }
 
 export function usesTriggerTimeout(mode) {
