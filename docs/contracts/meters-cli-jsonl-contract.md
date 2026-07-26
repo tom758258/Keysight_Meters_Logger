@@ -1,8 +1,12 @@
 # Meters CLI JSON / JSONL Contract
 
-Schema version: `1`
+Common schema version: `2`
 
-Runtime contract revision: `v1.6`
+Compatibility policy: `v2-only`
+
+Implementation status: `migration-target`
+
+Runtime contract revision: `v2.0`
 
 The runtime contract revision tracks this document's evolution only.
 Orchestrators must use the JSON `schema_version` field to determine runtime
@@ -16,6 +20,22 @@ worker control plane and artifacts are defined in
 [Meters Worker Contract](meters-worker-contract.md).
 
 Consumers must ignore unknown fields, following the common envelope contract.
+
+This document is the Common v2 migration target. Until the implementation and
+focused tests are updated, Agents must not reinterpret existing schema-1 or
+unversioned output as schema `2`. Wrapper `report.json` schemas remain
+separately versioned and are unchanged by this migration.
+
+Every Common v2 JSON or JSONL object uses exact integer
+`schema_version: 2`.
+
+## Execution Context
+
+Meters binds Common execution context at `start-trigger-record` startup. Live
+`--model` maps to `expected_model_id`; simulate and dry-run `--model` map to
+`planning_model_id`. Meters does not define `planning_profile_id`. The
+startup-bound context is reported by machine output after implementation
+migration and is not repeated in `POST /command`.
 
 ## JSONL Events
 
@@ -101,7 +121,8 @@ interval.
 `--arguments-json {}`, no `--job-id`, `--format text`, and
 `--timeout-ms 3000`. It places the complete JSON object from
 `--arguments-json` in the command envelope and validates the envelope with the
-Meters command parser before sending. Invalid JSON, a non-object arguments
+Meters command parser before sending. Under Common v2 the sent envelope also
+contains exact integer `schema_version: 2`. Invalid JSON, a non-object arguments
 value, non-object metadata, and unknown commands exit `2` without a request.
 
 `status` wraps non-mutating `GET /status` and emits a flat normalized JSON

@@ -1,5 +1,11 @@
 # Meters Orchestrator Workflows
 
+Common schema version: `2`
+
+Compatibility policy: `v2-only`
+
+Implementation status: `migration-target`
+
 This document gives subprocess-oriented workflows for agents that drive the
 Keysight meter CLI. Shared lifecycle guidance is defined in
 [Common Orchestrator Workflows](common-orchestrator-workflows.md). Shared event
@@ -9,6 +15,10 @@ fields are defined in
 [Meters CLI JSON / JSONL Contract](meters-cli-jsonl-contract.md), and meter
 worker endpoints are defined in
 [Meters Worker Contract](meters-worker-contract.md).
+
+Before using this workflow, verify that the installed Meters implementation
+explicitly supports Common schema `2`. Otherwise stop and report
+`Common v2 migration required`; do not send schema `1` or attempt fallback.
 
 ## Invocation Forms
 
@@ -25,6 +35,13 @@ JSON/JSONL behavior, local control endpoints, process exit codes, artifacts,
 and `run_id` correlation rules. Direct in-process Python API calls, such as
 importing core runner functions, are outside this CLI/worker subprocess
 contract unless a separate Python API contract defines them.
+
+## Model Context
+
+Meters context is fixed at startup. Live model selection is an
+`expected_model_id` guard; simulate and dry-run selection is a
+`planning_model_id`. Meters does not use `planning_profile_id`, and command
+requests do not override startup context.
 
 ## Simulator Software Trigger Workflow
 
@@ -75,6 +92,7 @@ try:
             ready = event
             break
     assert ready is not None
+    assert ready["schema_version"] == 2
 
     wait_ready = subprocess.run(
         [
@@ -90,7 +108,9 @@ try:
         capture_output=True,
         check=True,
     )
-    assert json.loads(wait_ready.stdout)["run_id"] == ready["run_id"]
+    wait_ready_result = json.loads(wait_ready.stdout)
+    assert wait_ready_result["schema_version"] == 2
+    assert wait_ready_result["run_id"] == ready["run_id"]
 
     status = subprocess.run(
         [
@@ -106,7 +126,9 @@ try:
         capture_output=True,
         check=True,
     )
-    assert json.loads(status.stdout)["run_id"] == ready["run_id"]
+    status_result = json.loads(status.stdout)
+    assert status_result["schema_version"] == 2
+    assert status_result["run_id"] == ready["run_id"]
 
     command_result = subprocess.run(
         [
@@ -123,12 +145,14 @@ try:
         check=True,
     )
     command_response = json.loads(command_result.stdout)
+    assert command_response["schema_version"] == 2
     assert command_response["status"] == "accepted"
     assert command_response["command"] == "software_trigger"
 
     for line in worker.stdout:
         event = json.loads(line)
         if event["event"] == "summary":
+            assert event["schema_version"] == 2
             assert event["ok"] is True
             assert event["captured"] == 1
             assert event["errors"] == 0
@@ -166,8 +190,9 @@ the current run.
 ## Trigger And Stop
 
 Use `send-command --json` or direct `POST /command` for software-triggered
-Meters measurement requests. Use `stop --json` or direct `POST /stop` for
-cooperative cleanup.
+Meters measurement requests. The Common v2 command envelope includes exact
+integer `schema_version: 2` and omits `context` because Meters binds it at
+startup. Use `stop --json` or direct `POST /stop` for cooperative cleanup.
 
 Treat `send-command` exit `2` as local or worker validation failure. Treat
 HTTP `409`, `429`, other request failures, and invalid response bodies as exit

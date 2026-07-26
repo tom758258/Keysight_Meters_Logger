@@ -6,6 +6,16 @@ Component release notes:
 - [CLI](docs/cli/CHANGELOG.md)
 - [WebUI](docs/webui/CHANGELOG.md)
 
+## Unreleased
+
+### Documentation and contracts
+
+- Updated the copied Common contracts to the v2-only schema.
+- Added the minimum Meters contract changes for schema-2 command envelopes
+  andstartup-bound expected/planning model identity while preserving existingWorker, CLI, orchestration, CSV, trigger, and cleanup details.
+- The Meters implementation remains unchanged and requires a separate parser,
+  client, output, and test migration before it is Common v2 conformant.
+
 ## v2.0.0
 
 This is the first public Meters Tool release after the breaking project

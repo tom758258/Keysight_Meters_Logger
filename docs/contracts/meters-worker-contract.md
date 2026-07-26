@@ -1,12 +1,21 @@
 # Meters Worker Contract
 
-Schema version: `1`
+Common schema version: `2`
+
+Compatibility policy: `v2-only`
+
+Implementation status: `migration-target`
 
 This document defines the operational contract for the Meters worker
 used by agents and orchestration tools. It follows the lifecycle shape in
 [Common Worker Protocol](common-worker-protocol.md) and covers Meters-specific
 process modes, local control HTTP, runtime JSONL, and wrapper artifacts. It
 does not change instrument behavior.
+
+This document is the Common v2 migration target. The current implementation
+remains non-conformant until its parser, clients, JSON/JSONL producers, and
+focused tests are updated together. Agents must not send Common v2 requests
+before that migration is complete.
 
 ## Cross-Instrument Compatibility
 
@@ -55,6 +64,11 @@ fail Core profile validation, mismatches fail before setup SCPI, and the
 selected model never overrides the detected IDN-selected profile. Dry-run and
 simulate use the selected model profile unless a deterministic simulator
 resource supplies the model.
+
+Common execution context is bound at Worker startup. In live mode, `--model`
+maps to `expected_model_id`; in simulate and dry-run modes it maps to
+`planning_model_id`. Meters does not define `planning_profile_id`. Because the
+context is startup-bound, `POST /command` does not include `context`.
 When a CLI caller passes an optional PyVISA library/backend value such as
 `--visa-library "@py"`, live resource manager creation uses that backend. If it
 is omitted, live mode uses the system default `pyvisa.ResourceManager()`
@@ -112,6 +126,7 @@ Request body:
 
 ```json
 {
+  "schema_version": 2,
   "command": "software_trigger",
   "arguments": {
     "metadata": {}
@@ -127,12 +142,14 @@ other JSON values are stored as compact JSON literals in `trigger_metadata` on
 captured samples. `job_id` must be a client-provided string when present and is
 not written to measurement metadata.
 
-Malformed JSON, non-object bodies, unknown top-level fields, a missing or
-non-string `command`, unknown commands, non-object `arguments`, non-object
+Malformed JSON, non-object bodies, a missing or non-exact-integer
+`schema_version: 2`, unknown top-level fields, a missing or non-string
+`command`, unknown commands, non-object `arguments`, non-object
 metadata, non-string metadata keys, and a non-string `job_id` return `400` with
 structured JSON and do not publish queue events or touch instrument I/O.
 
-Every response includes `status`, `command`, and `job_id`. A valid
+Every response includes exact integer `schema_version: 2`, `status`,
+`command`, and `job_id`. A valid
 client-provided string identity is echoed even when the request has an unknown
 command or unknown top-level field. Malformed JSON, non-object bodies, and
 non-string command identities use `command: null`; omitted or non-string
@@ -141,20 +158,20 @@ non-string command identities use `command: null`; omitted or non-string
 Accepted requests return `202`:
 
 ```json
-{"status":"accepted","command":"software_trigger","job_id":"job-1"}
+{"schema_version":2,"status":"accepted","command":"software_trigger","job_id":"job-1"}
 ```
 
 Queue and rate-limit rejections return `429` with `reason: "queue_full"` or
 `reason: "rate_limited"`:
 
 ```json
-{"status":"rejected","command":"software_trigger","job_id":"job-1","reason":"queue_full"}
+{"schema_version":2,"status":"rejected","command":"software_trigger","job_id":"job-1","reason":"queue_full"}
 ```
 
 Validation failures return `400`:
 
 ```json
-{"status":"error","command":"software_trigger","job_id":"job-1","error":"validation_error","message":"metadata must be a JSON object"}
+{"schema_version":2,"status":"error","command":"software_trigger","job_id":"job-1","error":"validation_error","message":"metadata must be a JSON object"}
 ```
 
 This endpoint must not be used as a stop mechanism. In hardware-triggered
@@ -183,11 +200,11 @@ mutating worker state. `meters-tool wait-ready` polls this same endpoint
 until any successful `200` JSON status response is reachable or its deadline
 expires.
 
-Status response v1:
+Status response v2:
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "service": "keysight-meter",
   "run_id": "9f84b6ad-d2aa-4d68-9133-f33a5f6bcb9c",
   "status": "running",
@@ -206,7 +223,7 @@ Status response v1:
 
 Fields:
 
-- `schema_version`: integer contract version, currently `1`.
+- `schema_version`: exact integer `2`.
 - `service`: fixed string, `keysight-meter`.
 - `run_id`: current runtime UUID, or `null` if no runtime provider supplied
   one.
