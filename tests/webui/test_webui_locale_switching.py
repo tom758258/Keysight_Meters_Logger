@@ -190,6 +190,7 @@ for (const name of guardedGlobals) {
 
 const localeUi = await import(localeUiUrl);
 const domI18n = await import(domI18nUrl);
+const i18n = await import(new URL("./i18n.js", localeUiUrl));
 assert.deepEqual(globalAccesses, []);
 assert.deepEqual(localeUi.SUPPORTED_LOCALES, ["en", "zh-TW"]);
 assert.equal(localeUi.LOCALE_STORAGE_KEY, "meters-tool.webui.locale");
@@ -308,7 +309,8 @@ const firstRenderText = new FakeElement();
 firstRenderText.setAttribute("data-i18n", "app.unofficial_tool");
 domI18n.applyStaticTranslations({ querySelectorAll: () => [firstRenderText] });
 assert.equal(firstRenderDocument.lang, "zh-TW");
-assert.notEqual(firstRenderText.textContent, "");
+assert.equal(i18n.getLocale(), "zh-TW");
+assert.equal(firstRenderText.textContent, i18n.t("app.unofficial_tool"));
 
 localeUi.initializeLocaleUi({
   button,

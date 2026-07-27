@@ -132,6 +132,13 @@ class FakeClassList {
   }
 }
 
+function hasClass(element, className) {
+  return String(element.className || "")
+    .split(/\s+/)
+    .filter(Boolean)
+    .includes(className);
+}
+
 class FakeElement {
   constructor(tagName = "div") {
     this.tagName = tagName;
@@ -158,7 +165,7 @@ class FakeElement {
     if (selector === ".live-detail-button") {
       return this.children
         .flatMap((child) => [child, ...child.children])
-        .find((child) => child.className === "live-detail-button") ?? null;
+        .find((child) => hasClass(child, "live-detail-button")) ?? null;
     }
     return null;
   }
@@ -180,7 +187,7 @@ function descendantByClass(root, className) {
   const pending = [...root.children];
   while (pending.length > 0) {
     const child = pending.shift();
-    if (child.className === className) return child;
+    if (hasClass(child, className)) return child;
     pending.push(...child.children);
   }
   return null;

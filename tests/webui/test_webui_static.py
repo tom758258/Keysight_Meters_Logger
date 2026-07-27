@@ -65,15 +65,16 @@ class _HtmlTreeParser(HTMLParser):
 
 class WebUiStaticTests(unittest.TestCase):
     def test_static_ui_omits_cli_compat_only_controls(self):
-        index, app_js = load_static_ui()
-        payload_js = (STATIC_DIR / "run_form_payload.js").read_text(encoding="utf-8")
+        index, _ = load_static_ui()
+        javascript_sources = {
+            path.name: path.read_text(encoding="utf-8")
+            for path in sorted(STATIC_DIR.glob("*.js"))
+        }
 
-        self.assertNotIn("current_range", index)
-        self.assertNotIn("current_range", app_js)
-        self.assertNotIn("current_range", payload_js)
-        self.assertNotIn("enable_hw_trigger", index)
-        self.assertNotIn("enable_hw_trigger", app_js)
-        self.assertNotIn("enable_hw_trigger", payload_js)
+        for token in ("current_range", "enable_hw_trigger"):
+            self.assertNotIn(token, index)
+            for filename, source in javascript_sources.items():
+                self.assertNotIn(token, source, f"{token!r} found in {filename}")
 
     def test_static_ui_exposes_live_resource_select_and_range_unit(self):
         index, app_js = load_static_ui()
