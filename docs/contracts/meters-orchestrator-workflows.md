@@ -4,7 +4,7 @@ Common schema version: `2`
 
 Compatibility policy: `v2-only`
 
-Implementation status: `migration-target`
+Implementation status: `Common v2-only conformant`
 
 This document gives subprocess-oriented workflows for agents that drive the
 Keysight meter CLI. Shared lifecycle guidance is defined in
@@ -16,9 +16,8 @@ fields are defined in
 worker endpoints are defined in
 [Meters Worker Contract](meters-worker-contract.md).
 
-Before using this workflow, verify that the installed Meters implementation
-explicitly supports Common schema `2`. Otherwise stop and report
-`Common v2 migration required`; do not send schema `1` or attempt fallback.
+The current Meters implementation supports Common schema `2` only. Do not send
+schema `1` or attempt fallback or version negotiation.
 
 ## Invocation Forms
 

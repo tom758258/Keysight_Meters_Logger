@@ -7,11 +7,18 @@ import unittest
 from urllib import request
 from urllib.error import HTTPError
 
+import pytest
+
+from meters_tool_core.command import CommandValidationError, parse_command_envelope
 from meters_tool_core.trigger import SoftwareTriggerAdapter, TriggerRouter
 
 
 class SoftwareTriggerAdapterTests(unittest.TestCase):
-    def _post_command(self, port: int, payload: bytes = b'{"command":"software_trigger"}') -> int:
+    def _post_command(
+        self,
+        port: int,
+        payload: bytes = b'{"schema_version":2,"command":"software_trigger"}',
+    ) -> int:
         req = request.Request(
             f"http://127.0.0.1:{port}/command",
             method="POST",
@@ -78,7 +85,7 @@ class SoftwareTriggerAdapterTests(unittest.TestCase):
             status, payload = self._get_json(port)
 
             self.assertEqual(200, status)
-            self.assertEqual(1, payload["schema_version"])
+            self.assertEqual(2, payload["schema_version"])
             self.assertEqual("keysight-meter", payload["service"])
             self.assertEqual("running", payload["status"])
             self.assertEqual(f"http://127.0.0.1:{port}/command", payload["command_url"])
@@ -192,7 +199,7 @@ class SoftwareTriggerAdapterTests(unittest.TestCase):
         try:
             status = self._post_command(
                 port,
-                b'{"command":"software_trigger","arguments":{"metadata":{"batch":"A1","count":3,"tags":["x"]}}}',
+                b'{"schema_version":2,"command":"software_trigger","arguments":{"metadata":{"batch":"A1","count":3,"tags":["x"]}}}',
             )
             self.assertEqual(202, status)
             event = router.wait(timeout_s=0.1)
@@ -207,7 +214,13 @@ class SoftwareTriggerAdapterTests(unittest.TestCase):
         server = SoftwareTriggerAdapter(router, port=0, min_interval_ms=0, queue_max=0)
         _, port = server.start()
         try:
-            self.assertEqual(400, self._post_command(port, b'{"command":"unknown"}'))
+            self.assertEqual(
+                400,
+                self._post_command(
+                    port,
+                    b'{"schema_version":1,"command":"software_trigger"}',
+                ),
+            )
             self.assertIsNone(router.wait(timeout_s=0.01))
         finally:
             server.stop()
@@ -219,32 +232,52 @@ class SoftwareTriggerAdapterTests(unittest.TestCase):
         try:
             accepted = self._post_command_json(
                 port,
-                b'{"command":"software_trigger","job_id":"job-1"}',
+                b'{"schema_version":2,"command":"software_trigger","job_id":"job-1"}',
             )
             rejected = self._post_command_json(
                 port,
-                b'{"command":"software_trigger","job_id":"job-2"}',
+                b'{"schema_version":2,"command":"software_trigger","job_id":"job-2"}',
             )
             invalid = self._post_command_json(
                 port,
-                b'{"command":"software_trigger","job_id":"job-3","arguments":{"metadata":[]}}',
+                b'{"schema_version":2,"command":"software_trigger","job_id":"job-3","arguments":{"metadata":[]}}',
             )
             invalid_job = self._post_command_json(
                 port,
-                b'{"command":"software_trigger","job_id":3}',
+                b'{"schema_version":2,"command":"software_trigger","job_id":3}',
             )
 
             self.assertEqual(
-                (202, {"status": "accepted", "command": "software_trigger", "job_id": "job-1"}, "application/json"),
+                (
+                    202,
+                    {
+                        "schema_version": 2,
+                        "status": "accepted",
+                        "command": "software_trigger",
+                        "job_id": "job-1",
+                    },
+                    "application/json",
+                ),
                 accepted,
             )
             self.assertEqual(
-                (429, {"status": "rejected", "command": "software_trigger", "job_id": "job-2", "reason": "rate_limited"}, "application/json"),
+                (
+                    429,
+                    {
+                        "schema_version": 2,
+                        "status": "rejected",
+                        "command": "software_trigger",
+                        "job_id": "job-2",
+                        "reason": "rate_limited",
+                    },
+                    "application/json",
+                ),
                 rejected,
             )
             self.assertEqual(400, invalid[0])
             self.assertEqual(
                 {
+                    "schema_version": 2,
                     "status": "error",
                     "command": "software_trigger",
                     "job_id": "job-3",
@@ -340,6 +373,23 @@ class SoftwareTriggerAdapterTests(unittest.TestCase):
             self.assertEqual("stop", event.metadata.get("control"))
         finally:
             server.stop()
+
+
+_MISSING_SCHEMA_VERSION = object()
+
+
+@pytest.mark.parametrize(
+    "schema_version",
+    [_MISSING_SCHEMA_VERSION, 1, "2", 2.0, True],
+    ids=["missing", "v1", "string", "float", "boolean"],
+)
+def test_command_parser_rejects_non_v2_schema_versions(schema_version):
+    payload = {"command": "software_trigger"}
+    if schema_version is not _MISSING_SCHEMA_VERSION:
+        payload["schema_version"] = schema_version
+
+    with pytest.raises(CommandValidationError, match="schema_version must be exact integer 2"):
+        parse_command_envelope(payload)
 
 
 if __name__ == "__main__":

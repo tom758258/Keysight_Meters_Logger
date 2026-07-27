@@ -5,7 +5,8 @@ from dataclasses import dataclass
 from typing import Any
 
 
-ALLOWED_COMMAND_ENVELOPE_KEYS = {"command", "arguments", "job_id"}
+COMMAND_SCHEMA_VERSION = 2
+ALLOWED_COMMAND_ENVELOPE_KEYS = {"schema_version", "command", "arguments", "job_id"}
 METERS_SOFTWARE_TRIGGER_COMMAND = "software_trigger"
 
 
@@ -74,6 +75,7 @@ def command_response(
     message: str | None = None,
 ) -> dict[str, Any]:
     response: dict[str, Any] = {
+        "schema_version": COMMAND_SCHEMA_VERSION,
         "status": status,
         "command": command,
         "job_id": job_id,
@@ -102,6 +104,9 @@ def parse_command_envelope(payload: Any) -> SoftwareTriggerCommand:
     unknown = sorted(set(payload) - ALLOWED_COMMAND_ENVELOPE_KEYS)
     if unknown:
         fail(f"unknown top-level field: {unknown[0]}")
+    schema_version = payload.get("schema_version")
+    if type(schema_version) is not int or schema_version != COMMAND_SCHEMA_VERSION:
+        fail(f"schema_version must be exact integer {COMMAND_SCHEMA_VERSION}")
 
     command = payload.get("command")
     if not isinstance(command, str) or not command:
@@ -133,6 +138,7 @@ def software_trigger_envelope(
     job_id: str | None = None,
 ) -> dict[str, Any]:
     envelope: dict[str, Any] = {
+        "schema_version": COMMAND_SCHEMA_VERSION,
         "command": METERS_SOFTWARE_TRIGGER_COMMAND,
         "arguments": {"metadata": metadata or {}},
     }

@@ -45,7 +45,7 @@ from cli_command_helpers import (
 class CliStartCommandTests(CliCommandHarnessMixin, unittest.TestCase):
     def _worker_status(self, *, fatal_error=None):
         return {
-            "schema_version": 1,
+            "schema_version": 2,
             "service": "keysight-meter",
             "run_id": "run-123",
             "status": "running",
@@ -1530,7 +1530,7 @@ class CliStartCommandTests(CliCommandHarnessMixin, unittest.TestCase):
 
             self.assertIsNotNone(payload)
             assert payload is not None
-            self.assertEqual(1, payload["schema_version"])
+            self.assertEqual(2, payload["schema_version"])
             self.assertEqual("keysight-meter", payload["service"])
             self.assertEqual("running", payload["status"])
             self.assertEqual(f"http://127.0.0.1:{port}/command", payload["command_url"])
@@ -1547,7 +1547,7 @@ class CliStartCommandTests(CliCommandHarnessMixin, unittest.TestCase):
             trigger_req = request.Request(
                 f"http://127.0.0.1:{port}/command",
                 method="POST",
-                data=b'{"command":"software_trigger"}',
+                data=b'{"schema_version":2,"command":"software_trigger"}',
                 headers={"Content-Type": "application/json"},
             )
             with request.urlopen(trigger_req, timeout=1.0) as resp:

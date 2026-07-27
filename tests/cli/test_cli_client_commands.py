@@ -8,6 +8,7 @@ from datetime import datetime
 from unittest.mock import patch
 from urllib.error import HTTPError, URLError
 
+from meters_tool_cli._constants import CLI_EVENT_SCHEMA_VERSION
 from meters_tool_cli.cli import (
     build_parser,
     cmd_send_command,
@@ -21,6 +22,9 @@ from cli_command_helpers import CliCommandHarnessMixin
 
 
 class CliClientCommandTests(CliCommandHarnessMixin, unittest.TestCase):
+    def test_machine_schema_constant_is_v2(self):
+        self.assertEqual(2, CLI_EVENT_SCHEMA_VERSION)
+
     def test_soft_trigger_port_is_validated_before_request(self):
         stderr = io.StringIO()
 
@@ -45,7 +49,7 @@ class CliClientCommandTests(CliCommandHarnessMixin, unittest.TestCase):
             status = 202
 
             def read(self):
-                return b'{"status":"accepted","command":"software_trigger","job_id":null}'
+                return b'{"schema_version":2,"status":"accepted","command":"software_trigger","job_id":null}'
 
             def __enter__(self):
                 return self
@@ -65,7 +69,7 @@ class CliClientCommandTests(CliCommandHarnessMixin, unittest.TestCase):
         self.assertEqual("http://127.0.0.1:8765/command", req.full_url)
         self.assertEqual("POST", req.get_method())
         self.assertEqual(
-            b'{"command":"software_trigger","arguments":{"metadata":{"operator":"tom"}}}',
+            b'{"schema_version":2,"command":"software_trigger","arguments":{"metadata":{"operator":"tom"}}}',
             req.data,
         )
 
@@ -112,6 +116,7 @@ class CliClientCommandTests(CliCommandHarnessMixin, unittest.TestCase):
         self.assertFalse(events[0]["send_request"])
         self.assertEqual(
             {
+                "schema_version": 2,
                 "command": "software_trigger",
                 "arguments": {"metadata": {"operator": "tom"}},
             },
@@ -159,7 +164,7 @@ class CliClientCommandTests(CliCommandHarnessMixin, unittest.TestCase):
             status = 202
 
             def read(self):
-                return b'{"status":"accepted","command":"software_trigger","job_id":null}'
+                return b'{"schema_version":2,"status":"accepted","command":"software_trigger","job_id":null}'
 
             def __enter__(self):
                 return self
@@ -356,7 +361,7 @@ class CliClientCommandTests(CliCommandHarnessMixin, unittest.TestCase):
         self.assertTrue(event["reachable"])
         self.assertTrue(event["running"])
         self.assertEqual("run-123", event["run_id"])
-        self.assertEqual(1, event["worker_schema_version"])
+        self.assertEqual(2, event["worker_schema_version"])
         self.assertEqual("2026-05-31T00:00:00+00:00", event["worker_timestamp_utc"])
 
     @patch("meters_tool_cli._client_commands.request.urlopen")
@@ -490,7 +495,7 @@ class CliClientCommandTests(CliCommandHarnessMixin, unittest.TestCase):
 class CliClientCommandJsonTests(CliCommandHarnessMixin, unittest.TestCase):
     def _worker_status(self, *, fatal_error=None, status="running"):
         return {
-            "schema_version": 1,
+            "schema_version": 2,
             "service": "keysight-meter",
             "run_id": "run-123",
             "status": status,
@@ -539,7 +544,7 @@ class CliClientCommandJsonTests(CliCommandHarnessMixin, unittest.TestCase):
         self.assertEqual(ok, payload["ok"])
         self.assertEqual(port, payload["port"])
         self.assertEqual(request_sent, payload["request_sent"])
-        self.assertEqual(1, payload["schema_version"])
+        self.assertEqual(2, payload["schema_version"])
         for key in ("method", "url", "endpoint"):
             self.assertIn(key, payload)
         if request_sent:
@@ -584,7 +589,7 @@ class CliClientCommandJsonTests(CliCommandHarnessMixin, unittest.TestCase):
             status = 202
 
             def read(self):
-                return b'{"status":"accepted","command":"software_trigger","job_id":"job-1"}'
+                return b'{"schema_version":2,"status":"accepted","command":"software_trigger","job_id":"job-1"}'
 
             def __enter__(self):
                 return self
@@ -631,9 +636,33 @@ class CliClientCommandJsonTests(CliCommandHarnessMixin, unittest.TestCase):
         mock_urlopen.assert_not_called()
 
     @patch("meters_tool_cli._client_commands.request.urlopen")
+    def test_soft_trigger_rejects_non_v2_worker_response(self, mock_urlopen):
+        class FakeResponse:
+            status = 202
+
+            def read(self):
+                return b'{"schema_version":1,"status":"accepted","command":"software_trigger","job_id":null}'
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+        mock_urlopen.return_value = FakeResponse()
+        stdout = io.StringIO()
+
+        with redirect_stdout(stdout):
+            rc = cmd_send_command(8765, "{}", output_format="json")
+
+        self.assertEqual(3, rc)
+        event = json.loads(stdout.getvalue())
+        self.assertIn("requires schema_version 2", event["message"])
+
+    @patch("meters_tool_cli._client_commands.request.urlopen")
     def test_soft_trigger_http_400_merges_worker_response_and_returns_2(self, mock_urlopen):
         body = io.BytesIO(
-            b'{"status":"error","command":"software_trigger","job_id":"job-1",'
+            b'{"schema_version":2,"status":"error","command":"software_trigger","job_id":"job-1",'
             b'"error":"validation_error","message":"metadata must be a JSON object"}'
         )
         mock_urlopen.side_effect = HTTPError(
@@ -684,7 +713,7 @@ class CliClientCommandJsonTests(CliCommandHarnessMixin, unittest.TestCase):
             status = 202
 
             def read(self):
-                return b'{"status":"accepted","command":"software_trigger","job_id":"other"}'
+                return b'{"schema_version":2,"status":"accepted","command":"software_trigger","job_id":"other"}'
 
             def __enter__(self):
                 return self

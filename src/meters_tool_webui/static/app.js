@@ -404,6 +404,7 @@ triggerRunButton.addEventListener("click", async () => {
     await api("/api/runs/current/command", {
       method: "POST",
       body: JSON.stringify({
+        schema_version: 2,
         command: "software_trigger",
         arguments: { metadata },
       }),

@@ -948,13 +948,19 @@ class WebUiApiTests(unittest.TestCase):
         triggered = client.post(
             "/api/runs/current/command",
             json={
+                "schema_version": 2,
                 "command": "software_trigger",
                 "arguments": {"metadata": {"source": "web-ui", "batch": "A"}},
             },
         )
         self.assertEqual(202, triggered.status_code)
         self.assertEqual(
-            {"status": "accepted", "command": "software_trigger", "job_id": None},
+            {
+                "schema_version": 2,
+                "status": "accepted",
+                "command": "software_trigger",
+                "job_id": None,
+            },
             triggered.json(),
         )
         self.assertEqual(
@@ -999,7 +1005,11 @@ class WebUiApiTests(unittest.TestCase):
 
         no_active = client.post(
             "/api/runs/current/command",
-            json={"command": "software_trigger", "job_id": "job-1"},
+            json={
+                "schema_version": 2,
+                "command": "software_trigger",
+                "job_id": "job-1",
+            },
         )
         malformed = client.post(
             "/api/runs/current/command",
@@ -1010,6 +1020,7 @@ class WebUiApiTests(unittest.TestCase):
         self.assertEqual(409, no_active.status_code)
         self.assertEqual(
             {
+                "schema_version": 2,
                 "status": "error",
                 "command": "software_trigger",
                 "job_id": "job-1",
@@ -1019,6 +1030,7 @@ class WebUiApiTests(unittest.TestCase):
             no_active.json(),
         )
         self.assertEqual(400, malformed.status_code)
+        self.assertEqual(2, malformed.json()["schema_version"])
         self.assertEqual("error", malformed.json()["status"])
         self.assertEqual("validation_error", malformed.json()["error"])
         self.assertIsNone(malformed.json()["command"])

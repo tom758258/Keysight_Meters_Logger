@@ -4,7 +4,7 @@ Common schema version: `2`
 
 Compatibility policy: `v2-only`
 
-Implementation status: `migration-target`
+Implementation status: `Common v2-only conformant`
 
 This document defines the operational contract for the Meters worker
 used by agents and orchestration tools. It follows the lifecycle shape in
@@ -12,10 +12,10 @@ used by agents and orchestration tools. It follows the lifecycle shape in
 process modes, local control HTTP, runtime JSONL, and wrapper artifacts. It
 does not change instrument behavior.
 
-This document is the Common v2 migration target. The current implementation
-remains non-conformant until its parser, clients, JSON/JSONL producers, and
-focused tests are updated together. Agents must not send Common v2 requests
-before that migration is complete.
+The current implementation enforces Common schema `2` for Worker command
+requests and responses, status responses, and CLI JSON/JSONL output. Schema
+`1`, missing, and non-integer schema versions are not accepted at v2-only
+runtime boundaries.
 
 ## Cross-Instrument Compatibility
 

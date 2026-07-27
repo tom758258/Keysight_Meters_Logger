@@ -4,7 +4,7 @@ Common schema version: `2`
 
 Compatibility policy: `v2-only`
 
-Implementation status: `migration-target`
+Implementation status: `Common v2-only conformant`
 
 Runtime contract revision: `v2.0`
 
@@ -21,10 +21,9 @@ worker control plane and artifacts are defined in
 
 Consumers must ignore unknown fields, following the common envelope contract.
 
-This document is the Common v2 migration target. Until the implementation and
-focused tests are updated, Agents must not reinterpret existing schema-1 or
-unversioned output as schema `2`. Wrapper `report.json` schemas remain
-separately versioned and are unchanged by this migration.
+The current CLI implementation produces Common schema `2` machine output and
+rejects non-v2 Worker lifecycle responses. Wrapper `report.json` schemas remain
+separately versioned at schema `1` and are unchanged by this migration.
 
 Every Common v2 JSON or JSONL object uses exact integer
 `schema_version: 2`.
@@ -34,8 +33,8 @@ Every Common v2 JSON or JSONL object uses exact integer
 Meters binds Common execution context at `start-trigger-record` startup. Live
 `--model` maps to `expected_model_id`; simulate and dry-run `--model` map to
 `planning_model_id`. Meters does not define `planning_profile_id`. The
-startup-bound context is reported by machine output after implementation
-migration and is not repeated in `POST /command`.
+startup-bound context is reported by machine output and is not repeated in
+`POST /command`.
 
 ## JSONL Events
 

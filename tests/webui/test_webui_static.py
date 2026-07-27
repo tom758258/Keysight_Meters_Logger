@@ -380,6 +380,7 @@ class WebUiStaticTests(unittest.TestCase):
         ):
             with self.subTest(endpoint=endpoint):
                 self.assertIn(endpoint, app_js)
+        self.assertIn("schema_version: 2", app_js)
 
     def test_dynamic_optional_labels_group_title_and_marker_before_select(self):
         index, _app_js = load_static_ui()

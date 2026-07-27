@@ -144,18 +144,18 @@ def test_worker_contract_documents_cross_instrument_boundary():
     assert "POST /stop" in text
 
 
-def test_cli_jsonl_contract_documents_v2_migration_target_and_machine_fields():
+def test_cli_jsonl_contract_documents_v2_conformance_and_machine_fields():
     text = read_contract("meters-cli-jsonl-contract.md")
 
     for metadata in (
         "Common schema version: `2`",
         "Compatibility policy: `v2-only`",
-        "Implementation status: `migration-target`",
+        "Implementation status: `Common v2-only conformant`",
         "Runtime contract revision: `v2.0`",
     ):
         assert metadata in text
 
-    assert "schema-1" in text
+    assert "`schema_version: 2`" in text
     for field in (
         "schema_version",
         "event",

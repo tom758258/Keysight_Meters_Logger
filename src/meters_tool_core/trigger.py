@@ -8,7 +8,12 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from queue import Empty, Full, Queue
 from typing import Callable, Optional, Tuple, cast
 
-from .command import CommandValidationError, command_response, parse_command_envelope_json
+from .command import (
+    COMMAND_SCHEMA_VERSION,
+    CommandValidationError,
+    command_response,
+    parse_command_envelope_json,
+)
 from .instrument import is_pyvisa_timeout_error
 from .instrument_backend import InstrumentBackend
 from .models import TriggerEvent, TriggerSource
@@ -295,7 +300,7 @@ class SoftwareTriggerAdapter:
             status = "running"
         base_url = f"http://{self._host}:{self._port}"
         return {
-            "schema_version": 1,
+            "schema_version": COMMAND_SCHEMA_VERSION,
             "service": "keysight-meter",
             "run_id": dynamic.get("run_id"),
             "status": status,

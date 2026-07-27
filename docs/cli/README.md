@@ -770,7 +770,7 @@ Output:
 
 ```json
 {"command": "software_trigger", "event": "send-command", "http_status": 202,
- "job_id": null, "message": "command accepted", "schema_version": 1,
+ "job_id": null, "message": "command accepted", "schema_version": 2,
  "status": "accepted", "timestamp_utc": "2026-05-18T..."}
 ```
 
@@ -789,7 +789,7 @@ Output:
 
 ```json
 {"event": "stop", "http_status": 202, "message": "stop accepted",
- "schema_version": 1, "status": "accepted", "timestamp_utc": "2026-05-18T..."}
+ "schema_version": 2, "status": "accepted", "timestamp_utc": "2026-05-18T..."}
 ```
 
 If the endpoint is not listening (process already stopped), exits with code 0

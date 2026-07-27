@@ -14,8 +14,9 @@ Component release notes:
 - Added the minimum Meters contract changes for schema-2 command envelopes
   and startup-bound expected/planning model identity while preserving existing
   Worker, CLI, orchestration, CSV, trigger, and cleanup details.
-- The Meters implementation remains unchanged and requires a separate parser,
-  client, output, and test migration before it is Common v2 conformant.
+- Migrated the Meters Worker command/status runtime, CLI machine output and
+  lifecycle clients, and browser software-trigger request to Common schema 2.
+  Wrapper `report.json` schemas remain separately versioned at schema 1.
 
 ## v2.0.0
 

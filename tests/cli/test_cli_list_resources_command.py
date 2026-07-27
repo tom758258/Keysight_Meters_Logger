@@ -226,7 +226,7 @@ class CliListResourcesCommandTests(CliCommandHarnessMixin, unittest.TestCase):
         self.assertEqual(1, len(lines))
         payload = json.loads(lines[0])
         self.assertEqual("list-resources", payload["event"])
-        self.assertEqual(1, payload["schema_version"])
+        self.assertEqual(2, payload["schema_version"])
         self.assertEqual(2, payload["count"])
         self.assertEqual(1, payload["live_count"])
         self.assertEqual(1, payload["stale_count"])

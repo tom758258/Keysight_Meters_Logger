@@ -9,7 +9,11 @@ from typing import Any
 from urllib import request
 from urllib.error import URLError
 
-from meters_tool_core.command import CommandValidationError, parse_command_envelope
+from meters_tool_core.command import (
+    CommandValidationError,
+    parse_command_envelope,
+    software_trigger_envelope,
+)
 from meters_tool_core.validation import validate_client_port
 
 from ._constants import CLI_EVENT_SCHEMA_VERSION
@@ -196,6 +200,12 @@ def _fetch_worker_status(port: int, timeout_ms: int) -> tuple[int, dict[str, obj
             ) from exc
         if not isinstance(worker_status, dict):
             raise StatusPayloadError("status endpoint returned invalid JSON object", http_status)
+        schema_version = worker_status.get("schema_version")
+        if type(schema_version) is not int or schema_version != CLI_EVENT_SCHEMA_VERSION:
+            raise StatusPayloadError(
+                f"status endpoint requires schema_version {CLI_EVENT_SCHEMA_VERSION}",
+                http_status,
+            )
         return http_status, worker_status
 
 
@@ -213,6 +223,12 @@ def _read_command_response(response: Any, http_status: int) -> dict[str, object]
     if not isinstance(payload, dict):
         raise CommandResponsePayloadError(
             "command endpoint returned an invalid JSON object",
+            http_status,
+        )
+    schema_version = payload.get("schema_version")
+    if type(schema_version) is not int or schema_version != CLI_EVENT_SCHEMA_VERSION:
+        raise CommandResponsePayloadError(
+            f"command endpoint requires schema_version {CLI_EVENT_SCHEMA_VERSION}",
             http_status,
         )
     if payload.get("status") not in {"accepted", "rejected", "error"}:
@@ -361,9 +377,9 @@ def cmd_send_command(
             error_phase="validation",
             request_sent=False,
         )
-    envelope: dict[str, object] = {"command": command, "arguments": arguments}
-    if job_id is not None:
-        envelope["job_id"] = job_id
+    envelope = software_trigger_envelope(job_id=job_id)
+    envelope["command"] = command
+    envelope["arguments"] = arguments
     try:
         parse_command_envelope(envelope)
     except CommandValidationError as exc:

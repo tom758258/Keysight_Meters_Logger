@@ -254,7 +254,7 @@ class CliCommandHarnessMixin:
     def _parse_jsonl_events(self, output):
         events = [json.loads(line) for line in output.splitlines() if line.strip()]
         self.assertTrue(events)
-        self.assertTrue(all(event["schema_version"] == 1 for event in events))
+        self.assertTrue(all(event["schema_version"] == 2 for event in events))
         self.assertTrue(all("event" in event for event in events))
         self.assertTrue(all("timestamp_utc" in event for event in events))
         return events
@@ -292,7 +292,7 @@ class CliCommandHarnessMixin:
 
     def _worker_status(self, *, fatal_error=None, status="running"):
         return {
-            "schema_version": 1,
+            "schema_version": 2,
             "service": "keysight-meter",
             "run_id": "run-123",
             "status": status,
