@@ -33,8 +33,8 @@ Every Common v2 JSON or JSONL object uses exact integer
 Meters binds Common execution context at `start-trigger-record` startup. Live
 `--model` maps to `expected_model_id`; simulate and dry-run `--model` map to
 `planning_model_id`. Meters does not define `planning_profile_id`. The
-startup-bound context is reported by machine output and is not repeated in
-`POST /command`.
+startup-bound context is derived from the start arguments and is not
+repeated in `POST /command`.
 
 ## JSONL Events
 
