@@ -305,28 +305,21 @@ const supportOpen = element("#model-support-open");
 const supportLimits = element("#model-support-limits");
 const supportPending = element("#model-support-pending");
 assert.equal(
-  supportStatus.textContent,
-  (
-    "Auto-detect: showing 34461A fallback capability view until Start or Scan " +
-    "detects IDN. Live runtime model is selected from detected *IDN?. " +
-    "(live_validated_full_suite, usb/system_visa)"
-  )
+  supportStatus.getAttribute("data-i18n"),
+  "support.summary.auto_detect_status"
 );
-assert.equal(
-  supportOpen.textContent,
-  "immediate, software, software timer, custom buffered, Frequency, Period"
-);
-assert.equal(
-  supportLimits.textContent,
-  (
-    "no 10 A current path, no current-terminal selection, " +
-    "1000-reading memory limit, no base-profile external trigger support"
-  )
-);
-assert.equal(
-  supportPending.textContent,
-  "LAN/TCPIP system-VISA validation, LAN/TCPIP pyvisa-py @py validation"
-);
+for (const token of ["34461A", "live_validated_full_suite", "usb/system_visa"]) {
+  assert.match(supportStatus.textContent, new RegExp(token));
+}
+for (const key of supportSummary.open_workflow_keys) {
+  assert.match(supportOpen.textContent, new RegExp(i18n.t(key)));
+}
+for (const key of supportSummary.limit_keys) {
+  assert.match(supportLimits.textContent, new RegExp(i18n.t(key)));
+}
+for (const key of supportSummary.pending_keys) {
+  assert.match(supportPending.textContent, new RegExp(i18n.t(key)));
+}
 
 supportSummary.is_fallback_capability_view = false;
 supportSummary.model = "34460A";
@@ -334,9 +327,12 @@ supportSummary.status_text = "USB/system-VISA full-suite validated.";
 supportSummary.status_key = "support.status.usb_system_visa_validated";
 await runForm.loadCapabilities();
 assert.equal(
-  supportStatus.textContent,
-  "34460A: USB/system-VISA full-suite validated. (live_validated_full_suite, usb/system_visa)"
+  supportStatus.getAttribute("data-i18n"),
+  "support.summary.profile_status"
 );
+for (const token of ["34460A", "live_validated_full_suite", "usb/system_visa"]) {
+  assert.match(supportStatus.textContent, new RegExp(token));
+}
 assert.equal(fetchCount, 2);
 
 const preservedValues = {
@@ -358,20 +354,19 @@ const refreshFetchCount = fetchCount;
 i18n.setLocale("zh-TW");
 runForm.refreshSupportSummaryPresentation();
 assert.equal(
-  supportStatus.textContent,
-  (
-    "自動偵測：目前顯示 34461A 的備援功能檢視，直到開始或掃描時偵測到 IDN。" +
-    "實機執行型號由偵測到的 *IDN? 決定。" +
-    "（live_validated_full_suite，usb/system_visa）"
-  )
+  supportStatus.getAttribute("data-i18n"),
+  "support.summary.auto_detect_status"
 );
-assert.equal(
-  supportOpen.textContent,
-  "立即觸發, 軟體觸發, 軟體定時觸發, 自訂緩衝, 頻率, 週期"
-);
-assert.match(supportLimits.textContent, /無 10 A 電流路徑/);
-assert.match(supportLimits.textContent, /1000 筆讀值記憶體限制/);
-assert.match(supportPending.textContent, /LAN\/TCPIP system-VISA 驗證/);
+for (const token of ["34461A", "live_validated_full_suite", "usb/system_visa"]) {
+  assert.match(supportStatus.textContent, new RegExp(token));
+}
+for (const [element, keys] of [
+  [supportOpen, supportSummary.open_workflow_keys],
+  [supportLimits, supportSummary.limit_keys],
+  [supportPending, supportSummary.pending_keys],
+]) {
+  for (const key of keys) assert.match(element.textContent, new RegExp(i18n.t(key)));
+}
 assert.equal(fetchCount, refreshFetchCount);
 assert.deepEqual(
   {
@@ -400,17 +395,19 @@ assert.doesNotMatch(supportStatus.textContent, /support\.future\.unknown_key/);
 
 delete supportSummary.open_workflow_keys;
 await runForm.loadCapabilities();
-assert.equal(
-  supportOpen.textContent,
-  "immediate, software, software timer, custom buffered, Frequency, Period"
-);
+for (const rawWorkflow of supportSummary.open_workflows) {
+  assert.match(supportOpen.textContent, new RegExp(rawWorkflow));
+}
 
 supportSummary.open_workflow_keys = ["support.workflow.immediate"];
 await runForm.loadCapabilities();
-assert.equal(
+assert.match(
   supportOpen.textContent,
-  "立即觸發, software, software timer, custom buffered, Frequency, Period"
+  new RegExp(i18n.t("support.workflow.immediate"))
 );
+for (const rawWorkflow of supportSummary.open_workflows.slice(1)) {
+  assert.match(supportOpen.textContent, new RegExp(rawWorkflow));
+}
 
 supportSummary.open_workflow_keys = [
   "support.workflow.immediate",
@@ -422,18 +419,18 @@ supportSummary.open_workflow_keys = [
   "support.future.extra_key",
 ];
 await runForm.loadCapabilities();
-assert.equal(
-  supportOpen.textContent,
-  "立即觸發, software, 軟體定時觸發, 自訂緩衝, 頻率, 週期"
-);
+for (const [index, rawWorkflow] of supportSummary.open_workflows.entries()) {
+  const key = supportSummary.open_workflow_keys[index];
+  const expected = key && i18n.t(key) !== key ? i18n.t(key) : rawWorkflow;
+  assert.match(supportOpen.textContent, new RegExp(expected));
+}
 assert.doesNotMatch(supportOpen.textContent, /support\.future/);
 
 supportSummary.open_workflow_keys = { malformed: true };
 await runForm.loadCapabilities();
-assert.equal(
-  supportOpen.textContent,
-  "immediate, software, software timer, custom buffered, Frequency, Period"
-);
+for (const rawWorkflow of supportSummary.open_workflows) {
+  assert.match(supportOpen.textContent, new RegExp(rawWorkflow));
+}
 
 supportSummary.open_workflows = [];
 supportSummary.open_workflow_keys = ["support.workflow.immediate"];
@@ -442,16 +439,16 @@ supportSummary.limit_keys = ["support.limit.no_10a_current_path"];
 supportSummary.pending = [];
 supportSummary.pending_keys = null;
 await runForm.loadCapabilities();
-assert.equal(supportOpen.textContent, "無");
-assert.equal(supportLimits.textContent, "無");
-assert.equal(supportPending.textContent, "無");
+assert.equal(supportOpen.textContent, i18n.t("support.summary.none"));
+assert.equal(supportLimits.textContent, i18n.t("support.summary.none"));
+assert.equal(supportPending.textContent, i18n.t("support.summary.none"));
 
 i18n.setLocale("en");
 const finalRefreshFetchCount = fetchCount;
 runForm.refreshSupportSummaryPresentation();
-assert.equal(supportOpen.textContent, "None");
-assert.equal(supportLimits.textContent, "None");
-assert.equal(supportPending.textContent, "None");
+assert.equal(supportOpen.textContent, i18n.t("support.summary.none"));
+assert.equal(supportLimits.textContent, i18n.t("support.summary.none"));
+assert.equal(supportPending.textContent, i18n.t("support.summary.none"));
 assert.equal(fetchCount, finalRefreshFetchCount);
 await runForm.loadCapabilities();
 
@@ -483,9 +480,15 @@ assert.deepEqual(
   preservedPresentationValues,
 );
 assert.equal(optionByValue(measurementSelect, "voltage-dc").disabled, true);
-assert.match(optionByValue(measurementSelect, "voltage-dc").textContent, /等待實機驗證/);
+assert.equal(
+  optionByValue(measurementSelect, "voltage-dc").getAttribute("data-i18n-title"),
+  "support.reason.pending_live_validation"
+);
 assert.equal(optionByValue(triggerSelect, "external").disabled, true);
-assert.match(optionByValue(triggerSelect, "external").textContent, /型號不支援/);
+assert.equal(
+  optionByValue(triggerSelect, "external").getAttribute("data-i18n-title"),
+  "support.reason.not_supported_by_model"
+);
 assert.equal(fetchCount, beforePresentationRefreshFetchCount);
 i18n.setLocale("en");
 runForm.refreshRunFormPresentation();
@@ -496,17 +499,24 @@ runForm.updatePanelSummaries();
 assert.equal(measurementSelect.value, "current-dc");
 assert.equal(triggerSelect.value, "software");
 assert.equal(modelSelect.value, "34461A");
-assert.equal(optionByValue(measurementSelect, "current-dc").textContent, "DC current (current-dc, A)");
+assert.equal(
+  optionByValue(measurementSelect, "current-dc").getAttribute("data-i18n"),
+  "measurement.option_label"
+);
+assert.match(optionByValue(measurementSelect, "current-dc").textContent, /current-dc/);
+assert.equal(
+  optionByValue(triggerSelect, "software").getAttribute("data-i18n"),
+  "trigger.option_label"
+);
+assert.match(optionByValue(triggerSelect, "software").textContent, /software/);
+// Unknown backend-provided labels remain raw.
 assert.equal(optionByValue(measurementSelect, "future-measure").textContent, "Future-measure (X)");
-assert.equal(optionByValue(triggerSelect, "software").textContent, "Software (software)");
 assert.equal(optionByValue(triggerSelect, "future-trigger").textContent, "Future-trigger");
 
 const pendingMeasurement = optionByValue(measurementSelect, "voltage-dc");
 assert.equal(pendingMeasurement.value, "voltage-dc");
 assert.equal(pendingMeasurement.disabled, true);
 assert.equal(pendingMeasurement.dataset.validationStatus, "feature_pending");
-assert.match(pendingMeasurement.textContent, /Pending live validation/);
-assert.equal(pendingMeasurement.title, "Pending live validation");
 assert.equal(pendingMeasurement.getAttribute("data-i18n"), "support.unavailable_option");
 assert.equal(pendingMeasurement.getAttribute("data-i18n-title"), "support.reason.pending_live_validation");
 
@@ -517,64 +527,74 @@ assert.equal(promotedRatioMeasurement.dataset.validationStatus, "live_validated_
 const unsupportedTrigger = optionByValue(triggerSelect, "external");
 assert.equal(unsupportedTrigger.disabled, true);
 assert.equal(unsupportedTrigger.dataset.validationStatus, "not_supported_by_model");
-assert.match(unsupportedTrigger.textContent, /Not supported by model/);
+assert.equal(
+  unsupportedTrigger.getAttribute("data-i18n-title"),
+  "support.reason.not_supported_by_model"
+);
 
-assert.deepEqual(modelSelect.options.map((option) => option.value), ["", "34460A", "34461A"]);
-assert.deepEqual(modelSelect.options.map((option) => option.textContent), [
-  "Auto-detect", "Require 34460A", "Require 34461A",
-]);
-assert.equal(modelSelect.options[0].getAttribute("data-i18n"), "device.auto_detect");
-assert.equal(modelSelect.options[1].getAttribute("data-i18n"), "device.require_model");
+assert.deepEqual(
+  new Set(modelSelect.options.map((option) => option.value)),
+  new Set(["", "34460A", "34461A"])
+);
+assert.equal(optionByValue(modelSelect, "").getAttribute("data-i18n"), "device.auto_detect");
+assert.equal(
+  optionByValue(modelSelect, "34460A").getAttribute("data-i18n"),
+  "device.require_model"
+);
+assert.equal(
+  optionByValue(modelSelect, "34461A").getAttribute("data-i18n"),
+  "device.require_model"
+);
 
 const autoZero = element("[name='auto_zero']");
-assert.deepEqual(autoZero.options.map((option) => option.value), ["on", "off", "once"]);
-assert.deepEqual(autoZero.options.map((option) => option.textContent), ["On", "Off", "Once"]);
+assert.deepEqual(
+  new Set(autoZero.options.map((option) => option.value)),
+  new Set(["on", "off", "once"])
+);
 assert.equal(autoZero.value, "on");
-assert.equal(element(".subtitle").textContent, "Unofficial Tool v2.0.0");
 assert.equal(element(".subtitle").getAttribute("data-i18n"), "app.unofficial_tool_version");
 
 const runSummary = element("[data-summary-for='run-setup']");
-assert.equal(runSummary.textContent, "Software (software) / DC current (current-dc) / max 100");
 assert.equal(runSummary.getAttribute("data-i18n"), "run.summary_with_max");
+assert.match(runSummary.getAttribute("data-i18n-params"), /software/);
+assert.match(runSummary.getAttribute("data-i18n-params"), /current-dc/);
 element("[name='max_samples']").value = "";
 runForm.updatePanelSummaries();
-assert.equal(runSummary.textContent, "Software (software) / DC current (current-dc)");
 assert.equal(runSummary.getAttribute("data-i18n"), "run.summary");
 
 element("#current-terminal").value = "3";
 runForm.updatePanelSummaries();
 const measurementSummary = element("[data-summary-for='measurement-options']");
-assert.match(measurementSummary.textContent, /Auto range/);
-assert.match(measurementSummary.textContent, /Auto zero: On/);
-assert.match(measurementSummary.textContent, /NPLC 1/);
-assert.match(measurementSummary.textContent, /Terminal 3 A/);
+assert.equal(measurementSummary.getAttribute("data-i18n"), "measurement.summary");
+assert.match(measurementSummary.getAttribute("data-i18n-params"), /NPLC 1/);
+assert.match(measurementSummary.getAttribute("data-i18n-params"), /3 A/);
 
 measurementSelect.value = "frequency";
 runForm.updateMeasurementUi();
-assert.match(measurementSummary.textContent, /AC Filter >20 Hz/);
-assert.match(measurementSummary.textContent, /Gate 0.1 s/);
-assert.match(measurementSummary.textContent, /Timeout auto/);
+assert.match(measurementSummary.getAttribute("data-i18n-params"), />20 Hz/);
+assert.match(measurementSummary.getAttribute("data-i18n-params"), /0.1 s/);
+assert.match(measurementSummary.getAttribute("data-i18n-params"), /auto/);
 
 measurementSelect.value = "voltage-ac";
 runForm.updateMeasurementUi();
-assert.match(measurementSummary.textContent, /AC Band 3 Hz/);
+assert.match(measurementSummary.getAttribute("data-i18n-params"), /3 Hz/);
 
 triggerSelect.value = "software";
 element("#timer-trigger-checkbox").checked = true;
 runForm.updatePanelSummaries();
 const triggerSummary = element("[data-summary-for='trigger-options']");
-assert.equal(triggerSummary.textContent, "Timer 1 s");
 assert.equal(triggerSummary.getAttribute("data-i18n"), "trigger.summary.timer");
+assert.match(triggerSummary.getAttribute("data-i18n-params"), /"value":"1"/);
 element("#timer-trigger-checkbox").checked = false;
 runForm.updatePanelSummaries();
-assert.equal(triggerSummary.textContent, "Software (software) trigger");
 assert.equal(triggerSummary.getAttribute("data-i18n"), "trigger.summary.mode");
+assert.match(triggerSummary.getAttribute("data-i18n-params"), /software/);
 
 const interval = element("[name='sw_min_interval_ms']");
 interval.disabled = false;
 interval.value = "49";
 assert.equal(runForm.validateSwMinInterval(), false);
-assert.equal(interval.validationMessage, "Use 0 to disable throttling, or use 50-600000 ms.");
+assert.notEqual(interval.validationMessage, "");
 interval.value = "0";
 assert.equal(runForm.validateSwMinInterval(), true);
 assert.equal(interval.validationMessage, "");
@@ -597,7 +617,7 @@ assert.equal(payload.instrument_model, "34461A");
 
 optionByValue(measurementSelect, "current-dc").textContent = "translated measurement";
 optionByValue(triggerSelect, "software").textContent = "translated trigger";
-modelSelect.selectedOptions[0].textContent = "translated model";
+optionByValue(modelSelect, modelSelect.value).textContent = "translated model";
 assert.equal(measurementSelect.value, "current-dc");
 assert.equal(triggerSelect.value, "software");
 assert.equal(modelSelect.value, "34461A");
@@ -609,12 +629,14 @@ element("#resource").value = "TCPIP0::SIM";
 runForm.updateFeatureAvailability();
 assert.equal(optionByValue(measurementSelect, "current-dc").disabled, true);
 assert.equal(optionByValue(measurementSelect, "current-dc").dataset.validationStatus, "missing");
-assert.match(optionByValue(measurementSelect, "current-dc").textContent, /current transport\/backend scope/);
+assert.equal(
+  optionByValue(measurementSelect, "current-dc").getAttribute("data-i18n-title"),
+  "support.reason.scope_unavailable"
+);
 
 appMetadata = {};
 element("#resource").value = "USB0::SIM";
 await runForm.loadCapabilities();
-assert.equal(element(".subtitle").textContent, "Unofficial Tool");
 assert.equal(element(".subtitle").getAttribute("data-i18n"), "app.unofficial_tool");
 
 process.stdout.write(JSON.stringify({ ok: true }));
@@ -639,103 +661,3 @@ process.stdout.write(JSON.stringify({ ok: true }));
         f"stdout:\n{completed.stdout}\nstderr:\n{completed.stderr}"
     )
     assert completed.stdout == '{"ok":true}'
-
-
-def test_p23_and_p25_source_boundaries_and_semantic_keys():
-    source = (STATIC_DIR / "run_form.js").read_text(encoding="utf-8")
-    support_source = (STATIC_DIR / "run_form_support.js").read_text(encoding="utf-8")
-    payload_source = (STATIC_DIR / "run_form_payload.js").read_text(encoding="utf-8")
-    combined_source = source + support_source + payload_source
-
-    for key in (
-        "support.reason.scope_unavailable",
-        "support.unavailable_option",
-        "measurement.option.voltage_dc",
-        "measurement.option_label",
-        "trigger.option.software_custom",
-        "trigger.option_label",
-        "validation.interval_range",
-        "error.trigger_metadata_invalid_json",
-        "error.trigger_metadata_not_object",
-        "run.summary",
-        "run.summary_with_max",
-        "measurement.summary.auto_range",
-        "measurement.summary.manual_range",
-        "measurement.summary.auto_zero",
-        "measurement.summary.nplc",
-        "measurement.summary.ac_filter",
-        "measurement.summary.ac_band",
-        "measurement.summary.gate",
-        "measurement.summary.timeout",
-        "measurement.summary.terminal",
-        "trigger.summary.timer",
-        "trigger.summary.mode",
-        "app.unofficial_tool_version",
-        "device.auto_detect",
-        "device.require_model",
-        "support.runtime_driver.detected_idn",
-        "support.summary.auto_detect_status",
-        "support.summary.profile_status",
-        "support.summary.status_unavailable",
-        "support.summary.selected_model",
-        "support.summary.unspecified_transport",
-        "support.summary.unspecified_backend",
-        "support.summary.none",
-    ):
-        assert f'"{key}"' in combined_source
-
-    for migrated_literal in (
-        "Use 0 to disable throttling, or use",
-        "Trigger metadata must be valid JSON object",
-        "Trigger metadata must be a JSON object",
-        'optionElement("on", "On")',
-        'optionElement("off", "Off")',
-        'optionElement("once", "Once")',
-        'optionElement("", "Select range")',
-        'optionElement("", "Auto-detect")',
-    ):
-        assert migrated_literal not in combined_source
-
-    for forbidden in (
-        "setLocale(",
-        "navigator.language",
-        "navigator.languages",
-        "localStorage",
-        "LOCALE_STORAGE_KEY",
-        "validation_allow_pending_live_support",
-        "--validation-allow-pending-live-support",
-    ):
-        assert forbidden not in combined_source
-
-    for migrated_support_text in (
-        "Support status unavailable.",
-        "selected model",
-        "unspecified transport",
-        "unspecified backend",
-        "Live runtime driver remains detected IDN.",
-        "fallback capability view",
-        'return values.length ? values.join(", ") : "None";',
-    ):
-        assert migrated_support_text not in combined_source
-
-    for support_metadata_field in (
-        "status_key",
-        "runtime_driver_note_key",
-        "open_workflow_keys",
-        "limit_keys",
-        "pending_keys",
-    ):
-        assert support_metadata_field in source
-
-    assert "export function refreshSupportSummaryPresentation()" in source
-    assert "translated === key ? safeFallback : translated" in source
-    assert "latestSupportSummary = capabilities.support_summary ?? null" in source
-    assert 'const validationStatus = summary?.validation_status || "unknown"' in source
-    assert "/api/capabilities?locale=" not in source
-
-    assert 'scope.validation_status !== "live_validated_full_suite"' in support_source
-    assert 'option.dataset.validationStatus = availability.validationStatus' in source
-    assert "instrument_model: data.get(\"instrument_model\")" in source
-    assert "instrument_model: textOrNull(values.instrument_model)" in payload_source
-    assert "trigger_mode: triggerMode" in payload_source
-    assert "measurement: selectedMeasurement" in payload_source

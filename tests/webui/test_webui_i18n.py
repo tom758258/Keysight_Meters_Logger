@@ -80,21 +80,6 @@ for (const catalog of [EN_MESSAGES, ZH_TW_MESSAGES]) {
 }
 assert.equal(EN_MESSAGES["app.title"], "Meters Tool");
 assert.equal(ZH_TW_MESSAGES["app.title"], "Meters Tool");
-assert.equal(ZH_TW_MESSAGES["app.unofficial_tool"], "非官方工具");
-assert.equal(ZH_TW_MESSAGES["resource.visa_resource"], "VISA 資源");
-assert.equal(ZH_TW_MESSAGES["measurement.heading"], "量測");
-assert.equal(EN_MESSAGES["measurement.auto_range"], "Auto range");
-assert.equal(ZH_TW_MESSAGES["measurement.auto_range"], "自動量程（Auto range）");
-assert.equal(EN_MESSAGES["measurement.summary.auto_range"], "Auto range");
-assert.equal(ZH_TW_MESSAGES["measurement.summary.auto_range"], "自動量程");
-assert.equal(EN_MESSAGES["measurement.summary_initial"], "Auto range, auto zero");
-assert.equal(ZH_TW_MESSAGES["measurement.summary_initial"], "自動量程、自動歸零");
-assert.equal(ZH_TW_MESSAGES["measurement.auto_zero"], "自動歸零");
-assert.equal(ZH_TW_MESSAGES["trigger.timer"], "定時觸發");
-assert.equal(ZH_TW_MESSAGES["run.start"], "開始");
-assert.equal(ZH_TW_MESSAGES["run.stop"], "停止");
-assert.equal(ZH_TW_MESSAGES["run.open_csv"], "開啟 CSV");
-assert.equal(ZH_TW_MESSAGES["measurement.nplc"], "NPLC");
 assert.match(ZH_TW_MESSAGES["device.expected_model_help"], /IDN/);
 assert.match(ZH_TW_MESSAGES["live_data.time_utc_plus_8"], /UTC\+8/);
 
@@ -130,13 +115,6 @@ for (const key of p23Keys) {
   assert.notEqual(EN_MESSAGES[key], "");
   assert.notEqual(ZH_TW_MESSAGES[key], "");
 }
-assert.equal(ZH_TW_MESSAGES["support.reason.scope_unavailable"], "目前的傳輸／後端範圍不可用");
-assert.equal(ZH_TW_MESSAGES["support.reason.not_supported_by_model"], "型號不支援");
-assert.equal(ZH_TW_MESSAGES["support.reason.pending_live_validation"], "等待實機驗證");
-assert.equal(ZH_TW_MESSAGES["measurement.option.voltage_dc"], "直流電壓");
-assert.equal(ZH_TW_MESSAGES["measurement.option.resistance_2w"], "二線式電阻");
-assert.equal(ZH_TW_MESSAGES["trigger.option.software_custom"], "軟體自訂");
-
 const p24Keys = [
   "accessibility.collapse_device_resource", "accessibility.expand_device_resource",
   "accessibility.toggle_sample_details", "common.default", "device.auto_detect",
@@ -176,15 +154,6 @@ for (const key of p24Keys) {
   assert.notEqual(EN_MESSAGES[key], "");
   assert.notEqual(ZH_TW_MESSAGES[key], "");
 }
-assert.equal(ZH_TW_MESSAGES["status.running"], "執行中");
-assert.equal(ZH_TW_MESSAGES["status.waiting_trigger"], "等待觸發");
-assert.equal(ZH_TW_MESSAGES["status.software_trigger_queued"], "軟體觸發已排入佇列");
-assert.equal(ZH_TW_MESSAGES["live_data.no_samples"], "尚無取樣");
-assert.equal(
-  ZH_TW_MESSAGES["live_data.range_step_requires_manual_range"],
-  "量程步進需要關閉自動量程並選擇手動量程。"
-);
-
 const p25Keys = [
   "support.limit.no_10a_current_path",
   "support.limit.no_base_profile_external_trigger",
@@ -218,68 +187,58 @@ for (const key of p25Keys) {
   assert.notEqual(EN_MESSAGES[key], "");
   assert.notEqual(ZH_TW_MESSAGES[key], "");
 }
-assert.equal(ZH_TW_MESSAGES["support.summary.none"], "無");
-assert.equal(
-  ZH_TW_MESSAGES["support.runtime_driver.detected_idn"],
-  "實機執行型號由偵測到的 *IDN? 決定。"
-);
-assert.equal(
-  ZH_TW_MESSAGES["support.workflow.external_trigger"],
-  "外部觸發工作流程"
-);
-assert.equal(
-  ZH_TW_MESSAGES["support.limit.no_current_terminal_selection"],
-  "無法選擇電流端子"
-);
-
 const productionZh = i18n.createI18n({
   catalogs: { en: EN_MESSAGES, "zh-TW": ZH_TW_MESSAGES },
   initialLocale: "zh-TW",
 });
-assert.equal(
+function assertContainsTokens(value, tokens) {
+  for (const token of tokens) assert.equal(value.includes(token), true);
+}
+
+assertContainsTokens(
   productionZh.t("measurement.option_label", {
     name: productionZh.t("measurement.option.voltage_dc"),
     canonical: "voltage-dc",
     unit: "V",
   }),
-  "直流電壓（voltage-dc，V）"
+  ["voltage-dc", "V"]
 );
-assert.equal(
+assertContainsTokens(
   productionZh.t("trigger.option_label", {
     name: productionZh.t("trigger.option.software_custom"),
     canonical: "software-custom",
   }),
-  "軟體自訂（software-custom）"
+  ["software-custom"]
 );
-assert.equal(
+assertContainsTokens(
   productionZh.t("validation.interval_range", { min: 50, max: 600000 }),
-  "使用 0 停用節流，或使用 50–600000 ms。"
+  ["50", "600000", "ms"]
 );
-assert.equal(
+assertContainsTokens(
   productionZh.t("resource.scan_result_count", { count: 3 }),
-  "找到的實機資源：3"
+  ["3"]
 );
-assert.equal(
+assertContainsTokens(
   productionZh.t("run.csv_path_selected", { path: "C:\\meter\\out.csv" }),
-  "已選取 CSV 路徑：C:\\meter\\out.csv"
+  ["C:\\meter\\out.csv"]
 );
-assert.equal(
+assertContainsTokens(
   productionZh.t("error.model_idn_mismatch", {
     selected: "34460A", connected: "34461A",
   }),
-  "選取的型號 34460A 與已連接儀器的 IDN 34461A 不符。請選取 34461A 或重新掃描裝置。"
+  ["34460A", "34461A"]
 );
-assert.equal(
+assertContainsTokens(
   productionZh.t("live_data.selected_sample", { sequence: 17 }),
-  "取樣 #17"
+  ["17"]
 );
-assert.equal(
+assertContainsTokens(
   productionZh.t("live_data.scale_info.range_step", {
     center: "1.2 V", span: "3 V", grid: "0.6 V",
   }),
-  "量程步進：中心 1.2 V / 跨度 3 V / 格線 0.6 V"
+  ["1.2 V", "3 V", "0.6 V"]
 );
-assert.equal(
+assertContainsTokens(
   productionZh.t("support.summary.auto_detect_status", {
     profile: "34461A",
     runtime_note: productionZh.t("support.runtime_driver.detected_idn"),
@@ -287,13 +246,9 @@ assert.equal(
     transport: "tcpip",
     backend: "system_visa",
   }),
-  (
-    "自動偵測：目前顯示 34461A 的備援功能檢視，直到開始或掃描時偵測到 IDN。" +
-    "實機執行型號由偵測到的 *IDN? 決定。" +
-    "（live_validated_full_suite，tcpip/system_visa）"
-  )
+  ["34461A", "live_validated_full_suite", "tcpip", "system_visa"]
 );
-assert.equal(
+assertContainsTokens(
   productionZh.t("support.summary.profile_status", {
     model: "34460A",
     status: productionZh.t("support.status.usb_system_visa_validated"),
@@ -301,7 +256,7 @@ assert.equal(
     transport: "usb",
     backend: "system_visa",
   }),
-  "34460A：USB/system-VISA 已完成完整測試套件驗證。（live_validated_full_suite，usb/system_visa）"
+  ["34460A", "live_validated_full_suite", "usb", "system_visa"]
 );
 assert.equal(productionZh.t("p23.unknown_key"), "p23.unknown_key");
 

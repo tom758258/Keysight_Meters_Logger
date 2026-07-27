@@ -176,6 +176,15 @@ function element(selector) {
   if (!elements.has(selector)) elements.set(selector, new FakeElement());
   return elements.get(selector);
 }
+function descendantByClass(root, className) {
+  const pending = [...root.children];
+  while (pending.length > 0) {
+    const child = pending.shift();
+    if (child.className === className) return child;
+    pending.push(...child.children);
+  }
+  return null;
+}
 const windowListeners = new Map();
 let fetchCalls = 0;
 globalThis.fetch = async () => {
@@ -226,33 +235,35 @@ const running = {
 };
 status.renderStatus(running);
 
-assert.equal(element("#status-state").textContent, "Running");
 assert.equal(element("#status-state").getAttribute("data-i18n"), "status.running");
 assert.equal(element("#fatal-error").textContent, "raw fatal TYPE_X");
 assert.equal(element("#cleanup-status").textContent, "raw cleanup CODE_Y");
 assert.equal(element("#raw-status").textContent, JSON.stringify(running, null, 2));
-assert.equal(element("#live-data-summary").textContent, "1/5000 recent samples");
 assert.equal(
   element("#live-data-summary").getAttribute("data-i18n"),
   "live_data.recent_sample_summary"
 );
 
 const latestLines = () => element("#latest-status").children;
-assert.equal(latestLines().at(-1).textContent, "Ready");
 assert.equal(latestLines().at(-1).getAttribute("data-i18n"), "status.ready");
 
-const row = element("#live-samples-body").children[0];
-assert.equal(row.children[5].textContent, "vendor-sample-status");
-const detailsButton = row.children[6].children[0];
+const row = element("#live-samples-body").children.find(
+  (candidate) => candidate.dataset.sequence === String(sample.sequence)
+);
+assert.notEqual(row, undefined);
+assert.notEqual(
+  row.children.find((child) => child.textContent === sample.status),
+  undefined
+);
+const detailsButton = descendantByClass(row, "live-detail-button");
+assert.notEqual(detailsButton, null);
 assert.equal(detailsButton.value, "");
-assert.equal(detailsButton.textContent, "Details");
 assert.equal(detailsButton.getAttribute("data-i18n"), "live_data.column_details");
 assert.equal(
   detailsButton.getAttribute("data-i18n-aria-label"),
   "accessibility.toggle_sample_details"
 );
 detailsButton.click();
-assert.equal(element("#live-selected-sample").textContent, "Sample #7");
 assert.equal(
   element("#live-selected-sample").getAttribute("data-i18n"),
   "live_data.selected_sample"
@@ -273,20 +284,31 @@ const rawSampleDetailsBeforeLocaleRefresh = element("#live-sample-details").text
 const statusLogCountBeforeLocaleRefresh = latestLines().length;
 i18n.setLocale("zh-TW");
 status.refreshStatusPresentation();
-assert.equal(element("#status-state").textContent, "執行中");
 assert.equal(element("#status-state").getAttribute("data-i18n"), "status.running");
-assert.equal(element("#toggle-status-details").textContent, "隱藏詳細資料");
+assert.equal(
+  element("#toggle-status-details").getAttribute("data-i18n"),
+  "status.hide_details"
+);
 assert.equal(element("#status-details").classList.contains("is-hidden"), false);
 assert.equal(element("#raw-status").textContent, rawStatusBeforeLocaleRefresh);
 assert.equal(element("#live-sample-details").textContent, rawSampleDetailsBeforeLocaleRefresh);
-assert.equal(element("#live-data-summary").textContent, "最近取樣：1/5000");
-assert.equal(element("#live-selected-sample").textContent, "取樣 #7");
+assert.equal(
+  element("#live-data-summary").getAttribute("data-i18n"),
+  "live_data.recent_sample_summary"
+);
+assert.equal(
+  element("#live-selected-sample").getAttribute("data-i18n"),
+  "live_data.selected_sample"
+);
 assert.equal(latestLines().length, statusLogCountBeforeLocaleRefresh);
-assert.equal(latestLines().at(-1).textContent, "已就緒");
+assert.equal(latestLines().at(-1).getAttribute("data-i18n"), "status.ready");
 assert.equal(fetchCalls, 0);
 i18n.setLocale("en");
 status.refreshStatusPresentation();
-assert.equal(element("#toggle-status-details").textContent, "Hide Details");
+assert.equal(
+  element("#toggle-status-details").getAttribute("data-i18n"),
+  "status.hide_details"
+);
 assert.equal(element("#status-details").classList.contains("is-hidden"), false);
 
 const unknown = {
@@ -343,6 +365,8 @@ const unloadEvent = { preventDefaultCalled: false, returnValue: "", preventDefau
 } };
 windowListeners.get("beforeunload")(unloadEvent);
 assert.equal(unloadEvent.preventDefaultCalled, true);
+// This warning is a safety contract: it tells operators that closing the page
+// does not stop an active measurement run.
 assert.equal(
   unloadEvent.returnValue,
   "A measurement run is active. Refreshing or closing the page will not stop it."

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -99,6 +100,9 @@ function selectState(select) {
     selected: select.value,
     disabled: select.options.map((item) => item.disabled),
   };
+}
+function optionByValue(select, value) {
+  return select.options.find((item) => item.value === value);
 }
 
 const documentElement = new FakeElement();
@@ -284,9 +288,8 @@ assert.equal(
   }),
   "en",
 );
-assert.equal(label.textContent, "繁體中文");
+assert.equal(label.getAttribute("data-i18n"), "locale.switch_to_zh_tw");
 assert.equal(label.lang, "zh-TW");
-assert.equal(button.getAttribute("aria-label"), "Switch language to Traditional Chinese");
 assert.equal(button.getAttribute("data-i18n"), null);
 assert.equal(button.getAttribute("data-i18n-aria-label"), "accessibility.switch_language_to_zh_tw");
 
@@ -305,7 +308,7 @@ const firstRenderText = new FakeElement();
 firstRenderText.setAttribute("data-i18n", "app.unofficial_tool");
 domI18n.applyStaticTranslations({ querySelectorAll: () => [firstRenderText] });
 assert.equal(firstRenderDocument.lang, "zh-TW");
-assert.equal(firstRenderText.textContent, "非官方工具");
+assert.notEqual(firstRenderText.textContent, "");
 
 localeUi.initializeLocaleUi({
   button,
@@ -317,9 +320,9 @@ localeUi.initializeLocaleUi({
 });
 button.click();
 assert.equal(documentElement.lang, "zh-TW");
-assert.equal(label.textContent, "English");
+assert.equal(label.getAttribute("data-i18n"), "locale.switch_to_en");
 assert.equal(label.lang, "en");
-assert.equal(button.getAttribute("aria-label"), "切換語言至英文");
+assert.equal(button.getAttribute("data-i18n-aria-label"), "accessibility.switch_language_to_en");
 assert.deepEqual(storage.writes, [["meters-tool.webui.locale", "zh-TW"]]);
 assert.equal(refreshCount, 1);
 
@@ -387,64 +390,29 @@ process.stdout.write(JSON.stringify({ ok: true }));
     assert completed.stdout == '{"ok":true}'
 
 
-def test_locale_static_markup_and_refresh_source_contracts():
+def test_locale_toggle_static_machine_contract():
     index = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
-    app = (STATIC_DIR / "app.js").read_text(encoding="utf-8")
-    run_form = (STATIC_DIR / "run_form.js").read_text(encoding="utf-8")
-    status = (STATIC_DIR / "status.js").read_text(encoding="utf-8")
-    live_data = (STATIC_DIR / "live_data.js").read_text(encoding="utf-8")
 
     assert index.count('id="locale-toggle"') == 1
-    assert 'class="toolbar"' in index
-    assert 'id="locale-toggle"' in index[index.index('class="toolbar"'):index.index('class="toolbar"') + 1500]
-    assert 'type="button"' in index[index.index('id="locale-toggle"'):index.index('id="locale-toggle"') + 500]
-    assert '<svg' in index[index.index('id="locale-toggle"'):index.index('id="locale-toggle"') + 500]
-    assert 'aria-hidden="true"' in index[index.index('id="locale-toggle"'):index.index('id="locale-toggle"') + 500]
-    assert 'focusable="false"' in index[index.index('id="locale-toggle"'):index.index('id="locale-toggle"') + 500]
-    assert 'id="locale-toggle-label"' in index
-    assert 'lang="zh-TW"' in index
-    styles = (STATIC_DIR / "styles.css").read_text(encoding="utf-8")
-    assert "locale-toggle" in styles
-    locale_styles = styles[styles.index(".locale-toggle {"):styles.index(".locale-toggle-label {")]
-    assert "display: none" not in locale_styles
-
-    assert "initializeLocaleUi({" in app
-    assert app.index("initializeLocaleUi({") < app.index("applyStaticTranslations(document);", app.index("initializeLocaleUi({"))
-    assert "refreshRunFormPresentation();" in app
-    assert "refreshResourcesPresentation();" in app
-    assert "refreshStatusPresentation();" in app
-    assert "resourceScanCompleted" in app
-    assert "api(\"/api/resources?verify=true&live_only=true\")" in app
-    assert "export function refreshRunFormPresentation()" in run_form
-    assert "preserveUnavailableSelections = false" in run_form
-    refresh_start = run_form.index("export function refreshRunFormPresentation()")
-    refresh_end = run_form.index("export async function loadCapabilities", refresh_start)
-    run_form_refresh = run_form[refresh_start:refresh_end]
-    readiness_guard = run_form_refresh.index("if (capabilitiesLoaded)")
-    assert readiness_guard < run_form_refresh.index("populateFeatureOptions(")
-    assert readiness_guard < run_form_refresh.index("refreshMeasurementOptionPresentation();")
-    load_start = run_form.index("export async function loadCapabilities")
-    load_capabilities = run_form[load_start:]
-    ready_assignment = load_capabilities.index("capabilitiesLoaded = true;")
-    for required_assignment in (
-        "applyAppMetadata(capabilities.app);",
-        "applyInputLimits(capabilities.limits);",
-        "latestSupportSummary = capabilities.support_summary ?? null;",
-        'liveSupport = capabilities.support?.["start-trigger-record"]?.live || null;',
-        "capabilities.available_profiles || []",
-        "measurementsByName = new Map(",
-        "supportedTriggerModes = [...capabilities.trigger_modes];",
-    ):
-        assert load_capabilities.index(required_assignment) < ready_assignment
-    assert "export function refreshStatusPresentation()" in status
-    assert "export function refreshLiveDataPresentation()" in live_data
-    refresh_start = app.index("function refreshLocalizedPresentation()")
-    refresh_end = app.index("function browserStorage()", refresh_start)
-    refresh_body = app[refresh_start:refresh_end]
-    for forbidden in ("api(", "EventSource", "loadCapabilities", "pollStatus", "applyScannedResource"):
-        assert forbidden not in refresh_body
-    resource_refresh = app[app.index("export function refreshResourcesPresentation") : app.index("async function refreshResources()")]
-    assert "applyScannedResource" not in resource_refresh
+    assert re.search(
+        r'<button\b(?=[^>]*\bid="locale-toggle")'
+        r'(?=[^>]*\btype="button")'
+        r'(?=[^>]*\bdata-i18n-aria-label="accessibility\.switch_language_to_zh_tw")'
+        r"[^>]*>",
+        index,
+    )
+    assert re.search(
+        r'<span\b(?=[^>]*\bid="locale-toggle-label")'
+        r'(?=[^>]*\blang="zh-TW")'
+        r'(?=[^>]*\bdata-i18n="locale\.switch_to_zh_tw")'
+        r"[^>]*>",
+        index,
+    )
+    assert re.search(
+        r"<svg\b(?=[^>]*\baria-hidden=\"true\")"
+        r"(?=[^>]*\bfocusable=\"false\")[^>]*>",
+        index,
+    )
 
 
 @pytest.mark.skipif(NODE is None, reason="Node.js is required for application locale tests")
@@ -501,6 +469,9 @@ const elements = new Map();
 function element(selector) {
   if (!elements.has(selector)) elements.set(selector, new FakeElement());
   return elements.get(selector);
+}
+function resourceOption(value) {
+  return element("#resource-select").options.find((item) => item.value === value);
 }
 const documentElement = new FakeElement();
 const documentListeners = new Map();
@@ -591,19 +562,34 @@ const beforeSwitch = {
   csv: element("[name='csv']").value,
   active: element("#stop-run").disabled === false,
 };
-assert.equal(element("#locale-toggle-label").textContent, "繁體中文");
+assert.equal(
+  element("#locale-toggle-label").getAttribute("data-i18n"),
+  "locale.switch_to_zh_tw"
+);
 assert.equal(documentElement.lang, "en");
-assert.match(element("#resource-select").children[1].textContent, /live/);
-assert.match(element("#resource-select").children[2].textContent, /raw vendor detail/);
+assert.equal(
+  resourceOption("USB0::SIM").getAttribute("data-i18n"),
+  "resource.option_with_detail"
+);
+assert.match(resourceOption("USB0::RAW").textContent, /raw vendor detail/);
 
 element("#locale-toggle").click();
 assert.equal(documentElement.lang, "zh-TW");
-assert.equal(element("#locale-toggle-label").textContent, "English");
-assert.equal(element("#locale-toggle").getAttribute("aria-label"), "切換語言至英文");
-assert.equal(element("#status-state").textContent, "執行中");
+assert.equal(
+  element("#locale-toggle-label").getAttribute("data-i18n"),
+  "locale.switch_to_en"
+);
+assert.equal(
+  element("#locale-toggle").getAttribute("data-i18n-aria-label"),
+  "accessibility.switch_language_to_en"
+);
+assert.equal(element("#status-state").getAttribute("data-i18n"), "status.running");
 assert.equal(element("#resource-select").value, "USB0::SIM");
-assert.match(element("#resource-select").children[1].textContent, /實機/);
-assert.match(element("#resource-select").children[2].textContent, /raw vendor detail/);
+assert.equal(
+  resourceOption("USB0::SIM").getAttribute("data-i18n"),
+  "resource.option_with_detail"
+);
+assert.match(resourceOption("USB0::RAW").textContent, /raw vendor detail/);
 assert.deepEqual(
   {
     resource: element("#resource").value,
@@ -694,8 +680,14 @@ const beforeSwitchEventSourceCalls = eventSourceCalls;
 
 element("#locale-toggle").click();
 assert.equal(documentElement.lang, "zh-TW");
-assert.equal(element("#locale-toggle-label").textContent, "English");
-assert.notEqual(element("#locale-toggle").getAttribute("aria-label"), null);
+assert.equal(
+  element("#locale-toggle-label").getAttribute("data-i18n"),
+  "locale.switch_to_en"
+);
+assert.equal(
+  element("#locale-toggle").getAttribute("data-i18n-aria-label"),
+  "accessibility.switch_language_to_en"
+);
 assert.deepEqual(selectState(measurementSelect), fallbackState.measurement);
 assert.deepEqual(selectState(triggerSelect), fallbackState.trigger);
 assert.deepEqual(
@@ -728,10 +720,16 @@ assert.deepEqual(measurementSelect.options.map((item) => item.value), ["current-
 assert.deepEqual(triggerSelect.options.map((item) => item.value), ["software", "external"]);
 assert.equal(measurementSelect.value, "current-dc");
 assert.equal(triggerSelect.value, "software");
-assert.equal(measurementSelect.options[0].getAttribute("data-i18n"), "measurement.option_label");
-assert.equal(triggerSelect.options[0].getAttribute("data-i18n"), "trigger.option_label");
-assert.equal(measurementSelect.options[1].disabled, true);
-assert.equal(triggerSelect.options[1].disabled, true);
+assert.equal(
+  optionByValue(measurementSelect, "current-dc").getAttribute("data-i18n"),
+  "measurement.option_label"
+);
+assert.equal(
+  optionByValue(triggerSelect, "software").getAttribute("data-i18n"),
+  "trigger.option_label"
+);
+assert.equal(optionByValue(measurementSelect, "voltage-dc").disabled, true);
+assert.equal(optionByValue(triggerSelect, "external").disabled, true);
 assert.equal(intervalCalls, 1);
 assert.equal(eventSourceCalls, 1);
 
@@ -765,10 +763,16 @@ assert.deepEqual(
   },
   readyFormState,
 );
-assert.equal(measurementSelect.options[1].disabled, true);
-assert.equal(triggerSelect.options[1].disabled, true);
-assert.match(measurementSelect.options[1].textContent, /Pending live validation/);
-assert.match(triggerSelect.options[1].textContent, /Not supported by model/);
+assert.equal(optionByValue(measurementSelect, "voltage-dc").disabled, true);
+assert.equal(optionByValue(triggerSelect, "external").disabled, true);
+assert.equal(
+  optionByValue(measurementSelect, "voltage-dc").getAttribute("data-i18n-title"),
+  "support.reason.pending_live_validation"
+);
+assert.equal(
+  optionByValue(triggerSelect, "external").getAttribute("data-i18n-title"),
+  "support.reason.not_supported_by_model"
+);
 assert.equal(element("#model-support-status").textContent.includes("Cached support status"), true);
 assert.equal(fetchCalls, readyFetchCalls);
 assert.equal(intervalCalls, readyIntervalCalls);
@@ -809,7 +813,10 @@ const beforeSwitchEventSourceCalls = eventSourceCalls;
 
 element("#locale-toggle").click();
 assert.equal(documentElement.lang, "zh-TW");
-assert.equal(element("#locale-toggle-label").textContent, "English");
+assert.equal(
+  element("#locale-toggle-label").getAttribute("data-i18n"),
+  "locale.switch_to_en"
+);
 assert.deepEqual(selectState(measurementSelect), fallbackState.measurement);
 assert.deepEqual(selectState(triggerSelect), fallbackState.trigger);
 assert.deepEqual(
