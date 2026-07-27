@@ -12,7 +12,8 @@ Component release notes:
 
 - Updated the copied Common contracts to the v2-only schema.
 - Added the minimum Meters contract changes for schema-2 command envelopes
-  andstartup-bound expected/planning model identity while preserving existingWorker, CLI, orchestration, CSV, trigger, and cleanup details.
+  and startup-bound expected/planning model identity while preserving existing
+  Worker, CLI, orchestration, CSV, trigger, and cleanup details.
 - The Meters implementation remains unchanged and requires a separate parser,
   client, output, and test migration before it is Common v2 conformant.
 
