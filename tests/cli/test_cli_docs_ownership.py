@@ -5,6 +5,8 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DOC_ROOT = REPO_ROOT / "docs" / "cli"
+
+
 def read_doc(*parts: str) -> str:
     return DOC_ROOT.joinpath(*parts).read_text(encoding="utf-8")
 
