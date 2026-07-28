@@ -4,7 +4,7 @@
 
 - [CLI User Guide](USER_GUIDE.md) - operator workflow and common setting guidance.
 - [CLI README](README.md) - detailed CLI reference, validation, and automation guide.
-- [Changelog](CHANGELOG.md) - release notes and version history.
+- [Changelog](../../CHANGELOG.md) - release notes and version history.
 - [CLI Integration](cli-integration.md) - CLI adapter maintenance boundary.
 - [Common CLI JSON / JSONL Contract](../contracts/common-cli-jsonl-contract.md) - shared command-line JSON envelope rules.
 - [Meters CLI JSON / JSONL Contract](../contracts/meters-cli-jsonl-contract.md) - Meters command-line JSON schema and alias rules.

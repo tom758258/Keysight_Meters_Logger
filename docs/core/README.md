@@ -43,4 +43,4 @@ that explicitly check the component boundary.
 
 - [Core Integration](integration.md)
 - [Supported Models](supported-models.md)
-- [Changelog](CHANGELOG.md)
+- [Changelog](../../CHANGELOG.md)

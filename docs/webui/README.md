@@ -859,4 +859,4 @@ Live panel has no samples:
   maintainer guide.
 - [WebUI Change Rules](web-ui-change-rules.md): maintainer and agent-facing
   rules for UI changes.
-- [WebUI Changelog](CHANGELOG.md): package release notes.
+- [Changelog](../../CHANGELOG.md): project release notes.

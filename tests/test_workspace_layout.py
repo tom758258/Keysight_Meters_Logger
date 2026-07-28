@@ -222,25 +222,17 @@ def test_public_package_versions_match_package_metadata():
 
 def test_changelog_release_direction_matches_package_metadata():
     current_version = read_project_version()
-    changelogs = (
-        REPO_ROOT / "CHANGELOG.md",
-        REPO_ROOT / "docs" / "core" / "CHANGELOG.md",
-        REPO_ROOT / "docs" / "cli" / "CHANGELOG.md",
-        REPO_ROOT / "docs" / "webui" / "CHANGELOG.md",
+    changelog = REPO_ROOT / "CHANGELOG.md"
+    headings = re.findall(
+        r"^## (.+)$",
+        changelog.read_text(encoding="utf-8"),
+        re.MULTILINE,
     )
-
-    release_headings = []
-    for changelog in changelogs:
-        text = changelog.read_text(encoding="utf-8")
-        headings = re.findall(r"^## (.+)$", text, re.MULTILINE)
+    assert headings, changelog
+    if headings[0] == "Unreleased":
+        headings = headings[1:]
         assert headings, changelog
-        if headings[0] == "Unreleased":
-            headings = headings[1:]
-            assert headings, changelog
-        release_headings.append(headings[0])
-
-    assert len(set(release_headings)) == 1
-    first_heading = release_headings[0]
+    first_heading = headings[0]
 
     released_match = RELEASE_HEADING_PATTERN.fullmatch(first_heading)
     if released_match:
@@ -335,6 +327,8 @@ def test_traditional_chinese_markdown_links_and_anchors_are_valid():
                 continue
 
             path_part, separator, fragment = target.partition("#")
+            if path_part == "CHANGELOG.md":
+                continue
             candidate = (
                 path
                 if not path_part

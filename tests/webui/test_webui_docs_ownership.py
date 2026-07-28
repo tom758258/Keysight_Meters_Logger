@@ -1,24 +1,16 @@
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DOC_ROOT = REPO_ROOT / "docs" / "webui"
-UNRELEASED_TARGET_PATTERN = re.compile(
-    r"Unreleased — target v[0-9]+\.[0-9]+\.[0-9]+"
-)
-RELEASE_HEADING_PATTERN = re.compile(r"v[0-9]+\.[0-9]+\.[0-9]+")
-
-
 def read_doc(*parts: str) -> str:
     return DOC_ROOT.joinpath(*parts).read_text(encoding="utf-8")
 
 
 def test_webui_docs_are_package_local():
     assert (DOC_ROOT / "README.md").exists()
-    assert (DOC_ROOT / "CHANGELOG.md").exists()
 
     for path in (
         "USER_GUIDE.md",
@@ -71,21 +63,6 @@ def test_webui_docs_point_to_new_import_and_static_paths():
     assert "meters_tool_webui" in text
     assert "meters_tool_core" in text
     assert "src/meters_tool_webui/static" in text
-
-
-def test_webui_changelog_contains_only_webui_release_headings():
-    text = read_doc("CHANGELOG.md")
-    headings = re.findall(r"^## (.+)$", text, re.MULTILINE)
-
-    for heading in headings:
-        if heading == "Unreleased":
-            continue
-        if UNRELEASED_TARGET_PATTERN.fullmatch(heading):
-            continue
-        assert RELEASE_HEADING_PATTERN.fullmatch(heading)
-        assert not heading.startswith("webui-v")
-        assert not heading.startswith("core-v")
-        assert not heading.startswith("cli-v")
 
 
 def test_webui_maintainer_docs_link_to_localization_contract():

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 import meters_tool_core as core
@@ -8,19 +7,12 @@ import meters_tool_core as core
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DOC_ROOT = REPO_ROOT / "docs" / "core"
-UNRELEASED_TARGET_PATTERN = re.compile(
-    r"Unreleased — target v[0-9]+\.[0-9]+\.[0-9]+"
-)
-RELEASE_HEADING_PATTERN = re.compile(r"v[0-9]+\.[0-9]+\.[0-9]+")
-
-
 def read_doc(*parts: str) -> str:
     return DOC_ROOT.joinpath(*parts).read_text(encoding="utf-8")
 
 
 def test_core_docs_are_package_local():
     assert (DOC_ROOT / "README.md").exists()
-    assert (DOC_ROOT / "CHANGELOG.md").exists()
 
     for path in (
         "integration.md",
@@ -84,18 +76,3 @@ def test_core_docs_do_not_document_adapter_schema_as_core_contract():
     assert "wrapper artifacts" not in core_docs
     assert "meters-tool.exe" not in core_docs
     assert "measurement_cli_name" not in core_docs
-
-
-def test_core_changelog_contains_only_core_release_headings():
-    text = read_doc("CHANGELOG.md")
-    headings = re.findall(r"^## (.+)$", text, re.MULTILINE)
-
-    for heading in headings:
-        if heading == "Unreleased":
-            continue
-        if UNRELEASED_TARGET_PATTERN.fullmatch(heading):
-            continue
-        assert RELEASE_HEADING_PATTERN.fullmatch(heading)
-        assert not heading.startswith("core-v")
-        assert not heading.startswith("cli-v")
-        assert not heading.startswith("webui-v")

@@ -352,4 +352,4 @@ timeout behavior.
 
 - [WebUI README](README.md): engineering setup, WebUI API behavior, validation,
   build notes, and maintainer boundaries.
-- [WebUI Changelog](CHANGELOG.md): release notes.
+- [Changelog](../../CHANGELOG.md): project release notes.

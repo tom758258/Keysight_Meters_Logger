@@ -1,17 +1,10 @@
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DOC_ROOT = REPO_ROOT / "docs" / "cli"
-UNRELEASED_TARGET_PATTERN = re.compile(
-    r"Unreleased — target v[0-9]+\.[0-9]+\.[0-9]+"
-)
-RELEASE_HEADING_PATTERN = re.compile(r"v[0-9]+\.[0-9]+\.[0-9]+")
-
-
 def read_doc(*parts: str) -> str:
     return DOC_ROOT.joinpath(*parts).read_text(encoding="utf-8")
 
@@ -22,7 +15,6 @@ def read_contract(*parts: str) -> str:
 
 def test_cli_docs_are_package_local_and_contracts_are_root_level():
     assert (DOC_ROOT / "README.md").exists()
-    assert (DOC_ROOT / "CHANGELOG.md").exists()
 
     for path in (
         "cli-integration.md",
@@ -101,21 +93,6 @@ def test_cli_docs_do_not_link_removed_or_webui_guides():
     )
     for value in forbidden:
         assert value not in text
-
-
-def test_cli_changelog_contains_only_cli_release_headings():
-    text = read_doc("CHANGELOG.md")
-    headings = re.findall(r"^## (.+)$", text, re.MULTILINE)
-
-    for heading in headings:
-        if heading == "Unreleased":
-            continue
-        if UNRELEASED_TARGET_PATTERN.fullmatch(heading):
-            continue
-        assert RELEASE_HEADING_PATTERN.fullmatch(heading)
-        assert not heading.startswith("core-v")
-        assert not heading.startswith("cli-v")
-        assert not heading.startswith("webui-v")
 
 
 def test_common_worker_protocol_is_lifecycle_only():

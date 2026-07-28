@@ -1,11 +1,5 @@
 # Changelog
 
-Component release notes:
-
-- [Core](docs/core/CHANGELOG.md)
-- [CLI](docs/cli/CHANGELOG.md)
-- [WebUI](docs/webui/CHANGELOG.md)
-
 ## Unreleased
 
 ### Documentation and contracts
@@ -17,6 +11,11 @@ Component release notes:
 - Migrated the Meters Worker command/status runtime, CLI machine output and
   lifecycle clients, and browser software-trigger request to Common schema 2.
   Wrapper `report.json` schemas remain separately versioned at schema 1.
+
+### CLI
+
+- Limited live resource verification to opening the resource, querying
+  `*IDN?`, and closing the session without acquisition cleanup commands.
 
 ## v2.0.0
 
@@ -54,9 +53,13 @@ contracts remain unchanged.
   12-case wrapper full suite did not include Ratio. External triggers and
   34461A-only limits remain unsupported, and the 34460A LAN/system-VISA and
   LAN/pyvisa-py scopes remain pending future validation.
+- Consolidated live-start resolution on the detected profile and recomputed
+  trigger routing afterward so support validation and execution use the same
+  live identity.
 
 ### Adapters, validation, and maintenance
 
+- Added `--instrument-model` as an alias for the CLI `--model` option.
 - Added `--backend` as an alias for the CLI `--visa-library` option and allowed
   the live validation wrapper to accept `-VisaLibrary`, `-visa-library`, or
   `-Backend` while continuing to record the effective backend scope.
@@ -165,3 +168,145 @@ contracts remain unchanged.
 - Preserved console commands: `keysight-logger`, `keysight-logger-webui`, and `keysight-logger-webui-launcher`.
 - Kept runtime behavior contracts unchanged; this migration changes distribution metadata, dependency declarations, build flow, docs, tests, and CI layout only.
 - Finalized the CLI and WebUI operator guide split: `USER_GUIDE.md` files cover operator workflows, while README files retain engineering setup, reference, validation, and maintainer details.
+
+## Historical component releases before v1.4.0
+
+Before v1.4.0, Core, CLI, and WebUI were versioned and released independently.
+
+### Core
+
+#### Core v1.2.1
+
+- Unified `/command` accepted, rejected, and validation responses under the
+  common JSON envelope with safe `command` and `job_id` echoing.
+
+#### Core v1.2.0
+
+- Released Core from the unified monorepo layout after merging the product
+  branches while preserving its public API and package boundary.
+
+#### Core v1.1.1
+
+- Added public capability introspection through `get_core_capabilities()`,
+  `CoreCapabilities`, and `MeasurementCapability`.
+- Added structured buffer-overflow warning details while preserving the
+  existing string warning helper.
+- Added adapter-readable dry-run plan descriptions and option summaries
+  without changing existing `StartPlan` fields or SCPI planning.
+- Strengthened no-hardware validation, simulator, runner, CSV metadata, public
+  API, documentation ownership, and package metadata coverage.
+
+#### Core v1.0.0
+
+- Completed the Core/CLI separation by removing adapter runtime code, wrapper
+  scripts, adapter-specific tests, and legacy top-level re-export shims.
+- Renamed the package to `keysight-logger-core` and removed console script
+  metadata while preserving the `keysight_logger_core` public import boundary.
+- Removed the adapter measurement-name alias from Core measurement metadata.
+
+### CLI
+
+#### CLI v1.3.2
+
+- Updated `send-command` for runtime contract v1.6 with shared pre-send
+  validation, complete argument envelopes, response parsing, identity echo,
+  and HTTP-specific exit codes.
+- Added a packaged fallback version for PyInstaller executables when
+  distribution metadata and the local `pyproject.toml` are unavailable.
+- Documented the optional standalone `dist\keysight-logger.exe` build and
+  no-hardware smoke checks.
+
+#### CLI v1.3.1
+
+- Released CLI from the unified monorepo layout while preserving package
+  boundaries.
+- Updated the Core dependency range to `keysight-logger-core>=1.2.0,<1.3`.
+
+#### CLI v1.2.1
+
+- Added CLI contract v1.5 soft-client diagnostics, subprocess orchestration
+  documentation, simulator worker subprocess coverage, and wrapper
+  `wait-ready` / `status` gates before software trigger calls.
+- Added release-oriented no-hardware validation reporting and richer wrapper
+  report metadata.
+- Added Core/CLI boundary guards and removed legacy root-level Core import
+  shims. Python integrations use `keysight_logger_core`; CLI behavior was
+  unchanged.
+
+#### CLI v1.2.0
+
+- Released CLI after merging Core v1.1.0 while preserving its package identity,
+  console script, JSON/JSONL contracts, wrapper scripts, compatibility shims,
+  and CLI-owned tests.
+- Exposed Core measurement capabilities through the CLI, including DCV Ratio,
+  Auto Zero Once, AC bandwidth, and current-terminal selection.
+- Expanded the documented JSONL schema, exit codes, orchestrator parsing rules,
+  and worker lifecycle.
+
+#### CLI v1.1.8
+
+- Recorded the Core v1.0.0 merge baseline while preserving the CLI file tree,
+  distribution, console script, adapter contracts, wrappers, and tests.
+- Removed the retired `--enable-hw-trigger` compatibility flag in favor of
+  `--trigger-mode external`.
+
+#### CLI v1.1.7
+
+- Added an internal instrument-backend protocol and factory for live VISA,
+  simulator, and test backends.
+- Completed the Core/CLI boundary cleanup while preserving compatibility output
+  fields.
+- Added root `keysight-logger --version`, parser/help coverage, and dry-run
+  contract assertions.
+- Added preflight target listing, constrained output-root handling, and summary
+  count reporting.
+
+#### CLI v1.1.6
+
+- Documented JSONL `ready` events for non-dry-run workers and preserved
+  summary-based wrapper completion checks.
+- Added no-I/O preflight coverage for
+  `list-resources --dry-run --live-only --json`.
+
+#### CLI v1.1.5
+
+- Made successful `list-resources --verify` and `--live-only` checks attempt a
+  best-effort release to local before closing the verification session.
+
+### WebUI
+
+#### WebUI v1.2.2
+
+- Unified WebUI software-command responses with the Core command envelope and
+  refreshed current run status after accepted frontend requests.
+
+#### WebUI v1.2.1
+
+- Added the `keysight-logger-webui-launcher` GUI entry point for double-click
+  local startup with browser auto-open and Quit-driven server shutdown.
+- Shared shutdown-friendly Uvicorn server creation between the terminal entry
+  point and launcher without changing instrument behavior.
+- Added an operator-facing WebUI user guide and removed the temporary legacy
+  `keysight_logger.web_ui` compatibility shim.
+
+#### WebUI v1.2.0
+
+- Released WebUI from the unified monorepo layout while preserving package
+  boundaries.
+- Updated the Core dependency range to `keysight-logger-core>=1.2.0,<1.3`.
+
+#### WebUI v1.1.0
+
+- Added the Live data panel with latest sample, trend chart, statistics,
+  recent-samples table, and selected-sample metadata.
+- Added Open CSV behavior for the latest completed run without accepting
+  frontend-supplied file paths.
+- Added a detailed WebUI operator and maintainer guide.
+
+#### WebUI v1.0.0
+
+- Migrated the WebUI adapter from the old CLI-backed runtime to the independent
+  Core `StartRequest` / `run_start_session()` architecture while preserving
+  browser endpoints and static UI.
+- Established `keysight-logger-webui` package metadata, runtime/test
+  dependencies, console script, and `--version` support.
