@@ -34,13 +34,7 @@ from meters_tool_core._version import (
     FALLBACK_PACKAGE_VERSION,
     get_distribution_version,
 )
-from meters_tool_core.command import (
-    CommandValidationError,
-    SoftwareTriggerCommand,
-    command_identity,
-    command_response,
-    parse_command_envelope,
-)
+from meters_tool_core.command import SoftwareTriggerCommand
 from meters_tool_core.instrument import InstrumentError, VisaInstrument
 from meters_tool_core.models import (
     TriggerEvent,
@@ -434,52 +428,34 @@ class WebRunManager:
             self._last_status = status
             return dict(status)
 
-    def send_command(self, payload: Any) -> tuple[int, dict[str, Any]]:
-        command_name, job_id = command_identity(payload)
+    def send_software_trigger(
+        self,
+        command: SoftwareTriggerCommand,
+    ) -> tuple[int, dict[str, Any]]:
         with self._lock:
             handle = self._active
             if handle is None or not self._is_handle_active(handle):
-                return 409, command_response(
-                    "error",
-                    command=command_name,
-                    job_id=job_id,
-                    error="no_active_run",
-                    message="no active run",
-                )
-        try:
-            command = parse_command_envelope(payload)
-        except CommandValidationError as exc:
-            return 400, command_response(
-                "error",
-                command=exc.command,
-                job_id=exc.job_id,
-                error="validation_error",
-                message=str(exc),
-            )
+                return 409, {
+                    "status": "error",
+                    "error": "no_active_run",
+                    "message": "no active run",
+                }
         accepted, reason = handle.control_plane.send_command(command)
         if not accepted:
             if reason == "run_not_ready":
-                return 409, command_response(
-                    "error",
-                    command=command_name,
-                    job_id=job_id,
-                    error=reason,
-                    message="run is not ready",
-                )
-            return 429, command_response(
-                "rejected",
-                command=command_name,
-                job_id=job_id,
-                reason=reason,
-            )
+                return 409, {
+                    "status": "error",
+                    "error": reason,
+                    "message": "run is not ready",
+                }
+            return 429, {"status": "rejected", "reason": reason}
         with self._lock:
             handle.latest_status = "software trigger queued"
             self._publish_status_locked(handle)
-        return 202, command_response(
-            "accepted",
-            command=command_name,
-            job_id=job_id,
-        )
+        return 202, {
+            "status": "accepted",
+            "message": "software trigger queued",
+        }
 
     def stop(self) -> dict[str, Any]:
         with self._lock:

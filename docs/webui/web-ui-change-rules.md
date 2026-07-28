@@ -188,14 +188,14 @@ Important payload fields currently sent by the UI include:
 - `sw_min_interval_ms`
 - `sw_queue_max`
 
-The Web Trigger button sends a separate JSON object to
+The Web Trigger button sends `{ "metadata": { ... } }` to
 `POST /api/runs/current/command`. Empty trigger metadata sends
-`{ "source": "web-ui" }`; non-empty metadata must remain a JSON object and is
-merged into that default object.
+`{ "metadata": { "source": "web-ui" } }`; non-empty metadata must remain a
+JSON object and is merged into that default metadata object.
 
-The command endpoint uses the Core command response envelope and must not use
-FastAPI's `{"detail": ...}` wrapper for command validation or admission
-failures. After `202`, the frontend fetches current run status separately.
+The command endpoint uses a WebUI-private request payload containing only
+`metadata`; it must not reuse the Worker command envelope or response builder.
+After `202`, the frontend fetches current run status separately.
 
 The UI must continue to use `/api/capabilities` as the source of truth for
 measurement options, range options, NPLC options, defaults, and trigger modes.

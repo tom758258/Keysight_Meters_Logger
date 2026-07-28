@@ -948,18 +948,18 @@ class WebUiApiTests(unittest.TestCase):
         triggered = client.post(
             "/api/runs/current/command",
             json={
-                "schema_version": 2,
-                "command": "software_trigger",
-                "arguments": {"metadata": {"source": "web-ui", "batch": "A"}},
+                "metadata": {
+                    "source": "web-ui",
+                    "operator": "tom",
+                    "batch": 2,
+                },
             },
         )
         self.assertEqual(202, triggered.status_code)
         self.assertEqual(
             {
-                "schema_version": 2,
                 "status": "accepted",
-                "command": "software_trigger",
-                "job_id": None,
+                "message": "software trigger queued",
             },
             triggered.json(),
         )
@@ -995,21 +995,92 @@ class WebUiApiTests(unittest.TestCase):
         self.assertEqual("ok", sample["status"])
         self.assertEqual("USB::FAKE", sample["resource_id"])
         self.assertEqual("software", sample["trigger_source"])
-        self.assertEqual("A", sample["trigger_metadata"]["batch"])
+        self.assertEqual("2", sample["trigger_metadata"]["batch"])
+        self.assertEqual("tom", sample["trigger_metadata"]["operator"])
         self.assertEqual("web-ui", sample["trigger_metadata"]["source"])
         self.assertRegex(sample["timestamp_utc_plus_8"], r"\+08:00$")
         self.assertIsInstance(sample["measurement_metadata"], dict)
 
-    def test_command_endpoint_returns_structured_validation_and_no_active_errors(self):
+    def test_command_endpoint_rejects_invalid_private_payload_without_triggering(self):
+        client, csv_path = self.make_client()
+        response = client.post(
+            "/api/runs",
+            json={
+                "resource": "USB::FAKE",
+                "instrument_model": "34461A",
+                "csv": str(csv_path),
+                "simulate": True,
+                "trigger_mode": "software",
+                "trigger_timeout_ms": 500,
+                "max_samples": 1,
+            },
+        )
+        self.assertEqual(200, response.status_code)
+
+        invalid_payloads = (
+            [],
+            {"metadata": []},
+            {
+                "schema_version": 2,
+                "command": "software_trigger",
+                "arguments": {"metadata": {}},
+            },
+        )
+        for payload in invalid_payloads:
+            with self.subTest(payload=payload):
+                rejected = client.post("/api/runs/current/command", json=payload)
+                self.assertEqual(400, rejected.status_code)
+                self.assertEqual("error", rejected.json()["status"])
+                self.assertEqual("validation_error", rejected.json()["error"])
+                status = client.get("/api/runs/current").json()
+                self.assertEqual(0, status["captured"])
+                self.assertNotEqual(
+                    "software trigger queued",
+                    status["latest_status"],
+                )
+
+        accepted = client.post("/api/runs/current/command", json={})
+        self.assertEqual(202, accepted.status_code)
+        status = self.wait_until_inactive(client)
+        self.assertEqual(1, status["captured"])
+        self.assertEqual({}, status["latest_sample"]["trigger_metadata"])
+
+    def test_command_endpoint_preserves_rate_limit_status(self):
+        client, csv_path = self.make_client()
+        started = client.post(
+            "/api/runs",
+            json={
+                "resource": "USB::FAKE",
+                "instrument_model": "34461A",
+                "csv": str(csv_path),
+                "simulate": True,
+                "trigger_mode": "software-custom",
+                "trigger_timeout_ms": 500,
+                "trigger_count": 2,
+                "sample_count": 1,
+                "sw_min_interval_ms": 60_000,
+            },
+        )
+        self.assertEqual(200, started.status_code)
+
+        accepted = client.post("/api/runs/current/command", json={})
+        rejected = client.post("/api/runs/current/command", json={})
+
+        self.assertEqual(202, accepted.status_code)
+        self.assertEqual(429, rejected.status_code)
+        self.assertEqual(
+            {"status": "rejected", "reason": "rate_limited"},
+            rejected.json(),
+        )
+        client.post("/api/runs/current/stop")
+        self.assertFalse(self.wait_until_inactive(client)["active"])
+
+    def test_command_endpoint_returns_private_validation_and_no_active_errors(self):
         client, _ = self.make_client()
 
         no_active = client.post(
             "/api/runs/current/command",
-            json={
-                "schema_version": 2,
-                "command": "software_trigger",
-                "job_id": "job-1",
-            },
+            json={},
         )
         malformed = client.post(
             "/api/runs/current/command",
@@ -1020,21 +1091,16 @@ class WebUiApiTests(unittest.TestCase):
         self.assertEqual(409, no_active.status_code)
         self.assertEqual(
             {
-                "schema_version": 2,
                 "status": "error",
-                "command": "software_trigger",
-                "job_id": "job-1",
                 "error": "no_active_run",
                 "message": "no active run",
             },
             no_active.json(),
         )
         self.assertEqual(400, malformed.status_code)
-        self.assertEqual(2, malformed.json()["schema_version"])
         self.assertEqual("error", malformed.json()["status"])
         self.assertEqual("validation_error", malformed.json()["error"])
-        self.assertIsNone(malformed.json()["command"])
-        self.assertIsNone(malformed.json()["job_id"])
+        self.assertIn("malformed JSON", malformed.json()["message"])
 
     def test_live_data_retains_latest_5000_samples_until_next_start(self):
         self.tempdir = tempfile.TemporaryDirectory()

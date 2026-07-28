@@ -16,7 +16,6 @@ except ImportError as exc:  # pragma: no cover - exercised only without web deps
         'Web UI dependencies are not installed. Run: uv pip install -e ".[webui]" --link-mode=copy'
     ) from exc
 
-from meters_tool_core.command import command_response
 from meters_tool_webui._run_manager import (
     CsvFolderSelectionUnavailable as CsvFolderSelectionUnavailable,
     FALLBACK_WEBUI_VERSION as FALLBACK_WEBUI_VERSION,
@@ -30,6 +29,7 @@ from meters_tool_webui._run_manager import (
     WebRunManager,
     get_webui_version,
 )
+from meters_tool_webui._web_payloads import parse_software_trigger_payload
 
 
 APP_JS_CACHEBUSTER_TOKEN = "__METERS_TOOL_APP_JS_CACHEBUSTER__"
@@ -107,15 +107,24 @@ def create_app(manager: WebRunManager | None = None) -> FastAPI:
         except (UnicodeDecodeError, json.JSONDecodeError) as exc:
             return JSONResponse(
                 status_code=400,
-                content=command_response(
-                    "error",
-                    command=None,
-                    job_id=None,
-                    error="validation_error",
-                    message=f"malformed JSON: {exc}",
-                ),
+                content={
+                    "status": "error",
+                    "error": "validation_error",
+                    "message": f"malformed JSON: {exc}",
+                },
             )
-        status_code, response = app.state.manager.send_command(payload)
+        try:
+            command = parse_software_trigger_payload(payload)
+        except ValueError as exc:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "status": "error",
+                    "error": "validation_error",
+                    "message": str(exc),
+                },
+            )
+        status_code, response = app.state.manager.send_software_trigger(command)
         return JSONResponse(status_code=status_code, content=response)
 
     @app.post("/api/runs/current/stop", status_code=202)

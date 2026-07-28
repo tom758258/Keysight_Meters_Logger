@@ -8,6 +8,10 @@ from meters_tool_core import (
     get_core_capabilities,
     start_workflow_support,
 )
+from meters_tool_core.command import (
+    SoftwareTriggerCommand,
+    normalize_command_metadata,
+)
 from meters_tool_core.constants import UTC_PLUS_8
 from meters_tool_core.measurement import (
     format_measurement_type,
@@ -30,6 +34,19 @@ from meters_tool_core.validation import (
 )
 
 _TRIGGER_TIMEOUT_MODES = frozenset({"external", "external-custom"})
+_SOFTWARE_TRIGGER_PAYLOAD_FIELDS = frozenset({"metadata"})
+
+
+def parse_software_trigger_payload(payload: Any) -> SoftwareTriggerCommand:
+    if not isinstance(payload, dict):
+        raise ValueError("request body must be a JSON object")
+    unknown = sorted(set(payload) - _SOFTWARE_TRIGGER_PAYLOAD_FIELDS)
+    if unknown:
+        raise ValueError(f"unknown top-level field: {unknown[0]}")
+    metadata = payload.get("metadata", {})
+    if not isinstance(metadata, dict):
+        raise ValueError("metadata must be a JSON object")
+    return SoftwareTriggerCommand(metadata=normalize_command_metadata(metadata))
 
 
 def build_capabilities_payload(

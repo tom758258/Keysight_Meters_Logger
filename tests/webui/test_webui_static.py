@@ -380,7 +380,10 @@ class WebUiStaticTests(unittest.TestCase):
         ):
             with self.subTest(endpoint=endpoint):
                 self.assertIn(endpoint, app_js)
-        self.assertIn("schema_version: 2", app_js)
+        self.assertIn("metadata,", app_js)
+        self.assertNotIn("schema_version", app_js)
+        self.assertNotIn('command: "software_trigger"', app_js)
+        self.assertNotIn("arguments:", app_js)
 
     def test_dynamic_optional_labels_group_title_and_marker_before_select(self):
         index, _app_js = load_static_ui()
@@ -472,7 +475,7 @@ class WebUiStaticTests(unittest.TestCase):
         self.assertIn('data-measurement-scope="voltage-dc,voltage-dc-ratio"', index)
 
     def test_static_ui_exposes_software_queue_and_trigger_metadata(self):
-        index, app_js = load_static_ui()
+        index, _app_js = load_static_ui()
         payload_js = (STATIC_DIR / "run_form_payload.js").read_text(encoding="utf-8")
 
         self.assertIn('id="sw-queue-max-container"', index)
@@ -480,7 +483,6 @@ class WebUiStaticTests(unittest.TestCase):
         self.assertIn('id="trigger-metadata-container"', index)
         self.assertIn('id="trigger-metadata"', index)
         self.assertIn("payload.sw_queue_max", payload_js)
-        self.assertIn("arguments: { metadata }", app_js)
 
     def test_static_ui_auto_zero_select_and_new_dropdowns(self):
         index, _app_js = load_static_ui()
