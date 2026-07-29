@@ -20,7 +20,8 @@ unit, trigger source, and related metadata.
 * Control supported digital multimeters over VISA
 * Configure measurement range, NPLC, Auto Zero, AC bandwidth, current terminal,
   and DC voltage input impedance
-* Support software, timer, external hardware, immediate, and buffered trigger workflows
+* Support software trigger workflows, including optional timer scheduling via
+  `--timer-interval-s`, plus external hardware, immediate, and buffered workflows
 * Preview instrument commands using dry-run mode
 * Test workflows without hardware using the built-in simulator
 * Operate through either the CLI or local WebUI
@@ -123,6 +124,41 @@ Windows creates virtualenv console wrappers such as
 `.\.venv\Scripts\meters-tool-webui.exe`, and
 `.\.venv\Scripts\meters-tool-webui-launcher.exe`.
 
+## Quick Start
+
+After installation, run a safe simulator workflow without hardware:
+
+```powershell
+.\.venv\Scripts\meters-tool.exe start-trigger-record `
+  --resource SIM::34461A `
+  --simulate `
+  --measurement voltage-dc `
+  --trigger-mode immediate `
+  --max-samples 1 `
+  --csv .tmp_tests\quick-start-simulator.csv `
+  --status-format jsonl
+```
+
+Start the WebUI console server:
+
+```powershell
+.\.venv\Scripts\meters-tool-webui.exe --host 127.0.0.1 --port 8767
+```
+
+Or start the WebUI launcher:
+
+```powershell
+.\.venv\Scripts\meters-tool-webui-launcher.exe
+```
+
+See the [CLI README](docs/cli/README.md) and [WebUI README](docs/webui/README.md)
+for detailed options and workflows.
+
+By default, live sessions use the system VISA runtime through
+`pyvisa.ResourceManager()`. CLI VISA-opening commands can select the optional
+pyvisa-py backend with `--visa-library "@py"`; the WebUI always uses system VISA
+and does not provide a backend selector.
+
 ## Build
 
 To build the wheel and source distribution directly into `dist\`, use the
@@ -139,8 +175,8 @@ dist\meters_tool-<version>-py3-none-any.whl
 dist\meters_tool-<version>.tar.gz
 ```
 
-Standalone executables are separate PyInstaller workflows. Install PyInstaller
-before building exe artifacts:
+Standalone executables are separate, Windows-oriented PyInstaller workflows.
+Install PyInstaller before building exe artifacts:
 
 ```powershell
 uv pip install pyinstaller --python .\.venv\Scripts\python.exe
@@ -166,7 +202,8 @@ dist\meters-tool.exe
 dist\meters-tool-webui-launcher.exe
 ```
 
-Build a release folder with wheel, sdist, standalone executables, and checksums:
+`build_release.ps1` assembles the wheel, source distribution, CLI standalone EXE,
+WebUI Launcher standalone EXE, and checksums into a versioned release folder:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_release.ps1
@@ -181,6 +218,10 @@ release\<version>\meters_tool-<version>-py3-none-any.whl
 release\<version>\meters_tool-<version>.tar.gz
 release\<version>\checksums.txt
 ```
+
+`release-acceptance.ps1` is the formal no-hardware release acceptance for a
+clean committed tree. It validates packages, clean installs, entry points,
+preflight, and PlanOnly workflows; it does not build standalone EXEs.
 
 ## Test
 

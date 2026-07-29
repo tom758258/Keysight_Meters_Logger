@@ -4,6 +4,7 @@
 
 - [CLI User Guide](USER_GUIDE.md) - operator workflow and common setting guidance.
 - [CLI README](README.md) - detailed CLI reference, validation, and automation guide.
+- [Supported Models](../core/supported-models.md) - current model and exact-scope support status.
 - [Changelog](../../CHANGELOG.md) - release notes and version history.
 - [CLI Integration](cli-integration.md) - CLI adapter maintenance boundary.
 - [Common CLI JSON / JSONL Contract](../contracts/common-cli-jsonl-contract.md) - shared command-line JSON envelope rules.
@@ -16,7 +17,8 @@ CLI-first Python logger for supported digital multimeters, covering DC/AC
 current, DC/AC voltage, DCV ratio, frequency, period, and 2-wire or 4-wire
 resistance measurements over VISA.
 It records one CSV row per captured sample and supports software, external
-hardware, and immediate trigger modes.
+hardware, immediate, and custom/buffered trigger workflows. Software timer
+capture is enabled with `--timer-interval-s` as part of software mode.
 
 For normal operator workflows, start with the [CLI User Guide](USER_GUIDE.md).
 This README keeps the detailed command reference, validation paths, JSON/JSONL
@@ -135,15 +137,19 @@ available unit unless a future LAN/LXI-enabled 34460A is validated.
 ## Development
 
 From PowerShell, change into the project directory, create or reuse the local
-virtual environment, install the package with development dependencies, then
-run the default tests:
+virtual environment, and synchronize the all-extras development environment as
+described in the root [README Install](../../README.md#install) section:
 
 ```powershell
 cd path\to\meters-tool
 uv venv .venv
-uv pip install -e ".[all,dev]"
+uv sync --all-extras --link-mode=copy
 .\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider --ignore=tests\cli\test_cli_wrappers.py
 ```
+
+For CI or strict lock validation, add `--locked` to the sync command. An
+editable `uv pip install -e ".[all,dev]" --link-mode=copy` remains an optional
+refresh path for an existing virtual environment.
 
 If `uv` warns that hardlinking failed and it is falling back to copying files,
 that warning is usually not a failed install. For cross-drive checkouts or
@@ -228,9 +234,8 @@ intentionally switches to a checked-in PyInstaller spec.
 Run this recipe before live instrument work:
 
 ```powershell
-uv pip install -e ".[all,dev]"
 .\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider --ignore=tests\cli\test_cli_wrappers.py
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\preflight-cli.ps1 -Target keysight-34461a
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\preflight-cli.ps1 -Target all
 .\.venv\Scripts\meters-tool.exe list-resources --dry-run --json
 ```
 
@@ -249,24 +254,33 @@ tree is clean:
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\release-acceptance.ps1 -Target keysight-34461a
 ```
 
-The default target is `keysight-34461a`. Use `keysight-34460a` when the release
-change is specifically model-dependent.
+`-Target` defaults to `keysight-34461a`; use `keysight-34460a` only when the
+release change is specifically model-dependent. `-Resource` must be the
+matching simulator resource (`SIM::34461A` or `SIM::34460A`); when omitted, the
+script supplies that matching resource automatically. If `-Release` is
+omitted, the package version is used; a specified release must equal the
+package version. `-OutputRoot` must remain under `.tmp_tests`.
 
 The acceptance verifies the lock file and clean Git state, runs the fast test
 suite once, builds the wheel and sdist, installs each artifact into a clean
 environment, checks public entry points, runs preflight and
 `live-cli-check.ps1 -PlanOnly`, and records SHA-256 checksums.
 
-It does not open a VISA hardware resource or build standalone executables. It
-is a formal release gate, not a prerequisite for ordinary local package builds
-or standalone EXE rebuilds.
+It does not open a VISA hardware resource or build standalone executables. The
+main outputs are written under
+`.tmp_tests/release_acceptance/<target>/<timestamp>/` and include
+`report.json`, `summary.md`, `checksums.txt`, and the built distribution
+artifacts. It is a formal release gate, not a prerequisite for ordinary local
+package builds or standalone EXE rebuilds.
 
 ## Live Instrument Validation
 
 Use this section when moving to a new PC, a new VISA runtime, or a different
-34460A or 34461A. Start with no-hardware validation, then discover a live
-resource, then run a plan-only live wrapper before allowing the wrapper to touch
-the instrument.
+connected supported model. Start with no-hardware validation, then discover a
+live resource, then run a plan-only live wrapper before allowing the wrapper to
+touch the instrument. Live execution must use the connected model's Product-
+open exact transport/backend scope; model-specific limits and pending scopes
+remain enforced.
 
 1. Run the no-hardware recipe above.
 2. Discover resources that currently answer `*IDN?`:
@@ -329,7 +343,11 @@ to generate shareable evidence makes the wrapper fail closed and does not turn
 raw evidence into a fallback. Passed or failed artifacts are candidate evidence
 only and never promote product support automatically.
 
-Wrapper `-Target` values are stable Core model IDs. The maintained values are
+CLI `--model` accepts a canonical model token such as `34461A` or a registered
+stable model ID such as `keysight-34461a`. In live mode it is an expected-model
+guard; in dry-run or simulator mode it selects the planning profile.
+
+PowerShell wrapper `-Target` values are stable Core model IDs. The maintained values are
 `keysight-34461a` and `keysight-34460a`; they map to the physical CLI model
 tokens `34461A` and `34460A`, respectively. The wrapper target remains an
 expected-model guard for live validation, while detected `*IDN?` selects the
@@ -445,15 +463,23 @@ If stdin is redirected and `-PlanOnly` is not set, `live-cli-check.ps1` refuses
 live acquisition and writes a `confirmation_required` report. This is expected:
 live instrument runs require an interactive confirmation.
 
-## CLI Validation Scripts
+## Build And Validation Scripts
 
-The project has three CLI-related validation scripts:
+Build scripts:
+
+| Script | Purpose |
+| --- | --- |
+| `scripts\build_cli_exe.ps1` | Build the Windows-oriented CLI standalone EXE. |
+| `scripts\build_webui_exe.ps1` | Build the Windows-oriented WebUI Launcher standalone EXE. |
+| `scripts\build_release.ps1` | Assemble versioned wheel, sdist, standalone EXEs, and checksums. |
+
+Validation and release scripts:
 
 | Script | Hardware use | Purpose |
 | --- | --- | --- |
-| `scripts\preflight-cli.ps1` | No hardware | Runs target-aware dry-run, simulator, client dry-run, mocked `list-resources`, and wrapper contract checks. Use this before live work. |
-| `scripts\live-cli-check.ps1` | Live hardware unless `-PlanOnly` is set | Runs target-aware live-wrapper plans and, with interactive confirmation, bounded live validation cases against the explicit `-Resource`. Frequency/Period cases first run per-command SCPI error diagnostics. Suites are `minimal`, `basic`, `frequency-period`, `external`, and `full`; 34460A rejects `external` and its `full` suite excludes external cases. |
-| `scripts\release-acceptance.ps1` | No hardware | Formal release gate for the fast tests, wheel/sdist builds, clean artifact installs, public entry points, preflight, `live-cli-check.ps1 -PlanOnly`, and SHA-256 checksums. |
+| `scripts\preflight-cli.ps1` | No hardware | Runs target-aware dry-run cases, simulator cases, client-command dry-runs, the `list-resources` dry-run contract, and mocked `list-resources` pytest coverage. Use `-Target all` for general no-hardware validation. |
+| `scripts\live-cli-check.ps1` | Live hardware unless `-PlanOnly` is set | Runs target-aware live-wrapper plans and, with interactive confirmation, bounded live validation cases against the explicit `-Resource` and exact connection/backend scope. |
+| `scripts\release-acceptance.ps1` | No hardware | Validates wheel/sdist, clean installs, entry points, preflight, `live-cli-check.ps1 -PlanOnly`, and SHA-256 checksums without building standalone EXEs. |
 
 Promotion from `transport_pending` or `feature_pending` to
 `live_validated_full_suite` requires reviewed artifacts and an explicit exact-
@@ -575,8 +601,8 @@ Root options:
 | Option | Description |
 | --- | --- |
 | none | Print raw VISA resources returned by PyVISA. This can include stale cached resources and does not open resources or run release-to-local cleanup. |
-| `--verify` | Open each discovered resource, query `*IDN?`, and close the session without issuing cleanup commands. Text output marks rows as `live` or `stale`; JSON output includes `live`, `status`, and `detail`. ASRL/RS-232 checks use a short bounded timeout. |
-| `--live-only` | Verify resources and print only rows that answered. This implies `--verify`, suppresses stale resources, and still continues after an ASRL stale timeout. Verification closes each session after its `*IDN?` query without issuing cleanup commands. Text output prints `no live VISA resources found` if nothing is connected or reachable. |
+| `--verify` | Open each discovered resource, query `*IDN?`, then close the session and resource manager. It performs no acquisition cleanup and sends no release-to-local SCPI. Text output marks rows as `live` or `stale`; JSON output includes `live`, `status`, and `detail`. ASRL/RS-232 checks use a short bounded timeout. |
+| `--live-only` | Verify resources and print only rows that answered. This implies `--verify`, suppresses stale resources, and still continues after an ASRL stale timeout. Verification closes each session and resource manager after its `*IDN?` query without acquisition cleanup or release-to-local SCPI. Text output prints `no live VISA resources found` if nothing is connected or reachable. |
 | `--dry-run` | Print the resource-discovery contract and exit 0 without creating a VISA resource manager, listing resources, opening resources, querying `*IDN?`, or running release/local cleanup. Can be combined with `--verify`, `--live-only`, and `--json`. |
 | `--visa-library TEXT`, `--backend TEXT` | Optional PyVISA library/backend argument, such as `@py`. Omit it to use the system default VISA runtime through `pyvisa.ResourceManager()`. |
 | `--serial-read-termination VALUE` | CLI discovery/verification compatibility setting for ASRL resources only. Accepted values are `CRLF`, `LF`, `CR`, and `NONE`. It maps to the PyVISA session `read_termination` before querying `*IDN?`; it is not an acquisition setting. |
@@ -594,8 +620,8 @@ Root options:
 | `--arguments-json JSON` | `{}` | Complete JSON command arguments object. Use `{"metadata":{...}}` to attach trigger metadata written to CSV as `trigger_metadata`. Invalid JSON, non-object metadata, and other command validation failures are rejected before sending the request. |
 | `--job-id TEXT` | unset | Optional client-generated job id echoed by the command envelope only. |
 | `--format text\|json` | `text` | Response output format. `json` emits one structured object for agent callers. |
-| `--json` | No | Off | Alias for `--format json`. |
-| `--dry-run` | No | Off | Preview the request locally without sending HTTP. |
+| `--json` | Off | Alias for `--format json`. |
+| `--dry-run` | Off | Preview the request locally without sending HTTP. |
 
 `stop` options:
 
@@ -604,8 +630,8 @@ Root options:
 | `--port N` | `8765` | Local stop endpoint port. Supported range: `1` to `65535`. |
 | `--timeout-ms N` | `3000` | HTTP client timeout in milliseconds. Supported range: `100` to `600000`. |
 | `--format text\|json` | `text` | Response output format. `json` emits one structured object for agent callers. |
-| `--json` | No | Off | Alias for `--format json`. |
-| `--dry-run` | No | Off | Preview the request locally without sending HTTP. |
+| `--json` | Off | Alias for `--format json`. |
+| `--dry-run` | Off | Preview the request locally without sending HTTP. |
 
 `status` options:
 
@@ -614,8 +640,8 @@ Root options:
 | `--port N` | `8765` | Local status endpoint port. Supported range: `1` to `65535`. |
 | `--timeout-ms N` | `3000` | HTTP client timeout in milliseconds. Supported range: `100` to `600000`. |
 | `--format text\|json` | `text` | Response output format. `json` emits one normalized status object. |
-| `--json` | No | Off | Alias for `--format json`. |
-| `--dry-run` | No | Off | Preview the non-mutating GET request locally without sending HTTP. |
+| `--json` | Off | Alias for `--format json`. |
+| `--dry-run` | Off | Preview the non-mutating GET request locally without sending HTTP. |
 
 `wait-ready` options:
 
@@ -624,13 +650,13 @@ Root options:
 | `--port N` | `8765` | Local status endpoint port. Supported range: `1` to `65535`. |
 | `--timeout-ms N` | `10000` | Overall readiness deadline in milliseconds. Supported range: `100` to `600000`. |
 | `--format text\|json` | `text` | Response output format. `json` emits normalized status plus readiness timing fields. |
-| `--json` | No | Off | Alias for `--format json`. |
+| `--json` | Off | Alias for `--format json`. |
 
 ## Trigger Modes
 
 | Mode | How capture starts | Read path | CSV `trigger_source` | Notes |
 | --- | --- | --- | --- | --- |
-| `software` | `send-command` posts to the local HTTP endpoint, or `--timer-interval-s` creates automatic timer events. | `READ?` | `software` or `timer` | Default when `--trigger-mode` is omitted. Timer mode uses fixed-delay spacing after each capture attempt. |
+| `software` | `send-command` posts to the local HTTP endpoint, or `--timer-interval-s` creates automatic timed software events. | `READ?` | `software` or `timer` | Default when `--trigger-mode` is omitted. The timed software path uses fixed-delay spacing after each capture attempt. |
 | `external` | The instrument receives an external hardware trigger edge. | `FETC?` | `hardware` | Use `--trigger-mode external`. |
 | `immediate` | The worker captures without waiting for a trigger event. | `READ?` | `immediate` | Use `--max-samples` for bounded runs. |
 | `immediate-custom` | The instrument runs an explicit immediate trigger/sample sequence and stores readings in memory. | `INIT` + `DATA:POINts?` / `DATA:REMove?` | `immediate-custom` | Requires `--trigger-count` and `--sample-count`; `--max-samples` is not valid. |
@@ -644,16 +670,16 @@ ignored.
 When `--timer-interval-s` is active, ordinary `send-command` requests are
 ignored while `stop` still stops the run. The first timer sample is captured
 when recording starts; each later timer sample waits at least the configured
-interval after the previous capture attempt finishes. Timer mode is a simple
+interval after the previous capture attempt finishes. This is a simple
 software-mode acquisition path, so `--max-samples` is valid and stops the run
-after that many successful timer CSV rows.
+after that many successful timed CSV rows.
 
 ## `start-trigger-record` Options
 
 | Option | Required | Default | Description |
 | --- | --- | --- | --- |
 | `--resource RESOURCE` | Yes | None | VISA resource string, for example USB or TCPIP HiSLIP. |
-| `--model MODEL`, `--instrument-model MODEL` | No | auto for live; required for non-deterministic dry-run/simulate | Expected model guard for live runs; model profile selector for dry-run/simulate. Core profile logic normalizes and validates model names, for example `34460A` or `34461A`, and reports unsupported models with the supported list. |
+| `--model MODEL`, `--instrument-model MODEL` | No | auto for live; required for non-deterministic dry-run/simulate | Accepts a canonical model token or registered stable model ID. It is an expected-model guard for live runs and a planning profile selector for dry-run/simulate. Core profile logic normalizes and validates values such as `34460A`, `34461A`, `keysight-34460a`, and `keysight-34461a`. |
 | `--visa-library TEXT`, `--backend TEXT` | No | system default | Optional PyVISA library/backend argument, such as `@py`. Dry-run and simulator runs accept the option but do not open VISA. |
 | `--csv PATH` | No | `data/YYYY-MM-DD-HH-MM-SS.csv` | CSV output path. If omitted, a UTC+8 timestamped file is created under `data`. Parent directories are created automatically. |
 | `--status-format text\|jsonl` | No | `text` | Runtime status output format. `jsonl` emits one JSON object per line for agent callers. |
@@ -973,10 +999,10 @@ Verify which resources are live:
 .\.venv\Scripts\meters-tool.exe list-resources --verify
 ```
 
-Successful non-ASRL verified resources are released back to local on a
-best-effort basis before the scan session closes. Stale resources that fail the
-IDN query are closed without release SCPI. ASRL/RS-232 verification uses a
-short bounded timeout and reports stale serial timeouts concisely.
+Verification only opens each resource, queries `*IDN?`, and closes the session
+and resource manager. It does not execute acquisition cleanup or
+release-to-local SCPI. ASRL/RS-232 verification uses a short bounded timeout
+and reports stale serial timeouts concisely.
 
 Show only live resources and hide stale VISA cache entries:
 
@@ -1024,10 +1050,15 @@ resource answers, text output prints:
 no live VISA resources found
 ```
 
-Verified JSON output is a single object:
+Abbreviated schema 2 JSON example (timestamp and resource details are
+illustrative):
 
 ```json
 {
+  "count": 1,
+  "diagnostic_hints": [],
+  "event": "list-resources",
+  "live_count": 1,
   "resources": [
     {
       "detail": "Keysight Technologies,34461A,...",
@@ -1036,6 +1067,10 @@ Verified JSON output is a single object:
       "status": "live"
     }
   ],
+  "schema_version": 2,
+  "stale_count": 0,
+  "timestamp_utc": "2026-05-18T...",
+  "visa_library": null,
   "verify": true
 }
 ```
@@ -1045,6 +1080,10 @@ stale entries, and adds `live_only`:
 
 ```json
 {
+  "count": 1,
+  "diagnostic_hints": [],
+  "event": "list-resources",
+  "live_count": 1,
   "live_only": true,
   "resources": [
     {
@@ -1054,6 +1093,10 @@ stale entries, and adds `live_only`:
       "status": "live"
     }
   ],
+  "schema_version": 2,
+  "stale_count": 0,
+  "timestamp_utc": "2026-05-18T...",
+  "visa_library": null,
   "verify": true
 }
 ```
@@ -1077,18 +1120,20 @@ Use this order when checking a setup:
    entries.
 2. Run a one-sample current, voltage, frequency, period, or resistance smoke test with
    `--trigger-mode immediate` and `--max-samples 1`.
-3. Run the specific trigger mode needed for the experiment: software, timer,
-   external, immediate, or custom/buffered.
+3. Run the specific trigger mode needed for the experiment: software (optionally
+   timed), external, immediate, or custom/buffered.
 4. Confirm the CSV `measurement_type`, `unit`, `trigger_source`, and row count.
 5. Confirm graceful stop behavior with `stop`, Ctrl+C, Ctrl+Break, or `q`
    before relying on long unattended runs.
 
 Before relying on unattended acquisition, validate the workflow with an
-operator-provided Keysight 34461A VISA resource. Start with immediate mode, Auto
+operator-provided VISA resource for a connected supported model and a
+Product-open exact transport/backend scope. Start with immediate mode, Auto
 Range on, and `--max-samples 1`, then expand to the intended measurement,
-trigger mode, and buffered mode. For AC current, AC voltage, Frequency, and
-Period, compare the CLI CSV row to the 34461A front-panel reading during the
-smoke test.
+trigger mode, and buffered mode. Compare the CLI CSV row with the connected
+model's front-panel reading where applicable. Keep model-specific restrictions,
+including 34460A's USB/system-VISA scope, 1000-reading limit, and lack of base-
+profile external trigger support.
 
 ### Current DC Smoke Test
 
@@ -1509,7 +1554,7 @@ Manual 1000 Ohm range, one immediate resistance sample:
 For resistance rows, expect `measurement_type=resistance_2w` and `unit=Ohm` in
 the CSV. The measured value should be plausible for the connected resistor or
 open/fixture condition. `resistance-2w` can also be selected with the existing
-software, timer, external, and custom/buffered modes; run a focused
+software (optionally timed), external, and custom/buffered modes; run a focused
 real-instrument check before relying on those resistance trigger paths in
 production.
 

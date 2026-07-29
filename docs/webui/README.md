@@ -39,7 +39,7 @@ The WebUI owns:
 - Live data display state derived from Core sample events.
 - Resource scanning display.
 - Open CSV behavior.
-- Start, Trigger, Stop, and status polling UI behavior.
+- Start, Trigger, Stop, and SSE status streaming with fallback polling UI behavior.
 
 Core owns:
 
@@ -74,11 +74,21 @@ The Windows console wrapper is:
 .\.venv\Scripts\meters-tool-webui.exe
 ```
 
-The Windows GUI launcher wrapper is:
+The installed virtual-environment entry-point wrapper for the Windows GUI
+launcher is:
 
 ```powershell
 .\.venv\Scripts\meters-tool-webui-launcher.exe
 ```
+
+The PyInstaller standalone launcher executable is:
+
+```text
+dist\meters-tool-webui-launcher.exe
+```
+
+The virtual-environment wrapper requires the installed project environment;
+the `dist\` executable is the standalone Windows build artifact.
 
 The default local server is:
 
@@ -92,7 +102,12 @@ Use `Ctrl+C`; if the terminal does not deliver SIGINT, stop the listening
 
 ## Install Or Refresh
 
-From the repository root:
+For the primary project setup, follow the root [README Install](../../README.md#install)
+section. It creates the project virtual environment and synchronizes the
+all-extras environment using the copy link mode described there.
+
+For an existing virtual environment, an editable install is an optional refresh
+path:
 
 ```powershell
 uv pip install -e ".[all,dev]" --link-mode=copy
@@ -122,7 +137,9 @@ Or start the double-click launcher:
 .\.venv\Scripts\meters-tool-webui-launcher.exe
 ```
 
-The launcher defaults to `127.0.0.1:8767`, disables the port field while
+The console server supports `--host` and `--port`. The launcher always binds to
+`127.0.0.1` and allows only the port to be selected. It defaults to
+`127.0.0.1:8767`, disables the port field while
 `Use default port 8767` is selected, opens the browser after Start, and keeps
 the window available so Quit can stop the local Uvicorn server.
 
@@ -478,6 +495,17 @@ Preserved cleanup order:
 4. Cleanup release.
 5. Stop the HTTP/control-plane path.
 
+When the console server receives an exit signal, it first requests manager
+shutdown and only then allows Uvicorn to stop. Launcher `Quit` first stops an
+active run and waits for Core cleanup, then stops Uvicorn. If cleanup times out
+or fails, the launcher displays `Shutdown incomplete` and remains open so the
+operator can retry.
+
+Once shutdown begins, `WebRunManager` rejects new run starts to prevent a start
+and termination race. If a stop request arrives while a run is still starting
+and the Core control plane is not ready, the request is retained and delivered
+when the control plane becomes ready; it is not lost.
+
 ## Live Data
 
 Live data and status updates are driven primarily by Server-Sent Events (SSE):
@@ -818,8 +846,12 @@ Wrapper is missing:
 
 Port is already in use:
 
-- Start with another port, for example `--port 8768`.
-- Or stop the existing listening process.
+- If the selected port already serves Meters Tool WebUI, the Launcher opens the
+  existing server.
+- If another HTTP service owns the port, the Launcher shows an error. It does
+  not automatically try the next port.
+- For the console server, choose another port, for example `--port 8768`, or
+  stop the existing listening process.
 
 `q` does not stop the server:
 
@@ -848,7 +880,7 @@ Trigger button is hidden:
 Live panel has no samples:
 
 - Confirm the run has captured samples.
-- Confirm status polling is active.
+- Confirm the SSE status stream is active, or that fallback polling is working.
 - The panel uses Core sample events only; it does not query the instrument or
   parse CSV files independently.
 
