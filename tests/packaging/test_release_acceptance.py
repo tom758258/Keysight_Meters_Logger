@@ -56,6 +56,25 @@ def test_release_acceptance_runs_fast_suite_without_wrapper_tests():
     assert "pytest_metadata_docs" not in script
 
 
+def test_release_acceptance_isolates_python_process_environment():
+    script = release_acceptance_text()
+    isolation_start = script.index('$env:PYTHONNOUSERSITE = "1"')
+    pytest_start = script.index('$script:currentStep = "pytest_fast"')
+    isolation_block = script[isolation_start:pytest_start]
+
+    assert "SetEnvironmentVariable(" in isolation_block
+    assert "$null" in isolation_block
+    assert "[EnvironmentVariableTarget]::Process" in isolation_block
+    for variable in (
+        "PYTHONPATH",
+        "PYTHONHOME",
+        "VIRTUAL_ENV",
+        "UV_INTERNAL__PYTHONHOME",
+        "UV_PROJECT_ENVIRONMENT",
+    ):
+        assert f'"{variable}"' in isolation_block
+
+
 def test_release_acceptance_covers_artifacts_smokes_wrappers_and_checksums():
     script = release_acceptance_text()
 
@@ -71,6 +90,8 @@ def test_release_acceptance_covers_artifacts_smokes_wrappers_and_checksums():
         "Get-FileHash -Algorithm SHA256",
         ".\\scripts\\preflight-cli.ps1",
         ".\\scripts\\live-cli-check.ps1",
+        '"-Suite"',
+        '"minimal"',
         '"-PlanOnly"',
         '"-SkipPreflight"',
     ):

@@ -243,6 +243,21 @@ try {
         -FilePath $uvCommand.Source `
         -Arguments @("lock", "--check"))
 
+    $env:PYTHONNOUSERSITE = "1"
+    foreach ($environmentVariable in @(
+        "PYTHONPATH",
+        "PYTHONHOME",
+        "VIRTUAL_ENV",
+        "UV_INTERNAL__PYTHONHOME",
+        "UV_PROJECT_ENVIRONMENT"
+    )) {
+        [Environment]::SetEnvironmentVariable(
+            $environmentVariable,
+            $null,
+            [EnvironmentVariableTarget]::Process
+        )
+    }
+
     $script:currentStep = "pytest_fast"
     [void](Invoke-RecordedCommand `
         -Name $script:currentStep `
@@ -344,6 +359,8 @@ try {
             "usb",
             "-Resource",
             $Resource,
+            "-Suite",
+            "minimal",
             "-PlanOnly",
             "-SkipPreflight"
         ))
