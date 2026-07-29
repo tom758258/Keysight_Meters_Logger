@@ -97,8 +97,10 @@ http://127.0.0.1:8767/
 ```
 
 The server is a Uvicorn/FastAPI process. The terminal key `q` does not stop it.
-Use `Ctrl+C`; if the terminal does not deliver SIGINT, stop the listening
-`python.exe` process by PID.
+Use `Ctrl+C` for graceful shutdown. If the terminal cannot deliver SIGINT,
+stop any active run and wait for cleanup to finish before terminating the
+listening process by PID. Forced process termination is a last-resort recovery
+path and may bypass graceful instrument cleanup.
 
 ## Install Or Refresh
 
@@ -855,7 +857,8 @@ Port is already in use:
 
 `q` does not stop the server:
 
-- This is expected. Use `Ctrl+C`, or stop the listening `python.exe` by PID.
+- This is expected. Use `Ctrl+C` for graceful shutdown; if SIGINT cannot be
+  delivered, follow the cleanup-before-PID-termination guidance above.
 
 Scan finds no live resources:
 
