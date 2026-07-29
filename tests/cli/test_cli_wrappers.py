@@ -197,9 +197,9 @@ def test_shared_validation_target_registry_rejects_duplicates():
     assert "Duplicate validation target model_id 'duplicate'" in result.stdout + result.stderr
 
 
-def test_release_check_rejects_mismatched_package_version():
+def test_release_acceptance_rejects_mismatched_package_version():
     result = run_wrapper(
-        "scripts/release-cli-check.ps1",
+        "scripts/release-acceptance.ps1",
         "-Release",
         "1.4.0",
     )
@@ -210,15 +210,30 @@ def test_release_check_rejects_mismatched_package_version():
     )
 
 
-def test_release_check_rejects_unknown_target_before_running_commands():
+def test_release_acceptance_rejects_unknown_target_before_running_commands():
     result = run_wrapper(
-        "scripts/release-cli-check.ps1",
+        "scripts/release-acceptance.ps1",
         "-Target",
         "unknown",
     )
 
     assert result.returncode != 0
     assert "Unsupported target 'unknown'" in result.stdout + result.stderr
+
+
+def test_release_acceptance_rejects_output_root_outside_tmp_tests():
+    bad_root = REPO_ROOT / ".tmp_bad_release"
+    assert not bad_root.exists()
+
+    result = run_wrapper(
+        "scripts/release-acceptance.ps1",
+        "-OutputRoot",
+        ".tmp_bad_release",
+    )
+
+    assert result.returncode != 0
+    assert "Only paths under .tmp_tests are allowed" in result.stdout + result.stderr
+    assert not bad_root.exists()
 
 
 def test_preflight_report_contract():
@@ -490,6 +505,27 @@ def test_live_plan_only_minimal_report_contract():
     )
     for forbidden in (raw_resource, "MY12345678", str(REPO_ROOT), str(PYTHON)):
         assert forbidden not in shareable_text
+
+
+def test_live_plan_only_can_skip_duplicate_preflight():
+    result = run_wrapper(
+        "scripts/live-cli-check.ps1",
+        "-Target",
+        "keysight-34461a",
+        "-Connection",
+        "usb",
+        "-Resource",
+        "SIM::34461A",
+        "-Suite",
+        "minimal",
+        "-PlanOnly",
+        "-SkipPreflight",
+    )
+    assert result.returncode == 0, result.stderr + result.stdout
+
+    report_path = report_from_summary_output(result.stdout)
+    private_report = load_json(report_path.parents[1] / "private" / "report.json")
+    assert "preflight" not in {command["name"] for command in private_report["commands"]}
 
 
 def test_live_plan_only_full_report_contract():

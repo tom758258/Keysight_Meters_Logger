@@ -13,7 +13,9 @@ param(
     [ValidateSet("minimal", "basic", "frequency-period", "external", "full")]
     [string]$Suite = "minimal",
 
-    [switch]$PlanOnly
+    [switch]$PlanOnly,
+
+    [switch]$SkipPreflight
 )
 
 Set-StrictMode -Version Latest
@@ -791,6 +793,9 @@ function Write-LiveArtifacts {
 if ([string]::IsNullOrWhiteSpace($Resource)) {
     Fail-Usage "Missing -Resource. Live checks never scan or guess a VISA resource."
 }
+if ($SkipPreflight -and (-not $PlanOnly)) {
+    Fail-Usage "-SkipPreflight is allowed only with -PlanOnly."
+}
 
 try {
     $resolvedTarget = Resolve-ValidationTarget -Target $Target
@@ -845,7 +850,7 @@ trap {
     exit 1
 }
 
-if (-not ($stdinRedirected -and (-not $PlanOnly))) {
+if ((-not $SkipPreflight) -and (-not ($stdinRedirected -and (-not $PlanOnly)))) {
     $preflightOut = Join-Path $privateRoot "preflight.stdout.txt"
     $preflightErr = Join-Path $privateRoot "preflight.stderr.txt"
     $preflightRoot = Join-Path $privateRoot "preflight"

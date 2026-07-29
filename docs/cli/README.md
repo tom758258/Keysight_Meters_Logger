@@ -142,7 +142,7 @@ run the default tests:
 cd path\to\meters-tool
 uv venv .venv
 uv pip install -e ".[all,dev]"
-.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider
+.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider --ignore=tests\cli\test_cli_wrappers.py
 ```
 
 If `uv` warns that hardlinking failed and it is falling back to copying files,
@@ -187,16 +187,18 @@ If PowerShell blocks activation because of execution policy, use the explicit
 
 ## Standalone EXE Build
 
-For release preparation, run the no-hardware release gate before building
-release artifacts:
+Before a formal release, run the no-hardware release acceptance from a clean,
+committed working tree:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\release-cli-check.ps1 -Target keysight-34461a
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\release-acceptance.ps1 -Target keysight-34461a
 ```
 
 The default target is `keysight-34461a`. Use `keysight-34460a` when the release
-change is specifically model-dependent. The wrapper validates release readiness
-but does not build release artifacts.
+change is specifically model-dependent. The acceptance is a no-hardware gate
+that runs the fast tests once, builds and clean-installs the wheel and sdist,
+checks public entry points, runs preflight and `live-cli-check.ps1 -PlanOnly`,
+and records SHA-256 checksums. It does not build standalone executables.
 
 The installed `.venv\Scripts\meters-tool.exe` is a virtualenv console
 wrapper. It is not a standalone executable for machines without the project
@@ -240,7 +242,7 @@ Run this recipe before live instrument work:
 
 ```powershell
 uv pip install -e ".[all,dev]"
-.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider
+.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider --ignore=tests\cli\test_cli_wrappers.py
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\preflight-cli.ps1 -Target keysight-34461a
 .\.venv\Scripts\meters-tool.exe list-resources --dry-run --json
 ```
@@ -436,13 +438,13 @@ live instrument runs require an interactive confirmation.
 
 ## CLI Validation Scripts
 
-The CLI package has three wrapper scripts:
+The project has three CLI-related validation scripts:
 
 | Script | Hardware use | Purpose |
 | --- | --- | --- |
 | `scripts\preflight-cli.ps1` | No hardware | Runs target-aware dry-run, simulator, client dry-run, mocked `list-resources`, and wrapper contract checks. Use this before live work. |
 | `scripts\live-cli-check.ps1` | Live hardware unless `-PlanOnly` is set | Runs target-aware live-wrapper plans and, with interactive confirmation, bounded live validation cases against the explicit `-Resource`. Frequency/Period cases first run per-command SCPI error diagnostics. Suites are `minimal`, `basic`, `frequency-period`, `external`, and `full`; 34460A rejects `external` and its `full` suite excludes external cases. |
-| `scripts\release-cli-check.ps1` | No hardware by default | Runs release gate checks, including full pytest, preflight, and `live-cli-check.ps1 -PlanOnly`. Its default validation mode is `release_no_hardware`. |
+| `scripts\release-acceptance.ps1` | No hardware | Formal release gate for the fast tests, wheel/sdist builds, clean artifact installs, public entry points, preflight, `live-cli-check.ps1 -PlanOnly`, and SHA-256 checksums. |
 
 Promotion from `transport_pending` or `feature_pending` to
 `live_validated_full_suite` requires reviewed artifacts and an explicit exact-
@@ -1868,11 +1870,15 @@ CSV fields:
 Install development dependencies with `uv pip install -e ".[all,dev]"` as shown in
 the Development section before running tests.
 
-Default pytest run:
+Daily fast pytest run:
 
 ```powershell
-.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider
+.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider --ignore=tests\cli\test_cli_wrappers.py
 ```
+
+The Windows wrapper-contract CI job validates `tests\cli\test_cli_wrappers.py`
+separately. Run the complete no-hardware `release-acceptance.ps1` gate only
+before a formal release.
 
 Unittest discovery, matching GitHub Actions:
 

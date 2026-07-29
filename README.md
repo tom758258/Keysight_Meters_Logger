@@ -125,19 +125,23 @@ Windows creates virtualenv console wrappers such as
 
 ## Build
 
-For release preparation, run the no-hardware release gate before building
-release artifacts:
+Before a formal release, run the no-hardware release acceptance from a clean,
+committed working tree:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\release-cli-check.ps1 -Target keysight-34461a
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\release-acceptance.ps1 -Target keysight-34461a
 ```
 
 The default target is `keysight-34461a`. Use `keysight-34460a` when the release
-change is specifically model-dependent. The wrapper validates release readiness
-but does not build release artifacts.
+change is specifically model-dependent. The acceptance verifies the lock file
+and clean Git state, runs the fast test suite once, builds the wheel and sdist,
+installs each artifact into a clean environment, checks public entry points,
+runs preflight and `live-cli-check.ps1 -PlanOnly`, and records SHA-256
+checksums. It does not open a VISA hardware resource or build standalone
+executables.
 
-Build the wheel and source distribution. This uses the `build` package from
-the `dev` extra installed above:
+To build the wheel and source distribution outside the acceptance run
+directory, use the `build` package from the `dev` extra installed above:
 
 ```powershell
 .\.venv\Scripts\python.exe -m build
@@ -209,17 +213,21 @@ Run the static checks:
 .\.venv\Scripts\python.exe -m ruff check src tests
 ```
 
-Run the full no-hardware suite:
+Run the daily fast no-hardware suite:
 
 ```powershell
-.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider
+.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider --ignore=tests\cli\test_cli_wrappers.py
 ```
+
+The Windows wrapper-contract CI job runs `tests\cli\test_cli_wrappers.py`
+separately. Run the complete `release-acceptance.ps1` gate only before a formal
+release.
 
 If Windows temporary-directory permissions block pytest, rerun it with a
 repository-local temporary directory:
 
 ```powershell
-.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider --basetemp .tmp_tests\pytest_tmp
+.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider --ignore=tests\cli\test_cli_wrappers.py --basetemp .tmp_tests\pytest_tmp
 ```
 
 ## Codex / Agent Skill
