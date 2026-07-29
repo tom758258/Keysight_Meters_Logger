@@ -96,7 +96,10 @@ cp docs/contracts/meters-orchestrator-workflows.md "$skill/references/"
 cp docs/core/supported-models.md "$skill/references/"
 ```
 
-如果 Codex 在此儲存庫內執行並且能夠讀取 `docs/contracts/`，這些檔案仍是首選的上游 source of truth。當已安裝的 Skill 在原始儲存庫環境之外被重複使用或審查時，複製到 `references/` 的檔案就會發揮作用。
+如果 Codex 在此儲存庫內執行，且能夠讀取 `docs/contracts/` 與
+`docs/core/supported-models.md`，這兩個來源仍是首選的上游 source of truth。
+當已安裝的 Skill 在原始儲存庫環境之外被重複使用或審查時，複製到
+`references/` 的檔案就會發揮作用。
 
 ## 使用者層級安裝 (User-level installation)
 

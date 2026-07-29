@@ -123,10 +123,10 @@ cp docs/contracts/meters-orchestrator-workflows.md "$skill/references/"
 cp docs/core/supported-models.md "$skill/references/"
 ```
 
-If Codex is run inside this repository and can read `docs/contracts/`, those
-files remain the preferred upstream source of truth. The copied `references/`
-files are useful when the installed skill is reused or reviewed outside the
-original repository context.
+If Codex is run inside this repository and can read `docs/contracts/` and
+`docs/core/supported-models.md`, those files remain the preferred upstream
+sources of truth. The copied `references/` files are useful when the installed
+skill is reused or reviewed outside the original repository context.
 
 ## User-level installation
 

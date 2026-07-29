@@ -9,17 +9,19 @@ This skill helps Codex follow the public Meters Tool
 CLI/worker subprocess contracts. It is an instruction-only skill. It does not
 provide an instrument driver, replace the CLI, or authorize live hardware work.
 
-## Contract lookup order
+## Reference lookup order
 
-Before making contract-sensitive decisions, read the relevant contracts in this
-order:
+Before making contract- or model-support-sensitive decisions, read the relevant
+references in this order:
 
 1. If working inside the Meters Tool repository, treat `docs/contracts/` and
    `docs/core/supported-models.md` as the upstream sources of truth.
 2. If this skill is installed standalone and has a local `references/` directory,
-   read the copied contract files there as a contract snapshot.
-3. If both `docs/contracts/` and `references/` are available and appear to
-   differ, warn the user before making contract-sensitive changes.
+   read the copied reference files there as reference snapshots.
+3. If the repository upstream sources (`docs/contracts/` and
+   `docs/core/supported-models.md`) and `references/` are both available and
+   appear to differ or be stale, warn the user before making contract- or
+   model-support-sensitive changes.
 
 In executable-only workspaces, such as a folder with `meters-tool*.exe` but
 no repository sources, first check this skill package's `references/` directory.
@@ -27,7 +29,7 @@ Read all seven required reference files before using CLI help. If they are not
 readable, stop and report a missing-reference blocker. CLI help may confirm
 installed behavior only after reference lookup has been attempted.
 
-Relevant contracts:
+Relevant references:
 
 - `common-worker-protocol.md`
 - `common-cli-jsonl-contract.md`
