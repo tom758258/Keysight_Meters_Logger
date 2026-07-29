@@ -21,9 +21,9 @@ except ModuleNotFoundError:  # pragma: no cover - dependency-gated tests
 
 if TestClient is not None:
     from meters_tool_core.instrument import InstrumentError
-    from meters_tool_core.models import KEYSIGHT_34461A_PROFILE
+    from meters_tool_core.models import KEYSIGHT_34461A_PROFILE, TriggerSource
     from meters_tool_core.runner import StartRunnerDependencies
-    from meters_tool_webui._run_manager import _RunHandle
+    from meters_tool_webui._run_manager import _RunHandle, _WebControlPlane
     from meters_tool_webui._web_payloads import support_summary
     from meters_tool_webui.web_ui import (
         APP_JS_CACHEBUSTER_TOKEN,
@@ -931,6 +931,41 @@ class WebUiApiTests(unittest.TestCase):
         deadline = time.monotonic() + 1.0
         while manager.status()["active"] and time.monotonic() < deadline:
             time.sleep(0.02)
+
+    def test_control_plane_delivers_pending_stop_when_start_registers_callbacks(self):
+        ready_calls = []
+        stop_calls = []
+
+        class FakeRouter:
+            def __init__(self):
+                self.events = []
+
+            def publish(self, event):
+                self.events.append(event)
+                return True
+
+        router = FakeRouter()
+        control_plane = _WebControlPlane(lambda: ready_calls.append("ready"))
+
+        control_plane.stop_run()
+
+        self.assertEqual([], router.events)
+        self.assertEqual([], stop_calls)
+
+        control_plane.start(
+            router=router,
+            port=0,
+            min_interval_ms=0,
+            queue_max=0,
+            stop_cb=lambda: stop_calls.append("stop"),
+            status_provider=lambda: {},
+        )
+
+        self.assertEqual(["ready"], ready_calls)
+        self.assertEqual(["stop"], stop_calls)
+        self.assertEqual(1, len(router.events))
+        self.assertEqual(TriggerSource.SOFTWARE, router.events[0].source)
+        self.assertEqual("stop", router.events[0].metadata.get("control"))
 
     def test_software_trigger_updates_status_and_captures(self):
         client, csv_path = self.make_client()

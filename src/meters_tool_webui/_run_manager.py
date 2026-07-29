@@ -154,6 +154,7 @@ class _WebControlPlane:
         self._last_accepted_monotonic = 0.0
         self._lock = threading.Lock()
         self._closed = False
+        self._stop_requested = False
 
     def start(
         self,
@@ -171,6 +172,10 @@ class _WebControlPlane:
             self._queue_max = max(0, int(queue_max))
             self._min_interval_ms = max(0, int(min_interval_ms))
             self._closed = False
+            deliver_stop = self._stop_requested
+            self._stop_requested = False
+        if deliver_stop:
+            self._deliver_stop(router, stop_cb)
         self._ready_cb()
         return StartControlPlaneHandle(_stop_fn=self.close)
 
@@ -190,18 +195,28 @@ class _WebControlPlane:
 
     def stop_run(self) -> None:
         with self._lock:
+            if self._closed:
+                return
+            self._stop_requested = True
             router = self._router
             stop_cb = self._stop_cb
-        if router is not None:
-            router.publish(TriggerEvent.new(TriggerSource.SOFTWARE, {"control": "stop"}))
-        if stop_cb is not None:
-            stop_cb()
+            deliver_stop = router is not None and stop_cb is not None
+            if deliver_stop:
+                self._stop_requested = False
+        if deliver_stop:
+            self._deliver_stop(router, stop_cb)
 
     def close(self) -> None:
         with self._lock:
             self._closed = True
             self._router = None
             self._stop_cb = None
+            self._stop_requested = False
+
+    @staticmethod
+    def _deliver_stop(router: Any, stop_cb: Callable[[], None]) -> None:
+        router.publish(TriggerEvent.new(TriggerSource.SOFTWARE, {"control": "stop"}))
+        stop_cb()
 
     def _try_accept_trigger_locked(self) -> tuple[bool, str]:
         assert self._router is not None
