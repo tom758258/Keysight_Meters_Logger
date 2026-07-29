@@ -139,6 +139,7 @@ function Invoke-ArtifactSmoke {
     $venvPython = Join-Path $venvDir "Scripts\python.exe"
     $cliCommand = Join-Path $venvDir "Scripts\meters-tool.exe"
     $webuiCommand = Join-Path $venvDir "Scripts\meters-tool-webui.exe"
+    $launcherCommand = Join-Path $venvDir "Scripts\meters-tool-webui-launcher.exe"
     $artifactSpec = "$($Artifact.FullName)[all]"
 
     $script:currentStep = "${Label}_create_venv"
@@ -159,8 +160,18 @@ function Invoke-ArtifactSmoke {
         -FilePath $venvPython `
         -Arguments @(
             "-c",
-            "import sys; from importlib.metadata import version; import meters_tool_core, meters_tool_cli, meters_tool_webui; assert version('meters-tool') == sys.argv[1]",
+            "import sys; from importlib.metadata import version; from importlib.resources import files; import meters_tool_core, meters_tool_cli, meters_tool_webui; assert version('meters-tool') == sys.argv[1]; static_root = files('meters_tool_webui').joinpath('static'); required_static = ('index.html', 'styles.css', 'app.js'); missing_static = [name for name in required_static if not static_root.joinpath(name).is_file()]; assert not missing_static, f'Missing packaged WebUI static files: {missing_static}'",
             $packageVersion
+        ))
+
+    $script:currentStep = "${Label}_launcher_entry_point"
+    [void](Invoke-RecordedCommand `
+        -Name $script:currentStep `
+        -FilePath $venvPython `
+        -Arguments @(
+            "-c",
+            "import sys; from pathlib import Path; assert Path(sys.argv[1]).is_file(), f'Missing installed launcher entry point: {sys.argv[1]}'",
+            $launcherCommand
         ))
 
     $script:currentStep = "${Label}_cli_version"
@@ -364,6 +375,24 @@ try {
             "-PlanOnly",
             "-SkipPreflight"
         ))
+
+    $script:currentStep = "git_diff_check_final"
+    [void](Invoke-RecordedCommand `
+        -Name $script:currentStep `
+        -FilePath $gitCommand.Source `
+        -Arguments @("-C", $RepoRoot, "diff", "--check"))
+
+    $script:currentStep = "git_clean_final"
+    $finalGitStatusResult = Invoke-RecordedCommand `
+        -Name $script:currentStep `
+        -FilePath $gitCommand.Source `
+        -Arguments @("-C", $RepoRoot, "status", "--porcelain")
+    $finalGitStatus = Get-Content -Raw -LiteralPath $finalGitStatusResult.stdout
+    if (-not [string]::IsNullOrWhiteSpace($finalGitStatus)) {
+        Set-RecordedCommandFailure `
+            -Result $finalGitStatusResult `
+            -Message "Git working tree must remain clean after release acceptance."
+    }
 } catch {
     $failedStep = $script:currentStep
     $failureMessage = $_.Exception.Message

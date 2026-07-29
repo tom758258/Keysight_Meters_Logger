@@ -85,8 +85,14 @@ def test_release_acceptance_covers_artifacts_smokes_wrappers_and_checksums():
         'Invoke-ArtifactSmoke -Label "wheel"',
         'Invoke-ArtifactSmoke -Label "sdist"',
         "import meters_tool_core, meters_tool_cli, meters_tool_webui",
+        "from importlib.resources import files",
+        "'index.html'",
+        "'styles.css'",
+        "'app.js'",
         "Scripts\\meters-tool.exe",
         "Scripts\\meters-tool-webui.exe",
+        "Scripts\\meters-tool-webui-launcher.exe",
+        '${Label}_launcher_entry_point',
         "Get-FileHash -Algorithm SHA256",
         ".\\scripts\\preflight-cli.ps1",
         ".\\scripts\\live-cli-check.ps1",
@@ -119,3 +125,31 @@ def test_release_acceptance_keeps_output_under_tmp_tests():
     assert '[string]$OutputRoot = ".tmp_tests\\release_acceptance"' in script
     assert "Assert-PathUnderRoot" in script
     assert "Only paths under .tmp_tests are allowed for release output" in script
+
+
+def test_release_acceptance_rechecks_final_working_tree_hygiene():
+    script = release_acceptance_text()
+    plan_only_start = script.index('$script:currentStep = "live_cli_plan_only"')
+    final_diff_start = script.index('$script:currentStep = "git_diff_check_final"')
+    final_clean_start = script.index('$script:currentStep = "git_clean_final"')
+    catch_start = script.index("} catch {", final_clean_start)
+    final_block = script[final_diff_start:catch_start]
+
+    assert plan_only_start < final_diff_start < final_clean_start
+    assert '@("-C", $RepoRoot, "diff", "--check")' in final_block
+    assert '@("-C", $RepoRoot, "status", "--porcelain")' in final_block
+    assert script.count('@("-C", $RepoRoot, "status", "--porcelain")') == 2
+    assert "Git working tree must remain clean after release acceptance." in final_block
+
+
+def test_release_acceptance_does_not_build_standalone_artifacts():
+    script = release_acceptance_text()
+
+    for forbidden in (
+        "pyinstaller",
+        "build_release.ps1",
+        "build_cli_exe.ps1",
+        "build_webui_exe.ps1",
+        "IncludeStandalone",
+    ):
+        assert forbidden.lower() not in script.lower()
