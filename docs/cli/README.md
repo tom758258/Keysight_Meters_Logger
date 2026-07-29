@@ -187,19 +187,6 @@ If PowerShell blocks activation because of execution policy, use the explicit
 
 ## Standalone EXE Build
 
-Before a formal release, run the no-hardware release acceptance from a clean,
-committed working tree:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\release-acceptance.ps1 -Target keysight-34461a
-```
-
-The default target is `keysight-34461a`. Use `keysight-34460a` when the release
-change is specifically model-dependent. The acceptance is a no-hardware gate
-that runs the fast tests once, builds and clean-installs the wheel and sdist,
-checks public entry points, runs preflight and `live-cli-check.ps1 -PlanOnly`,
-and records SHA-256 checksums. It does not build standalone executables.
-
 The installed `.venv\Scripts\meters-tool.exe` is a virtualenv console
 wrapper. It is not a standalone executable for machines without the project
 environment.
@@ -251,6 +238,28 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\preflight-cli.
 resources, open resources, query `*IDN?`, or run release/local cleanup. If the
 console script has not been generated yet, install the package first; the module
 form above remains a development fallback.
+
+## Formal Release Acceptance
+
+Before a formal release, run the no-hardware release acceptance from the
+repository root after all release changes have been committed and the working
+tree is clean:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\release-acceptance.ps1 -Target keysight-34461a
+```
+
+The default target is `keysight-34461a`. Use `keysight-34460a` when the release
+change is specifically model-dependent.
+
+The acceptance verifies the lock file and clean Git state, runs the fast test
+suite once, builds the wheel and sdist, installs each artifact into a clean
+environment, checks public entry points, runs preflight and
+`live-cli-check.ps1 -PlanOnly`, and records SHA-256 checksums.
+
+It does not open a VISA hardware resource or build standalone executables. It
+is a formal release gate, not a prerequisite for ordinary local package builds
+or standalone EXE rebuilds.
 
 ## Live Instrument Validation
 

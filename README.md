@@ -125,23 +125,8 @@ Windows creates virtualenv console wrappers such as
 
 ## Build
 
-Before a formal release, run the no-hardware release acceptance from a clean,
-committed working tree:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\release-acceptance.ps1 -Target keysight-34461a
-```
-
-The default target is `keysight-34461a`. Use `keysight-34460a` when the release
-change is specifically model-dependent. The acceptance verifies the lock file
-and clean Git state, runs the fast test suite once, builds the wheel and sdist,
-installs each artifact into a clean environment, checks public entry points,
-runs preflight and `live-cli-check.ps1 -PlanOnly`, and records SHA-256
-checksums. It does not open a VISA hardware resource or build standalone
-executables.
-
-To build the wheel and source distribution outside the acceptance run
-directory, use the `build` package from the `dev` extra installed above:
+To build the wheel and source distribution directly into `dist\`, use the
+`build` package from the `dev` extra installed above:
 
 ```powershell
 .\.venv\Scripts\python.exe -m build
