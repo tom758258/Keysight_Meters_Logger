@@ -43,6 +43,117 @@ class LauncherHelperTests(unittest.TestCase):
 
 
 class LauncherLifecycleTests(unittest.TestCase):
+    def test_idle_quit_shuts_down_manager_server_and_window(self):
+        events = []
+
+        class FakeManager:
+            def shutdown(self):
+                events.append("manager.shutdown")
+                return True
+
+        class FakeServer:
+            should_exit = False
+
+        launcher = _make_shutdown_launcher(
+            manager=FakeManager(),
+            server=FakeServer(),
+            events=events,
+        )
+        launcher.quit()
+
+        self.assertEqual(["manager.shutdown", "window.destroy"], events)
+        self.assertTrue(launcher.server.should_exit)
+
+    def test_active_quit_waits_for_manager_before_stopping_server(self):
+        events = []
+
+        class FakeManager:
+            def shutdown(self):
+                events.extend(["manager.stop", "worker.join"])
+                return True
+
+        class FakeServer:
+            def __init__(self):
+                self._should_exit = False
+
+            @property
+            def should_exit(self):
+                return self._should_exit
+
+            @should_exit.setter
+            def should_exit(self, value):
+                self._should_exit = value
+                events.append("server.should_exit")
+
+        class FakeServerThread:
+            def is_alive(self):
+                return True
+
+            def join(self, timeout=None):
+                events.append("server.join")
+
+        launcher = _make_shutdown_launcher(
+            manager=FakeManager(),
+            server=FakeServer(),
+            server_thread=FakeServerThread(),
+            events=events,
+        )
+        launcher.quit()
+
+        self.assertEqual(
+            [
+                "manager.stop",
+                "worker.join",
+                "server.should_exit",
+                "server.join",
+                "window.destroy",
+            ],
+            events,
+        )
+
+    def test_repeated_quit_only_starts_shutdown_once(self):
+        shutdown_calls = []
+
+        class FakeManager:
+            def shutdown(self):
+                shutdown_calls.append("shutdown")
+                return True
+
+        launcher = _make_shutdown_launcher(manager=FakeManager())
+        launcher.quit()
+        launcher.quit()
+
+        self.assertEqual(["shutdown"], shutdown_calls)
+
+    def test_shutdown_timeout_is_reported_without_blocking_server_exit(self):
+        class FakeManager:
+            def shutdown(self):
+                return False
+
+        class FakeServer:
+            should_exit = False
+
+        launcher = _make_shutdown_launcher(
+            manager=FakeManager(),
+            server=FakeServer(),
+        )
+
+        started = time.monotonic()
+        with patch("meters_tool_webui.launcher.messagebox.showerror") as showerror:
+            launcher.quit()
+        elapsed = time.monotonic() - started
+
+        self.assertLess(elapsed, 1.0)
+        self.assertTrue(launcher.server.should_exit)
+        self.assertEqual(
+            "Shutdown incomplete: Timed out waiting for the active run to finish cleanup.",
+            launcher._status_value.value,
+        )
+        showerror.assert_called_once_with(
+            "Shutdown incomplete",
+            "Timed out waiting for the active run to finish cleanup.",
+        )
+
     def test_start_locks_controls_opens_browser_and_quit_stops_server(self):
         tk, root = _make_tk_root()
         root.withdraw()
@@ -307,6 +418,45 @@ def _import_tkinter():
     except Exception as exc:  # pragma: no cover - environment dependent
         raise unittest.SkipTest(f"tkinter is unavailable: {exc}") from exc
     return tk
+
+
+def _make_shutdown_launcher(
+    *,
+    manager=None,
+    server=None,
+    server_thread=None,
+    events=None,
+):
+    class FakeControl:
+        def configure(self, **_kwargs):
+            return None
+
+    class FakeStatus:
+        value = ""
+
+        def set(self, value):
+            self.value = value
+
+    class FakeRoot:
+        def update_idletasks(self):
+            return None
+
+        def destroy(self):
+            if events is not None:
+                events.append("window.destroy")
+
+    launcher = LauncherApp.__new__(LauncherApp)
+    launcher._root = FakeRoot()
+    launcher._manager = manager
+    launcher._server = server
+    launcher._server_thread = server_thread
+    launcher._quitting = False
+    launcher._start_button = FakeControl()
+    launcher._default_checkbox = FakeControl()
+    launcher._port_entry = FakeControl()
+    launcher._quit_button = FakeControl()
+    launcher._status_value = FakeStatus()
+    return launcher
 
 
 def _make_tk_root():

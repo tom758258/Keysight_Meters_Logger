@@ -17,6 +17,11 @@
 - Limited live resource verification to opening the resource, querying
   `*IDN?`, and closing the session without acquisition cleanup commands.
 
+### WebUI
+
+- Stopped and awaited active runs before the launcher shuts down the WebUI
+  server.
+
 ## v2.0.0
 
 This is the first public Meters Tool release after the breaking project

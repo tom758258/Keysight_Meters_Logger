@@ -22,6 +22,7 @@ if TestClient is not None:
     from meters_tool_core.instrument import InstrumentError
     from meters_tool_core.models import KEYSIGHT_34461A_PROFILE
     from meters_tool_core.runner import StartRunnerDependencies
+    from meters_tool_webui._run_manager import _RunHandle
     from meters_tool_webui._web_payloads import support_summary
     from meters_tool_webui.web_ui import (
         APP_JS_CACHEBUSTER_TOKEN,
@@ -32,6 +33,7 @@ if TestClient is not None:
         WebRunManager,
         _uvicorn_log_config,
         create_app,
+        create_uvicorn_server,
         get_webui_version,
         main,
     )
@@ -1970,6 +1972,43 @@ class WebUiApiTests(unittest.TestCase):
         self.assertEqual("default", log_config["handlers"]["default"]["formatter"])
         self.assertEqual("access", log_config["handlers"]["access"]["formatter"])
 
+    def test_webui_server_exit_gracefully_shuts_down_manager_first(self):
+        events = []
+
+        class FakeManager:
+            def shutdown(self):
+                events.append("manager.shutdown")
+                return True
+
+        class FakeConfig:
+            def __init__(self, app, **kwargs):
+                self.app = app
+                self.kwargs = kwargs
+
+        class FakeServer:
+            def __init__(self, config):
+                self.config = config
+
+            def handle_exit(self, sig, frame):
+                events.append("server.handle_exit")
+
+        original_uvicorn = sys.modules.get("uvicorn")
+        sys.modules["uvicorn"] = SimpleNamespace(Config=FakeConfig, Server=FakeServer)
+        try:
+            server = create_uvicorn_server(
+                FakeManager(),
+                host="127.0.0.1",
+                port=8769,
+            )
+            server.handle_exit(None, None)
+        finally:
+            if original_uvicorn is None:
+                sys.modules.pop("uvicorn", None)
+            else:
+                sys.modules["uvicorn"] = original_uvicorn
+
+        self.assertEqual(["manager.shutdown", "server.handle_exit"], events)
+
     def test_webui_server_uses_shutdown_friendly_uvicorn_options(self):
         configs = []
 
@@ -2209,6 +2248,83 @@ class WebUiApiTests(unittest.TestCase):
         self.assertIsNone(status["fatal_error"])
         self.assertEqual(1, len(status["recent_samples"]))
         self.assertEqual(status["recent_samples"][-1], status["latest_sample"])
+
+    def test_manager_shutdown_stops_active_run_and_waits_for_worker(self):
+        events = []
+
+        class FakeControlPlane:
+            def stop_run(self):
+                events.append("stop")
+
+        class FakeWorker:
+            def __init__(self):
+                self.alive = True
+
+            def is_alive(self):
+                return self.alive
+
+            def join(self, timeout=None):
+                events.append(("join", timeout))
+                self.alive = False
+
+        manager = WebRunManager()
+        worker = FakeWorker()
+        handle = _RunHandle(
+            run_id="run-1",
+            resource="SIM::34461A",
+            csv_path=Path("out.csv"),
+            measurement="voltage-dc",
+            trigger_mode="immediate",
+            control_plane=FakeControlPlane(),
+            worker=worker,
+            state="running",
+        )
+        with manager._lock:
+            manager._active = handle
+
+        self.assertTrue(manager.shutdown(timeout_s=0.01))
+
+        self.assertEqual(["stop", ("join", 0.01)], events)
+        self.assertFalse(manager.status()["active"])
+        self.assertTrue(manager._close_event_streams)
+
+    def test_manager_shutdown_timeout_is_bounded_and_repeatable(self):
+        stop_calls = []
+
+        class FakeControlPlane:
+            def stop_run(self):
+                stop_calls.append("stop")
+
+        class StuckWorker:
+            def is_alive(self):
+                return True
+
+            def join(self, timeout=None):
+                return None
+
+        manager = WebRunManager()
+        handle = _RunHandle(
+            run_id="run-1",
+            resource="SIM::34461A",
+            csv_path=Path("out.csv"),
+            measurement="voltage-dc",
+            trigger_mode="immediate",
+            control_plane=FakeControlPlane(),
+            worker=StuckWorker(),
+            state="running",
+        )
+        with manager._lock:
+            manager._active = handle
+
+        started = time.monotonic()
+        self.assertFalse(manager.shutdown(timeout_s=0.001))
+        self.assertFalse(manager.shutdown(timeout_s=0.001))
+        elapsed = time.monotonic() - started
+
+        self.assertLess(elapsed, 0.2)
+        self.assertEqual(["stop"], stop_calls)
+        self.assertEqual("stopping", manager.status()["state"])
+        self.assertTrue(manager._close_event_streams)
 
     def test_current_run_events_returns_initial_status_snapshot(self):
         manager = WebRunManager()

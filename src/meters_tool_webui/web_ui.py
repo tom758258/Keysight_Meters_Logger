@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -236,8 +237,17 @@ def create_uvicorn_server(
 
     class WebUiServer(uvicorn.Server):
         def handle_exit(self, sig: int, frame: Any) -> None:
-            manager.close_event_streams()
-            super().handle_exit(sig, frame)
+            try:
+                if not manager.shutdown():
+                    logging.getLogger(__name__).error(
+                        "Timed out waiting for the active WebUI run to finish cleanup."
+                    )
+            except Exception:
+                logging.getLogger(__name__).exception(
+                    "Failed to gracefully shut down the active WebUI run."
+                )
+            finally:
+                super().handle_exit(sig, frame)
 
     config = uvicorn.Config(
         create_app(manager),

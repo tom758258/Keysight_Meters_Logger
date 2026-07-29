@@ -264,6 +264,24 @@ class WebRunManager:
             self._close_event_streams = True
             self._status_cv.notify_all()
 
+    def shutdown(self, timeout_s: float = 5.0) -> bool:
+        timeout_s = max(0.0, float(timeout_s))
+        with self._lock:
+            handle = self._active
+            active = handle is not None and self._is_handle_active(handle)
+            should_stop = active and handle.state != "stopping"
+            worker = handle.worker if active else None
+
+        try:
+            if should_stop:
+                self.stop()
+            if worker is not None and worker is not threading.current_thread():
+                worker.join(timeout=timeout_s)
+            with self._lock:
+                return handle is None or not self._is_handle_active(handle)
+        finally:
+            self.close_event_streams()
+
     def iter_status_events(self) -> Iterator[str]:
         with self._lock:
             last_version = self._status_version

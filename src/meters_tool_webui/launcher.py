@@ -61,6 +61,7 @@ class LauncherApp:
         self._ui_queue: Queue[Callable[[], None]] = Queue()
         self._startup_success = threading.Event()
         self._server_error: BaseException | None = None
+        self._quitting = False
 
         self._use_default_port = tk.BooleanVar(value=True)
         self._port_value = tk.StringVar(value=str(DEFAULT_PORT))
@@ -76,13 +77,13 @@ class LauncherApp:
         self._root.rowconfigure(0, weight=1)
         frame.columnconfigure(1, weight=1)
 
-        default_checkbox = tk.Checkbutton(
+        self._default_checkbox = tk.Checkbutton(
             frame,
             text=f"Use default port {DEFAULT_PORT}",
             variable=self._use_default_port,
             command=self._sync_port_controls,
         )
-        default_checkbox.grid(row=0, column=0, columnspan=2, sticky="w")
+        self._default_checkbox.grid(row=0, column=0, columnspan=2, sticky="w")
 
         tk.Label(frame, text="Port").grid(row=1, column=0, sticky="w", pady=(10, 0))
         self._port_entry = tk.Entry(frame, textvariable=self._port_value, width=10)
@@ -106,7 +107,13 @@ class LauncherApp:
             command=self.start,
         )
         self._start_button.grid(row=0, column=0, padx=(0, 8))
-        tk.Button(button_row, text="Quit", width=10, command=self.quit).grid(
+        self._quit_button = tk.Button(
+            button_row,
+            text="Quit",
+            width=10,
+            command=self.quit,
+        )
+        self._quit_button.grid(
             row=0,
             column=1,
         )
@@ -230,8 +237,33 @@ class LauncherApp:
             pass
 
     def quit(self) -> None:
+        if self._quitting:
+            return
+        self._quitting = True
+        self._start_button.configure(state="disabled")
+        self._default_checkbox.configure(state="disabled")
+        self._port_entry.configure(state="disabled")
+        self._quit_button.configure(state="disabled")
+        self._status_value.set("Stopping...")
+        self._root.update_idletasks()
+
+        shutdown_error: Exception | None = None
+        shutdown_complete = True
         if self._manager is not None:
-            self._manager.close_event_streams()
+            try:
+                shutdown_complete = self._manager.shutdown()
+            except Exception as exc:
+                shutdown_complete = False
+                shutdown_error = exc
+
+        if not shutdown_complete:
+            if shutdown_error is None:
+                message = "Timed out waiting for the active run to finish cleanup."
+            else:
+                message = f"{type(shutdown_error).__name__}: {shutdown_error}"
+            self._status_value.set(f"Shutdown incomplete: {message}")
+            messagebox.showerror("Shutdown incomplete", message)
+
         if self._server is not None:
             self._server.should_exit = True
         if self._server_thread is not None and self._server_thread.is_alive():
