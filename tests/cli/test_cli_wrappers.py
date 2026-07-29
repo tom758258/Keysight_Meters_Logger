@@ -275,8 +275,10 @@ def test_preflight_report_contract():
         "mocked_pytest_checks",
     ]:
         assert key in summary_counts
-    assert summary_counts["commands_total"] >= 1
-    assert summary_counts["checks_total"] >= 1
+    assert report["commands"]
+    assert report["checks"]
+    assert summary_counts["commands_total"] == len(report["commands"])
+    assert summary_counts["checks_total"] == len(report["checks"])
     assert summary_counts["dry_run_cases"] >= 1
     assert summary_counts["simulate_cases"] >= 1
 
@@ -346,8 +348,8 @@ def test_preflight_report_contract():
 
     summary = summary_path.read_text(encoding="utf-8")
     assert "- Status: passed" in summary
-    assert "- Commands total: 29" in summary
-    assert "- Checks total: 29" in summary
+    assert f"- Commands total: {len(report['commands'])}" in summary
+    assert f"- Checks total: {len(report['checks'])}" in summary
     assert "Measurements covered by dry-run and simulator immediate" in summary
     assert "Read paths covered: READ?, FETC?, DATA:POINts? / DATA:REMove?" in summary
     assert f"- Report: {report_path}" in summary

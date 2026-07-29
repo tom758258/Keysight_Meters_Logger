@@ -130,30 +130,53 @@ class AcquisitionEngineTests(unittest.TestCase):
 
     def test_trigger_engine_captures_only_on_trigger(self):
         router = TriggerRouter()
+        waiting = threading.Event()
+        captured = threading.Event()
+
+        def status_cb(status: str) -> None:
+            if status == "waiting trigger":
+                waiting.set()
+            if status.startswith("captured=1 "):
+                captured.set()
+
         engine = make_acquisition_engine(
             router=router,
+            status_cb=status_cb,
         )
         worker = threading.Thread(target=engine.run)
         worker.start()
-        time.sleep(0.1)
-        self.assertEqual(0, engine.stats.captured)
-        router.publish(TriggerEvent.new(TriggerSource.SOFTWARE))
-        time.sleep(0.1)
-        engine.stop()
-        worker.join(timeout=1)
+        try:
+            self.assertTrue(waiting.wait(timeout=1.0), "worker did not enter trigger wait")
+            self.assertEqual(0, engine.stats.captured)
+            router.publish(TriggerEvent.new(TriggerSource.SOFTWARE))
+            self.assertTrue(captured.wait(timeout=1.0), "worker did not capture the trigger")
+        finally:
+            engine.stop()
+            worker.join(timeout=1)
+
+        self.assertFalse(worker.is_alive())
         self.assertEqual(1, engine.stats.captured)
 
     def test_waiting_trigger_status_is_emitted_once_while_idle(self):
         statuses: list[str] = []
+        waiting = threading.Event()
+
+        def status_cb(status: str) -> None:
+            statuses.append(status)
+            if status == "waiting trigger":
+                waiting.set()
+
         engine = make_acquisition_engine(
-            status_cb=statuses.append,
+            status_cb=status_cb,
         )
 
         worker = threading.Thread(target=engine.run)
         worker.start()
-        time.sleep(0.25)
-        engine.stop()
-        worker.join(timeout=1)
+        try:
+            self.assertTrue(waiting.wait(timeout=1.0), "worker did not emit waiting trigger")
+        finally:
+            engine.stop()
+            worker.join(timeout=1)
 
         self.assertFalse(worker.is_alive())
         self.assertEqual(1, statuses.count("waiting trigger"))
@@ -371,24 +394,42 @@ class AcquisitionEngineTests(unittest.TestCase):
         instrument = AlwaysTimeoutHardwareInstrument()
         router = TriggerRouter()
         statuses: list[str] = []
+        recording_started = threading.Event()
+        software_ignored = threading.Event()
+
+        def status_cb(status: str) -> None:
+            statuses.append(status)
+            if status == "recording started":
+                recording_started.set()
+            if status == "software trigger ignored while hardware trigger is enabled":
+                software_ignored.set()
+
         engine = TriggerAcquisitionEngine(
             instrument=instrument,  # type: ignore[arg-type]
             measurement=FailingMeasurement(),  # type: ignore[arg-type]
             storage=FakeStorage(),  # type: ignore[arg-type]
             config=AcquisitionConfig(trigger_timeout_ms=500),
             router=router,
-            status_cb=statuses.append,
+            status_cb=status_cb,
         )
         worker = threading.Thread(
             target=engine.run,
             kwargs={"enable_hardware_trigger": True, "hardware_trigger_slope": "POS"},
         )
         worker.start()
-        time.sleep(0.1)
-        router.publish(TriggerEvent.new(TriggerSource.SOFTWARE))
-        time.sleep(0.2)
-        engine.stop()
-        worker.join(timeout=1)
+        try:
+            self.assertTrue(
+                recording_started.wait(timeout=1.0),
+                "hardware-trigger worker did not start recording",
+            )
+            router.publish(TriggerEvent.new(TriggerSource.SOFTWARE))
+            self.assertTrue(
+                software_ignored.wait(timeout=1.0),
+                "worker did not report the ignored software trigger",
+            )
+        finally:
+            engine.stop()
+            worker.join(timeout=1)
 
         self.assertFalse(worker.is_alive())
         self.assertEqual(0, engine.stats.captured)
