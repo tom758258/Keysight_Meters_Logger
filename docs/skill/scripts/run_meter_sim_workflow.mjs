@@ -455,6 +455,7 @@ async function main() {
     summary: summaryEvent?.run_id ?? null,
   };
   const eventSequence = events.map((event) => event.event);
+  const fallbackWaitReady = clients.wait_ready_after_missing_stdout_ready;
   const runIdCorrelated =
     stdoutRunIds.length === 1 &&
     runIds.wait_ready === stdoutRunIds[0] &&
@@ -474,6 +475,11 @@ async function main() {
     dry_run_parse_ok: dryRunParsed.errors.length === 0,
     ready_observed: Boolean(readyEvent),
     worker_events_schema_v2: events.length > 0 && events.every(hasRuntimeSchema2),
+    wait_ready_fallback_schema_v2: fallbackWaitReady ? hasRuntimeSchema2(fallbackWaitReady.json) : true,
+    wait_ready_fallback_worker_schema_v2:
+      !fallbackWaitReady || fallbackWaitReady.exit_code !== 0
+        ? true
+        : fallbackWaitReady.json?.worker_schema_version === 2,
     wait_ready_ok: clients.wait_ready?.exit_code === 0 && clients.wait_ready?.json?.ok === true,
     wait_ready_schema_v2: hasRuntimeSchema2(clients.wait_ready?.json),
     wait_ready_worker_schema_v2: clients.wait_ready?.json?.worker_schema_version === 2,
