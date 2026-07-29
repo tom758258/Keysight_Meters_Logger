@@ -7,6 +7,7 @@ import importlib.metadata
 import logging.config
 import sys
 import tempfile
+import threading
 import time
 import unittest
 from pathlib import Path
@@ -2284,7 +2285,10 @@ class WebUiApiTests(unittest.TestCase):
 
         self.assertTrue(manager.shutdown(timeout_s=0.01))
 
-        self.assertEqual(["stop", ("join", 0.01)], events)
+        self.assertEqual("stop", events[0])
+        self.assertEqual("join", events[1][0])
+        self.assertGreaterEqual(events[1][1], 0.0)
+        self.assertLessEqual(events[1][1], 0.01)
         self.assertFalse(manager.status()["active"])
         self.assertTrue(manager._close_event_streams)
 
@@ -2296,13 +2300,17 @@ class WebUiApiTests(unittest.TestCase):
                 stop_calls.append("stop")
 
         class StuckWorker:
+            def __init__(self):
+                self.alive = True
+
             def is_alive(self):
-                return True
+                return self.alive
 
             def join(self, timeout=None):
                 return None
 
         manager = WebRunManager()
+        worker = StuckWorker()
         handle = _RunHandle(
             run_id="run-1",
             resource="SIM::34461A",
@@ -2310,7 +2318,7 @@ class WebUiApiTests(unittest.TestCase):
             measurement="voltage-dc",
             trigger_mode="immediate",
             control_plane=FakeControlPlane(),
-            worker=StuckWorker(),
+            worker=worker,
             state="running",
         )
         with manager._lock:
@@ -2318,13 +2326,88 @@ class WebUiApiTests(unittest.TestCase):
 
         started = time.monotonic()
         self.assertFalse(manager.shutdown(timeout_s=0.001))
-        self.assertFalse(manager.shutdown(timeout_s=0.001))
         elapsed = time.monotonic() - started
 
         self.assertLess(elapsed, 0.2)
         self.assertEqual(["stop"], stop_calls)
         self.assertEqual("stopping", manager.status()["state"])
+        self.assertFalse(manager._close_event_streams)
+
+        worker.alive = False
+
+        self.assertTrue(manager.shutdown(timeout_s=0.001))
+        self.assertEqual(["stop"], stop_calls)
         self.assertTrue(manager._close_event_streams)
+
+    def test_manager_rejects_new_start_after_shutdown_requested(self):
+        manager = WebRunManager()
+        request = RunStartRequest(
+            resource="SIM::34461A",
+            instrument_model="34461A",
+            simulate=True,
+            trigger_mode="immediate",
+            max_samples=1,
+        )
+
+        self.assertTrue(manager.shutdown(timeout_s=0.0))
+
+        with (
+            patch("meters_tool_webui._run_manager.threading.Thread") as worker_factory,
+            self.assertRaisesRegex(RunAlreadyActive, "shutting down"),
+        ):
+            manager.start(request)
+
+        worker_factory.assert_not_called()
+        with manager._lock:
+            self.assertFalse(manager._starting)
+            self.assertIsNone(manager._active)
+
+    def test_shutdown_during_start_preflight_prevents_worker_start(self):
+        manager = WebRunManager()
+        request = RunStartRequest(
+            resource="SIM::34461A",
+            instrument_model="34461A",
+            simulate=True,
+            trigger_mode="immediate",
+            max_samples=1,
+        )
+        preflight_entered = threading.Event()
+        release_preflight = threading.Event()
+        start_errors = []
+
+        def blocking_resolve_start_profile(start_request):
+            preflight_entered.set()
+            if not release_preflight.wait(timeout=1.0):
+                raise AssertionError("test did not release start preflight")
+            return start_request, KEYSIGHT_34461A_PROFILE
+
+        def run_start():
+            try:
+                manager.start(request)
+            except Exception as exc:
+                start_errors.append(exc)
+
+        start_thread = threading.Thread(target=run_start)
+        with (
+            patch(
+                "meters_tool_webui._run_manager.resolve_start_profile",
+                side_effect=blocking_resolve_start_profile,
+            ),
+            patch("meters_tool_webui._run_manager.threading.Thread") as worker_factory,
+        ):
+            start_thread.start()
+            self.assertTrue(preflight_entered.wait(timeout=1.0))
+            self.assertFalse(manager.shutdown(timeout_s=0.001))
+            release_preflight.set()
+            start_thread.join(timeout=1.0)
+
+        self.assertFalse(start_thread.is_alive())
+        self.assertEqual(1, len(start_errors))
+        self.assertIsInstance(start_errors[0], RunAlreadyActive)
+        worker_factory.assert_not_called()
+        with manager._lock:
+            self.assertFalse(manager._starting)
+            self.assertIsNone(manager._active)
 
     def test_current_run_events_returns_initial_status_snapshot(self):
         manager = WebRunManager()

@@ -4,6 +4,7 @@ from collections import deque
 from datetime import datetime
 import json
 import threading
+import time
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any, Callable, Iterator, Optional
@@ -246,6 +247,7 @@ class WebRunManager:
         self._lock = threading.Lock()
         self._active: _RunHandle | None = None
         self._starting = False
+        self._shutdown_requested = False
         self._last_status = self._idle_status()
         self._status_version = 0
         self._status_cv = threading.Condition(self._lock)
@@ -266,21 +268,34 @@ class WebRunManager:
 
     def shutdown(self, timeout_s: float = 5.0) -> bool:
         timeout_s = max(0.0, float(timeout_s))
+        deadline = time.monotonic() + timeout_s
         with self._lock:
+            self._shutdown_requested = True
             handle = self._active
             active = handle is not None and self._is_handle_active(handle)
             should_stop = active and handle.state != "stopping"
             worker = handle.worker if active else None
 
-        try:
-            if should_stop:
-                self.stop()
-            if worker is not None and worker is not threading.current_thread():
-                worker.join(timeout=timeout_s)
-            with self._lock:
-                return handle is None or not self._is_handle_active(handle)
-        finally:
-            self.close_event_streams()
+        if should_stop:
+            self.stop()
+        if worker is not None and worker is not threading.current_thread():
+            worker.join(
+                timeout=min(timeout_s, max(0.0, deadline - time.monotonic()))
+            )
+
+        with self._status_cv:
+            shutdown_complete = self._status_cv.wait_for(
+                lambda: not self._starting
+                and (
+                    self._active is None
+                    or not self._is_handle_active(self._active)
+                ),
+                timeout=max(0.0, deadline - time.monotonic()),
+            )
+            if shutdown_complete:
+                self._close_event_streams = True
+                self._status_cv.notify_all()
+            return shutdown_complete
 
     def iter_status_events(self) -> Iterator[str]:
         with self._lock:
@@ -353,6 +368,8 @@ class WebRunManager:
 
     def start(self, request: RunStartRequest) -> dict[str, Any]:
         with self._lock:
+            if self._shutdown_requested:
+                raise RunAlreadyActive("WebUI is shutting down")
             if self._starting or (
                 self._active is not None and self._is_handle_active(self._active)
             ):
@@ -378,32 +395,35 @@ class WebRunManager:
                 buffer_warnings=warnings,
             )
             runtime_request = replace(start_request, csv=plan.csv_path)
-            run_id = str(uuid4())
-            control_plane = _WebControlPlane(lambda: self._mark_handle_ready(run_id))
-            handle = _RunHandle(
-                run_id=run_id,
-                resource=runtime_request.resource,
-                csv_path=Path(plan.csv_path),
-                measurement=plan.measurement_name,
-                trigger_mode=trigger_mode,
-                control_plane=control_plane,
-                warnings=warnings,
-            )
-            worker = threading.Thread(
-                target=self._run_worker,
-                args=(handle, runtime_request, profile),
-                name=f"meters-tool-web-run-{run_id}",
-                daemon=True,
-            )
-            handle.worker = worker
             with self._lock:
+                if self._shutdown_requested:
+                    raise RunAlreadyActive("WebUI is shutting down")
+                run_id = str(uuid4())
+                control_plane = _WebControlPlane(lambda: self._mark_handle_ready(run_id))
+                handle = _RunHandle(
+                    run_id=run_id,
+                    resource=runtime_request.resource,
+                    csv_path=Path(plan.csv_path),
+                    measurement=plan.measurement_name,
+                    trigger_mode=trigger_mode,
+                    control_plane=control_plane,
+                    warnings=warnings,
+                )
+                worker = threading.Thread(
+                    target=self._run_worker,
+                    args=(handle, runtime_request, profile),
+                    name=f"meters-tool-web-run-{run_id}",
+                    daemon=True,
+                )
+                handle.worker = worker
                 self._active = handle
+                worker.start()
                 self._publish_status_locked(handle)
-            worker.start()
             handle.ready_event.wait(timeout=max(runtime_request.timeout_ms / 1000.0 + 1.0, 2.0))
             status = self.status()
             with self._lock:
                 self._starting = False
+                self._status_cv.notify_all()
                 result = handle.result
                 if result is not None and not result.ok and result.reason == "connect_error":
                     self._active = None
@@ -422,18 +442,21 @@ class WebRunManager:
         except ValueError as exc:
             with self._lock:
                 self._starting = False
+                self._status_cv.notify_all()
                 if handle is not None and self._active is handle:
                     self._active = None
             raise RunValidationError(str(exc)) from exc
         except InstrumentError as exc:
             with self._lock:
                 self._starting = False
+                self._status_cv.notify_all()
                 if handle is not None and self._active is handle:
                     self._active = None
             raise RunConnectionError(str(exc)) from exc
         except Exception:
             with self._lock:
                 self._starting = False
+                self._status_cv.notify_all()
                 if handle is not None and self._active is handle and not self._is_handle_active(handle):
                     self._active = None
             raise

@@ -263,6 +263,9 @@ class LauncherApp:
                 message = f"{type(shutdown_error).__name__}: {shutdown_error}"
             self._status_value.set(f"Shutdown incomplete: {message}")
             messagebox.showerror("Shutdown incomplete", message)
+            self._quitting = False
+            self._quit_button.configure(state="normal")
+            return
 
         if self._server is not None:
             self._server.should_exit = True

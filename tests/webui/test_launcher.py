@@ -125,17 +125,34 @@ class LauncherLifecycleTests(unittest.TestCase):
 
         self.assertEqual(["shutdown"], shutdown_calls)
 
-    def test_shutdown_timeout_is_reported_without_blocking_server_exit(self):
+    def test_shutdown_timeout_keeps_launcher_open_and_retry_completes_exit(self):
         class FakeManager:
+            def __init__(self):
+                self.shutdown_results = iter((False, True))
+
             def shutdown(self):
-                return False
+                return next(self.shutdown_results)
 
         class FakeServer:
             should_exit = False
 
+        class FakeServerThread:
+            def __init__(self):
+                self.join_calls = 0
+
+            def is_alive(self):
+                return True
+
+            def join(self, timeout=None):
+                self.join_calls += 1
+
+        events = []
+        server_thread = FakeServerThread()
         launcher = _make_shutdown_launcher(
             manager=FakeManager(),
             server=FakeServer(),
+            server_thread=server_thread,
+            events=events,
         )
 
         started = time.monotonic()
@@ -144,7 +161,14 @@ class LauncherLifecycleTests(unittest.TestCase):
         elapsed = time.monotonic() - started
 
         self.assertLess(elapsed, 1.0)
-        self.assertTrue(launcher.server.should_exit)
+        self.assertFalse(launcher.server.should_exit)
+        self.assertEqual(0, server_thread.join_calls)
+        self.assertEqual([], events)
+        self.assertFalse(launcher._quitting)
+        self.assertEqual("normal", launcher._quit_button.state)
+        self.assertEqual("disabled", launcher._start_button.state)
+        self.assertEqual("disabled", launcher._default_checkbox.state)
+        self.assertEqual("disabled", launcher._port_entry.state)
         self.assertEqual(
             "Shutdown incomplete: Timed out waiting for the active run to finish cleanup.",
             launcher._status_value.value,
@@ -153,6 +177,12 @@ class LauncherLifecycleTests(unittest.TestCase):
             "Shutdown incomplete",
             "Timed out waiting for the active run to finish cleanup.",
         )
+
+        launcher.quit()
+
+        self.assertTrue(launcher.server.should_exit)
+        self.assertEqual(1, server_thread.join_calls)
+        self.assertEqual(["window.destroy"], events)
 
     def test_start_locks_controls_opens_browser_and_quit_stops_server(self):
         tk, root = _make_tk_root()
@@ -428,8 +458,11 @@ def _make_shutdown_launcher(
     events=None,
 ):
     class FakeControl:
+        state = "normal"
+
         def configure(self, **_kwargs):
-            return None
+            if "state" in _kwargs:
+                self.state = _kwargs["state"]
 
     class FakeStatus:
         value = ""

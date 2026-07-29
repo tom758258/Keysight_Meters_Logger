@@ -19,8 +19,8 @@
 
 ### WebUI
 
-- Stopped and awaited active runs before the launcher shuts down the WebUI
-  server.
+- The launcher now exits only after active-run cleanup completes and rejects
+  new runs after shutdown begins.
 
 ## v2.0.0
 
