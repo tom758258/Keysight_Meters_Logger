@@ -550,3 +550,16 @@ Codex 應該：
 #### 預期結果
 
 agent 應該執行完整 dry-run、simulator 與 explicit-resource live sequence，或是在 live execution 前因明確的安全或環境 blocker 停下。最後報告應清楚說明是否碰到 live hardware、使用了哪個 exact resource，以及檢查了哪些 structured outputs。
+
+## 共通 runtime 規則
+
+所有範例的 runtime JSON／JSONL 都只接受 Common schema 2：dry-run object、
+Worker events、`wait-ready`、`status`、`send-command`、適用時的 `stop` 與
+direct Worker response 必須是精確整數 `schema_version: 2`。不接受 schema 1、
+錯誤型別、fallback 或 runtime negotiation。Meters 在
+`start-trigger-record` 啟動時綁定 context：live `--model` 對應
+`expected_model_id`，simulate／dry-run `--model` 對應 `planning_model_id`，
+不使用 `planning_profile_id`。direct `POST /command` 不帶 `context`，command
+request 不得覆寫啟動時的 context；請檢查 echo 回來的 `command` 與適用時的
+`job_id`。helper runtime 是 schema 2，但 `sim_report.json` 是獨立的 wrapper
+report，仍使用 `schema_version: 1`。

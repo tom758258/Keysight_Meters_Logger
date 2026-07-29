@@ -190,3 +190,32 @@ helper 會在指定輸出目錄中寫入 `dry_run.jsonl`、`sim_worker_stdout.js
 - 在擷取工作流程中，請勿掃描、猜測、輪換、暴力破解或暗中替換實機 VISA 資源。
 - 請將 `ready` 與 `wait-ready` 僅視為控制平面 (control plane) 的就緒狀態，而非量測完成。
 - 請使用結構化的 JSON/JSONL、CSV、`report.json` 及結束代碼 (exit codes) 來進行機器決策。人類可讀的文字僅供診斷使用。
+
+## Common schema 2 與 runtime 規則
+
+目前 Skill 對應 Common schema 2／v2-only 的 Meters runtime contracts。所有
+runtime machine-output JSON／JSONL object 都必須含有精確整數
+`schema_version: 2`；缺少、schema 1、`"2"`、`2.0`、布林值、fallback 與
+runtime schema negotiation 都不接受。這涵蓋 dry-run、Worker stdout JSONL、
+`wait-ready --json`、`status --json`、`send-command --json`、適用時的
+`stop --json` 與 direct Worker HTTP response。
+
+runtime schema 與 wrapper report schema 分開。bundled helper 的
+`sim_report.json` 仍使用 `schema_version: 1`；可用簡單的
+`runtime_schema_version: 2` 標示它驗證的 runtime，但不改變 report schema。
+
+Meters 在 `start-trigger-record` 啟動時綁定 execution context：live `--model`
+對應 `expected_model_id`，simulate／dry-run `--model` 對應
+`planning_model_id`，且 Meters 不使用 `planning_profile_id`。直接呼叫
+`POST /command` 時使用 schema 2 command envelope，但不要帶 `context`，也
+不得覆寫 Worker 啟動時的 mode 或 model context；這與 WebUI browser-facing
+trigger adapter contract 不同。使用 `send-command` 時，仍須驗證回應的
+schema、`status`、echo 的 `command`，以及適用時的 `job_id`。
+
+`references/` 是 contract snapshot。上游 `docs/contracts/` 更新後，已安裝
+Skill 的 `references/` 必須重新同步；維持現有六份 contract，不新增第七份。
+
+bundled helper 成功條件也包含上述 schema 2 驗證、`worker_schema_version: 2`
+（適用時）、command／job ID echo、JSON／JSONL parse errors 為零，以及既有
+的 ready／sample／summary、`run_id`、CSV、summary、errors 與 worker exit code
+檢查。

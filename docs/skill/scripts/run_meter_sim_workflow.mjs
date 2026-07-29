@@ -100,6 +100,12 @@ function nonNegativeInteger(name, value) {
   return parsed;
 }
 
+function hasRuntimeSchema2(value) {
+  return typeof value?.schema_version === "number" &&
+    Number.isInteger(value.schema_version) &&
+    value.schema_version === 2;
+}
+
 function deterministicSimulatorResource(value) {
   const normalized = String(value).toUpperCase();
   if (normalized !== "SIM::34460A" && normalized !== "SIM::34461A") {
@@ -460,18 +466,26 @@ async function main() {
     dry_run_exit_code_zero: dryRun.exit_code === 0,
     dry_run_single_event: dryRunParsed.events.length === 1,
     dry_run_event: dryRunEvent?.event === "dry_run",
+    dry_run_schema_v2: hasRuntimeSchema2(dryRunEvent),
     dry_run_no_run_id: dryRunEvent ? !Object.hasOwn(dryRunEvent, "run_id") : false,
     dry_run_no_visa_io: dryRunEvent?.dry_run_performs_visa_io === false,
     dry_run_no_http_server: dryRunEvent?.dry_run_starts_http_server === false,
     dry_run_no_csv_write: dryRunEvent?.dry_run_writes_csv === false,
     dry_run_parse_ok: dryRunParsed.errors.length === 0,
     ready_observed: Boolean(readyEvent),
+    worker_events_schema_v2: events.length > 0 && events.every(hasRuntimeSchema2),
     wait_ready_ok: clients.wait_ready?.exit_code === 0 && clients.wait_ready?.json?.ok === true,
+    wait_ready_schema_v2: hasRuntimeSchema2(clients.wait_ready?.json),
+    wait_ready_worker_schema_v2: clients.wait_ready?.json?.worker_schema_version === 2,
     status_ok: clients.status_before_trigger?.exit_code === 0 && clients.status_before_trigger?.json?.ok === true,
+    status_schema_v2: hasRuntimeSchema2(clients.status_before_trigger?.json),
+    status_worker_schema_v2: clients.status_before_trigger?.json?.worker_schema_version === 2,
     send_command_accepted:
       clients.send_command?.exit_code === 0 &&
       clients.send_command?.json?.status === "accepted" &&
       clients.send_command?.json?.command === "software_trigger",
+    send_command_schema_v2: hasRuntimeSchema2(clients.send_command?.json),
+    send_command_job_id: clients.send_command?.json?.job_id === "meter-sim-one-sample",
     stdout_has_ready: eventSequence.includes("ready"),
     stdout_has_sample: eventSequence.includes("sample"),
     stdout_has_summary: eventSequence.includes("summary"),
@@ -482,10 +496,12 @@ async function main() {
     csv_one_row: csvRows.length === maxSamples,
     run_id_correlated: runIdCorrelated,
     worker_jsonl_parse_ok: parseErrors.length === 0,
+    stop_cleanup_schema_v2: clients.stop_cleanup ? hasRuntimeSchema2(clients.stop_cleanup.json) : true,
   };
   const ok = Object.values(checks).every(Boolean);
   const report = {
     schema_version: 1,
+    runtime_schema_version: 2,
     ok,
     generated_at: new Date().toISOString(),
     executable: exe,

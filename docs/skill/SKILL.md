@@ -40,6 +40,14 @@ Relevant contracts:
 
 - Treat machine JSON, JSONL, structured artifacts, CSV, `report.json`, and
   process exit codes as the evidence surface. Human text is diagnostic only.
+- Common runtime machine-output is schema 2 only. Every JSON/JSONL object from
+  dry-run, Worker stdout, `wait-ready --json`, `status --json`,
+  `send-command --json`, applicable `stop --json`, and direct Worker HTTP
+  responses must contain exact integer `schema_version: 2`. Reject missing,
+  schema 1, `"2"`, `2.0`, booleans, fallback, and runtime schema negotiation.
+- Keep runtime schema and wrapper report schema separate. The bundled helper's
+  `sim_report.json` remains `schema_version: 1`; it may identify the validated
+  runtime separately as `runtime_schema_version: 2`.
 - Parse CSV with a CSV parser. Meters CSV fields can contain quoted JSON
   metadata; comma splitting is not valid evidence.
 - For acquisition changes, validate in this order: dry-run JSONL, simulator
@@ -60,6 +68,20 @@ Relevant contracts:
 - Do not stop, kill, or reuse unrelated pre-existing `meters-tool`
   processes unless the user explicitly approves it. Use a fresh explicit port
   for the owned worker, or report a pre-existing-worker/port blocker.
+
+### Startup-bound execution context and command envelope
+
+- Meters binds execution context when `start-trigger-record` starts. In live
+  mode `--model` maps to `expected_model_id`; in simulate and dry-run it maps
+  to `planning_model_id`. Meters does not use `planning_profile_id`.
+- Meters `POST /command` requests use the documented schema 2 envelope:
+  `schema_version`, `command`, optional object `arguments`, and optional
+  string `job_id`. Do not include `context`; command requests cannot override
+  the Worker's startup mode or model context. This Worker envelope is not the
+  WebUI browser-facing trigger adapter contract.
+- With `send-command`, the CLI creates the envelope. Verify the JSON response
+  has schema 2, the expected `status`, and echoed `command` and applicable
+  `job_id`. For direct HTTP, verify the same fields in the Worker response.
 
 ## Executable orchestration rules
 
@@ -164,7 +186,10 @@ The helper writes:
 - `sim_report.json`
 
 Treat the helper exit code as a verification result. A successful run requires
-dry-run safety fields, exactly one accepted software trigger, matching `run_id`
-values across worker JSONL/client responses/artifacts, one CSV row,
-`summary.ok: true`, expected captured count, zero errors, and worker exit code
-`0`.
+dry-run safety fields and schema 2, schema 2 on every parsed Worker event and
+the `wait-ready`, `status`, `send-command`, and applicable cleanup `stop`
+responses (including Worker schema fields where reported), exactly one
+accepted software trigger with echoed command/job ID, matching `run_id` values
+across worker JSONL/client responses/artifacts, one CSV row, `summary.ok: true`,
+expected captured count, zero errors, JSON/JSONL parse errors equal to zero, and
+worker exit code `0`.

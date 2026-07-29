@@ -50,6 +50,17 @@ should be the same for the short and strict prompts: dry-run and simulator steps
 remain separate, JSON/JSONL and artifacts drive pass/fail decisions, `run_id`
 correlation is checked, and live hardware is not touched.
 
+All runtime JSON/JSONL examples use Common schema 2 only: require exact integer
+`schema_version: 2` on dry-run objects, Worker events, `wait-ready`, `status`,
+`send-command`, applicable `stop`, and direct Worker responses. Do not accept
+schema 1, malformed types, fallback, or negotiation. Meters binds model context
+at `start-trigger-record` startup (`expected_model_id` for live `--model`,
+`planning_model_id` for simulate/dry-run); it does not use
+`planning_profile_id`. Direct `POST /command` omits `context`, and command
+requests cannot override startup context. Verify command and applicable `job_id`
+echoes. The helper runtime is schema 2, while its `sim_report.json` remains a
+separate wrapper report with `schema_version: 1`.
+
 For live work, even the short prompt must stay explicit. A live prompt must
 include an exact operator-selected VISA resource and explicit live execution
 authorization for that resource. Do not shorten live prompts by removing the
@@ -158,6 +169,9 @@ Codex should:
   command.
 - Send one `software_trigger` command through `send-command --json` or
   `POST /command`.
+- Require schema 2 on the dry-run object, all parsed Worker events, and the
+  `wait-ready`/`status`/`send-command` responses; verify `worker_schema_version`
+  where reported and the echoed command/job ID.
 - Avoid detached shell launch such as PowerShell `Start-Process` or
   `cmd /c start /B` unless the repository explicitly documents it.
 - Verify that `run_id` values match across stdout JSONL, status responses, and

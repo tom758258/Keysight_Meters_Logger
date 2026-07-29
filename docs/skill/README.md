@@ -6,6 +6,12 @@ Meters CLI/worker subprocess lifecycle, JSON/JSONL contracts, dry-run and
 simulator validation order, `run_id` correlation rules, and live resource
 safety constraints.
 
+The current runtime contracts are Common schema 2, v2-only. Every runtime
+JSON/JSONL object must contain exact integer `schema_version: 2`; missing or
+incorrectly typed values, schema 1, fallback, and runtime schema negotiation
+are not accepted. This applies to dry-run output, Worker events, client JSON,
+and direct Worker HTTP responses.
+
 `docs/skill/SKILL.md` is a template. Codex will not discover it while it stays
 in this documentation directory. To use it, copy it into a Codex skill
 directory such as `.agents/skills/meters-tool-cli-orchestration/` or
@@ -50,6 +56,9 @@ directory.
 
 A standalone `references/` directory is a contract snapshot. Update it whenever
 upstream `docs/contracts/` changes.
+
+After upstream contracts are updated, re-copy the six contract files into an
+installed Skill's `references/` directory. Do not add another contract file.
 
 ## Repo-level installation
 
@@ -194,11 +203,17 @@ node .agents\skills\meters-tool-cli-orchestration\scripts\run_meter_sim_workflow
 
 The helper writes `dry_run.jsonl`, `sim_worker_stdout.jsonl`,
 `sim_worker_stderr.txt`, `sim_samples.csv`, and `sim_report.json` under the
-selected output directory. A successful run requires dry-run safety fields,
-`wait-ready --json` control-plane readiness when needed, one accepted software
-trigger, matching `run_id` values across JSONL/client responses/artifacts, one
-CSV row, `summary.ok: true`, the expected captured count, zero errors, and
-worker exit code `0`.
+selected output directory. A successful run requires dry-run safety fields and
+schema 2, schema 2 on all parsed Worker events and `wait-ready`, `status`,
+`send-command`, and applicable cleanup `stop` JSON (including
+`worker_schema_version: 2` where returned), one accepted software trigger with
+echoed command/job ID, matching `run_id` values across JSONL/client
+responses/artifacts, one CSV row, `summary.ok: true`, the expected captured
+count, zero errors, zero JSON/JSONL parse errors, and worker exit code `0`.
+
+The helper report is a separate wrapper contract: `sim_report.json` remains
+`schema_version: 1`. Its optional `runtime_schema_version: 2` identifies the
+runtime evidence and does not change the report schema.
 
 ## Usage examples
 
@@ -228,5 +243,9 @@ Use $meters-tool-cli-orchestration to check whether this orchestrator workflow r
   resources inside an acquisition workflow.
 - Treat `ready` and `wait-ready` as control-plane readiness only, not
   measurement completion.
+- Meters binds model context at `start-trigger-record` startup: live `--model`
+  is `expected_model_id`, while simulate/dry-run `--model` is
+  `planning_model_id`; Meters does not use `planning_profile_id`. Direct
+  `POST /command` must omit `context` and cannot override startup context.
 - Use structured JSON/JSONL, CSV, `report.json`, and exit codes for machine
   decisions. Human-readable text is diagnostic only.
