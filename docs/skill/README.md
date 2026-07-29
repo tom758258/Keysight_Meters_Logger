@@ -37,10 +37,10 @@ that touches:
 Do not use it for CSS-only UI styling, unrelated README wording changes, or
 general refactors that do not affect the CLI/worker contract surface.
 
-## Contract files
+## Required reference files
 
-The skill expects these contract files to be available either from the upstream
-repository or from a local `references/` snapshot:
+The skill expects these seven required reference files to be available either
+from the upstream repository or from a local `references/` snapshot:
 
 - `common-worker-protocol.md`
 - `common-cli-jsonl-contract.md`
@@ -48,17 +48,21 @@ repository or from a local `references/` snapshot:
 - `meters-worker-contract.md`
 - `meters-cli-jsonl-contract.md`
 - `meters-orchestrator-workflows.md`
+- `supported-models.md`
 
-When the skill is used inside the Meters Tool repository,
-`docs/contracts/` is the upstream source of truth. When the skill is installed
-standalone, copy the contract files into the installed skill's `references/`
-directory.
+When the skill is used inside the Meters Tool repository, the six runtime
+contract files come from `docs/contracts/`, and `supported-models.md` comes
+from `docs/core/supported-models.md`. When the skill is installed standalone,
+copy all seven files into the installed skill's `references/` directory.
 
-A standalone `references/` directory is a contract snapshot. Update it whenever
-upstream `docs/contracts/` changes.
+A standalone `references/` directory contains contract and model-support
+snapshots. Update it whenever `docs/contracts/` or
+`docs/core/supported-models.md` changes.
 
-After upstream contracts are updated, re-copy the six contract files into an
-installed Skill's `references/` directory. Do not add another contract file.
+After either upstream source is updated, re-copy the seven required reference
+files into an installed Skill's `references/` directory. The six contracts
+define runtime protocol and orchestration; `supported-models.md` defines model
+support metadata and does not override those contracts.
 
 ## Repo-level installation
 
@@ -80,6 +84,7 @@ meters-tool/
           meters-worker-contract.md
           meters-cli-jsonl-contract.md
           meters-orchestrator-workflows.md
+          supported-models.md
         scripts/
           run_meter_sim_workflow.mjs
 ```
@@ -98,6 +103,7 @@ Copy-Item "docs\contracts\common-orchestrator-workflows.md" "$skill\references\"
 Copy-Item "docs\contracts\meters-worker-contract.md" "$skill\references\"
 Copy-Item "docs\contracts\meters-cli-jsonl-contract.md" "$skill\references\"
 Copy-Item "docs\contracts\meters-orchestrator-workflows.md" "$skill\references\"
+Copy-Item "docs\core\supported-models.md" "$skill\references\"
 ```
 
 Bash from the repository root:
@@ -114,6 +120,7 @@ cp docs/contracts/common-orchestrator-workflows.md "$skill/references/"
 cp docs/contracts/meters-worker-contract.md "$skill/references/"
 cp docs/contracts/meters-cli-jsonl-contract.md "$skill/references/"
 cp docs/contracts/meters-orchestrator-workflows.md "$skill/references/"
+cp docs/core/supported-models.md "$skill/references/"
 ```
 
 If Codex is run inside this repository and can read `docs/contracts/`, those
@@ -140,6 +147,7 @@ Expected installed layout:
         meters-worker-contract.md
         meters-cli-jsonl-contract.md
         meters-orchestrator-workflows.md
+        supported-models.md
       scripts/
         run_meter_sim_workflow.mjs
 ```
@@ -158,6 +166,7 @@ Copy-Item "docs\contracts\common-orchestrator-workflows.md" (Join-Path $skill "r
 Copy-Item "docs\contracts\meters-worker-contract.md" (Join-Path $skill "references")
 Copy-Item "docs\contracts\meters-cli-jsonl-contract.md" (Join-Path $skill "references")
 Copy-Item "docs\contracts\meters-orchestrator-workflows.md" (Join-Path $skill "references")
+Copy-Item "docs\core\supported-models.md" (Join-Path $skill "references")
 ```
 
 Bash from a Meters Tool checkout:
@@ -174,10 +183,12 @@ cp docs/contracts/common-orchestrator-workflows.md "$skill/references/"
 cp docs/contracts/meters-worker-contract.md "$skill/references/"
 cp docs/contracts/meters-cli-jsonl-contract.md "$skill/references/"
 cp docs/contracts/meters-orchestrator-workflows.md "$skill/references/"
+cp docs/core/supported-models.md "$skill/references/"
 ```
 
-For user-level installation, keep the `references/` files synchronized with the
-upstream `docs/contracts/` files in the Meters Tool repository.
+For user-level installation, keep all seven `references/` files synchronized
+with both upstream sources: `docs/contracts/` and
+`docs/core/supported-models.md`.
 
 ## Bundled simulator helper
 

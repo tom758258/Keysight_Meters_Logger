@@ -14,18 +14,18 @@ provide an instrument driver, replace the CLI, or authorize live hardware work.
 Before making contract-sensitive decisions, read the relevant contracts in this
 order:
 
-1. If working inside the Meters Tool repository and `docs/contracts/`
-   is available, treat those files as the upstream source of truth.
+1. If working inside the Meters Tool repository, treat `docs/contracts/` and
+   `docs/core/supported-models.md` as the upstream sources of truth.
 2. If this skill is installed standalone and has a local `references/` directory,
    read the copied contract files there as a contract snapshot.
 3. If both `docs/contracts/` and `references/` are available and appear to
    differ, warn the user before making contract-sensitive changes.
 
 In executable-only workspaces, such as a folder with `meters-tool*.exe` but
-no repository `docs/contracts/`, first check this skill package's
-`references/` directory. Read all six contract snapshots before using CLI help.
-If they are not readable, stop and report a missing-contract blocker. CLI help
-may confirm installed behavior only after contract lookup has been attempted.
+no repository sources, first check this skill package's `references/` directory.
+Read all seven required reference files before using CLI help. If they are not
+readable, stop and report a missing-reference blocker. CLI help may confirm
+installed behavior only after reference lookup has been attempted.
 
 Relevant contracts:
 
@@ -35,6 +35,17 @@ Relevant contracts:
 - `meters-worker-contract.md`
 - `meters-cli-jsonl-contract.md`
 - `meters-orchestrator-workflows.md`
+- `supported-models.md`
+
+The six `docs/contracts/*.md` references define runtime schema, CLI/Worker
+protocol, command envelopes, lifecycle, and orchestration workflows.
+`docs/core/supported-models.md` is the model-support reference for public model
+IDs, profile capabilities, hard limits, supported measurements, and live-open
+support scope. It is not a seventh runtime contract and must not override the
+six contracts. A listed model does not mean every transport, backend,
+measurement, or trigger mode is live-open. Live planning still requires the
+exact connection scope, profile capability, operator-provided VISA resource,
+and fail-closed rules.
 
 ## Non-negotiables
 

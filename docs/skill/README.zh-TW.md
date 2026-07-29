@@ -19,9 +19,9 @@
 
 請勿將其用於純 CSS 的 UI 樣式設計、無關的 README 措辭變更，或不影響 CLI/worker 合約介面的常規重構。
 
-## 合約檔案 (Contract files)
+## 必要參考檔案 (Required reference files)
 
-此 Skill 預期能從上游儲存庫或本機的 `references/` 快照中取得下列合約檔案：
+此 Skill 預期能從上游儲存庫或本機的 `references/` 快照中取得下列七份必要參考檔案：
 
 - `common-worker-protocol.md`
 - `common-cli-jsonl-contract.md`
@@ -29,10 +29,14 @@
 - `meters-worker-contract.md`
 - `meters-cli-jsonl-contract.md`
 - `meters-orchestrator-workflows.md`
+- `supported-models.md`
 
-當此 Skill 在 Meters Tool 儲存庫內使用時，`docs/contracts/` 是上游的 source of truth。當此 Skill 為獨立安裝時，請將合約檔案複製到已安裝 Skill 的 `references/` 目錄中。
+在 Meters Tool 儲存庫內，六份 runtime contract 來自 `docs/contracts/`，
+`supported-models.md` 來自 `docs/core/supported-models.md`。獨立安裝時，請將七份檔案複製到已安裝 Skill 的 `references/` 目錄中。
 
-獨立的 `references/` 目錄是合約快照。每當上游的 `docs/contracts/` 發生變更時，請同步更新該目錄。
+獨立的 `references/` 目錄包含六份 contract snapshot 與一份 model-support snapshot。每當 `docs/contracts/` 或 `docs/core/supported-models.md` 發生變更時，請同步更新該目錄。
+
+六份 contracts 負責 runtime schema、CLI／Worker protocol、command envelope、lifecycle 與 orchestration workflow；`supported-models.md` 負責公開的 model ID、profile capability、hard limits、supported measurements 與 live-open support scope。它不是第七份 runtime contract，也不得覆寫 contracts。model 出現在清單中，不代表所有 transport、backend、measurement 或 trigger mode 都已 live-open；規劃 live workflow 仍須遵守 exact connection scope、profile capability、operator-provided VISA resource 與 fail-closed 規則。
 
 ## 儲存庫層級安裝 (Repo-level installation)
 
@@ -53,6 +57,7 @@ meters-tool/
           meters-worker-contract.md
           meters-cli-jsonl-contract.md
           meters-orchestrator-workflows.md
+          supported-models.md
         scripts/
           run_meter_sim_workflow.mjs
 ```
@@ -71,6 +76,7 @@ Copy-Item "docs\contracts\common-orchestrator-workflows.md" "$skill\references\"
 Copy-Item "docs\contracts\meters-worker-contract.md" "$skill\references\"
 Copy-Item "docs\contracts\meters-cli-jsonl-contract.md" "$skill\references\"
 Copy-Item "docs\contracts\meters-orchestrator-workflows.md" "$skill\references\"
+Copy-Item "docs\core\supported-models.md" "$skill\references\"
 ```
 
 從儲存庫根目錄執行 Bash：
@@ -87,6 +93,7 @@ cp docs/contracts/common-orchestrator-workflows.md "$skill/references/"
 cp docs/contracts/meters-worker-contract.md "$skill/references/"
 cp docs/contracts/meters-cli-jsonl-contract.md "$skill/references/"
 cp docs/contracts/meters-orchestrator-workflows.md "$skill/references/"
+cp docs/core/supported-models.md "$skill/references/"
 ```
 
 如果 Codex 在此儲存庫內執行並且能夠讀取 `docs/contracts/`，這些檔案仍是首選的上游 source of truth。當已安裝的 Skill 在原始儲存庫環境之外被重複使用或審查時，複製到 `references/` 的檔案就會發揮作用。
@@ -109,6 +116,7 @@ cp docs/contracts/meters-orchestrator-workflows.md "$skill/references/"
         meters-worker-contract.md
         meters-cli-jsonl-contract.md
         meters-orchestrator-workflows.md
+        supported-models.md
       scripts/
         run_meter_sim_workflow.mjs
 ```
@@ -127,6 +135,7 @@ Copy-Item "docs\contracts\common-orchestrator-workflows.md" (Join-Path $skill "r
 Copy-Item "docs\contracts\meters-worker-contract.md" (Join-Path $skill "references")
 Copy-Item "docs\contracts\meters-cli-jsonl-contract.md" (Join-Path $skill "references")
 Copy-Item "docs\contracts\meters-orchestrator-workflows.md" (Join-Path $skill "references")
+Copy-Item "docs\core\supported-models.md" (Join-Path $skill "references")
 ```
 
 從 Meters Tool checkout 目錄執行 Bash：
@@ -143,9 +152,10 @@ cp docs/contracts/common-orchestrator-workflows.md "$skill/references/"
 cp docs/contracts/meters-worker-contract.md "$skill/references/"
 cp docs/contracts/meters-cli-jsonl-contract.md "$skill/references/"
 cp docs/contracts/meters-orchestrator-workflows.md "$skill/references/"
+cp docs/core/supported-models.md "$skill/references/"
 ```
 
-對於使用者層級安裝，請保持 `references/` 檔案與 Meters Tool 儲存庫中上游的 `docs/contracts/` 檔案同步。
+對於使用者層級安裝，請保持七份 `references/` 檔案與 Meters Tool 儲存庫中的兩個上游來源 `docs/contracts/` 及 `docs/core/supported-models.md` 同步。
 
 ## 內建模擬器 helper (Bundled simulator helper)
 
@@ -212,8 +222,9 @@ Meters 在 `start-trigger-record` 啟動時綁定 execution context：live `--mo
 trigger adapter contract 不同。使用 `send-command` 時，仍須驗證回應的
 schema、`status`、echo 的 `command`，以及適用時的 `job_id`。
 
-`references/` 是 contract snapshot。上游 `docs/contracts/` 更新後，已安裝
-Skill 的 `references/` 必須重新同步；維持現有六份 contract，不新增第七份。
+`references/` 包含六份 contract snapshot 與一份 model-support snapshot。上游
+`docs/contracts/` 或 `docs/core/supported-models.md` 更新後，已安裝 Skill 的
+`references/` 必須重新同步。
 
 bundled helper 成功條件也包含上述 schema 2 驗證、`worker_schema_version: 2`
 （適用時）、command／job ID echo、JSON／JSONL parse errors 為零，以及既有
