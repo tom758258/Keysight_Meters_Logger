@@ -18,7 +18,7 @@ WebUI 擁有以下內容的擁有權：
 - 從 Core 取樣事件衍生而來的即時資料 (Live data) 顯示狀態。
 - 資源掃描顯示。
 - 開啟 CSV 行為。
-- 開始 (Start)、觸發 (Trigger)、停止 (Stop) 和狀態輪詢 (polling) 的 UI 行為。
+- 開始 (Start)、觸發 (Trigger)、停止 (Stop) 和 SSE 狀態串流與輪詢備援的 UI 行為。
 
 Core 擁有以下內容的擁有權：
 
@@ -56,17 +56,32 @@ Windows GUI 啟動器包裝器為：
 .\.venv\Scripts\meters-tool-webui-launcher.exe
 ```
 
+PyInstaller 獨立 launcher 執行檔為：
+
+```text
+dist\meters-tool-webui-launcher.exe
+```
+
+虛擬環境 wrapper 需要已安裝的專案環境；`dist\` 執行檔則是獨立的
+Windows 建置產物。
+
 預設的本機伺服器為：
 
 ```text
 http://127.0.0.1:8767/
 ```
 
-該伺服器是一個 Uvicorn/FastAPI 程序。終端機按鍵 `q` 無法停止它。請使用 `Ctrl+C`；如果終端機沒有傳送 SIGINT，請透過 PID 停止監聽中的 `python.exe` 程序。
+該伺服器是一個 Uvicorn/FastAPI 程序。終端機按鍵 `q` 無法停止它。請使用
+`Ctrl+C` 進行正常關閉。如果終端機沒有傳送 SIGINT，請先停止作用中的執行
+並等待清理完成，再透過 PID 終止監聽程序。強制終止只是最後的復原方式，可能
+會略過儀器的正常清理。
 
 ## 安裝或重新載入
 
-在 repository 根目錄下執行：
+主要專案設定請遵循根目錄 [README 安裝](../../README.zh-TW.md#安裝) 章節。
+該流程會建立專案虛擬環境，並使用 copy link mode 同步 all-extras 環境。
+
+對於既有的虛擬環境，editable install 是選用的重新載入方式：
 
 ```powershell
 uv pip install -e ".[all,dev]" --link-mode=copy
@@ -96,7 +111,10 @@ meters-tool-webui <package-version>
 .\.venv\Scripts\meters-tool-webui-launcher.exe
 ```
 
-啟動器預設為 `127.0.0.1:8767`，當勾選 `Use default port 8767` 時，會停用連接埠 (port) 欄位，並在點擊 Start (啟動) 後開啟瀏覽器，且保持視窗可用，以便透過 Quit 離開以停止本機 Uvicorn 伺服器。
+主控台伺服器支援 `--host` 與 `--port`。啟動器一律繫結至 `127.0.0.1`，
+且只允許選擇連接埠。它預設為 `127.0.0.1:8767`；選取
+`Use default port 8767` 時會停用連接埠欄位，點擊 Start 後開啟瀏覽器，並
+保持視窗可用，以便透過 Quit 停止本機 Uvicorn 伺服器。
 
 開啟：
 
@@ -309,6 +327,15 @@ POST /api/runs/current/stop
 4. 清除釋放。
 5. 停止 HTTP/控制面路徑。
 
+當主控台伺服器收到離開訊號時，會先要求 manager 關閉，再允許 Uvicorn
+停止。Launcher 的 Quit 會先停止作用中的執行並等待 Core 清理完成，然後才
+停止 Uvicorn。如果清理逾時或失敗，launcher 會顯示 `Shutdown incomplete`
+並保持開啟，讓操作人員可以重試。
+
+一旦開始關閉，`WebRunManager` 會拒絕新的執行啟動，以避免啟動與終止競態。
+如果執行仍在啟動且 Core control plane 尚未 ready 時收到 stop request，該
+請求會被保留，待 control plane ready 後傳遞，不會遺失。
+
 ## 即時資料 (Live Data)
 
 即時資料與狀態更新主要由伺服器傳送事件 (SSE) 驅動：
@@ -430,7 +457,7 @@ POST /api/runs/current/open-csv
 - `POST /api/runs`：驗證並啟動執行。
 - `GET /api/runs/current`：傳回目前或最新的執行狀態。
 - `GET /api/runs/current/events`：傳回執行狀態變更的伺服器傳送事件 (SSE) 串流。
-- `POST /api/runs/current/command`：為支援的模式排入軟體觸發。傳回常見命令回應外殼：`202` 接受、`400` 驗證錯誤、`429` 佇列/速率拒絕，或在無執行為作用中或執行未就緒時傳回 `409`。
+- `POST /api/runs/current/command`：為支援的模式排入軟體觸發。接受 WebUI 私有的 `{ "metadata": {} }` payload；接受時傳回 `202`，驗證錯誤傳回 `400`，佇列/速率拒絕傳回 `429`，沒有作用中的執行或執行尚未 ready 時傳回 `409`。
 - `POST /api/runs/current/stop`：要求透過 Core 控制面停止。
 - `POST /api/runs/current/open-csv`：開啟最新完成的 CSV。
 - `POST /api/csv/select-folder`：開啟本機資料夾選擇器，並為現有的 CSV 輸入欄位傳回帶有時間戳記的 CSV 路徑。
@@ -598,12 +625,13 @@ uv run pytest tests -q -p no:cacheprovider
 
 連接埠已被使用：
 
-- 使用其他連接埠啟動，例如 `--port 8768`。
-- 或者停止現有的監聽程序。
+- 如果選取的連接埠已提供 Meters Tool WebUI，Launcher 會開啟現有伺服器。
+- 如果其他 HTTP 服務佔用該連接埠，Launcher 會顯示錯誤，不會自動嘗試下一個連接埠。
+- 對主控台伺服器，請選擇其他連接埠，例如 `--port 8768`，或停止現有的監聽程序。
 
 `q` 無法停止伺服器：
 
-- 這是預期行為。使用 `Ctrl+C`，或透過 PID 停止監聽中的 `python.exe`。
+- 這是預期行為。使用 `Ctrl+C` 進行正常關閉；如果無法傳送 SIGINT，請依照上方先清理再透過 PID 終止程序的指引操作。
 
 掃描找不到實機資源：
 
@@ -625,7 +653,7 @@ Open CSV 按鈕被停用：
 即時面板沒有取樣：
 
 - 確認執行已擷取到樣本。
-- 確認狀態輪詢正常。
+- 確認 SSE 狀態串流正常，或輪詢備援正在運作。
 - 面板僅使用 Core 取樣事件；它不獨立查詢儀器或解析 CSV 檔案。
 
 ## 說明文件地圖
@@ -633,4 +661,4 @@ Open CSV 按鈕被停用：
 - [WebUI 使用者指南](USER_GUIDE.zh-TW.md)：面向操作人員的 WebUI 使用指南。
 - [WebUI README](README.zh-TW.md)：本 WebUI 行為、API、驗證與維護者指南。
 - [WebUI 變更規則](web-ui-change-rules.md)：維護者與面向 Agent 的 UI 變更規則。
-- [WebUI 變更日誌](CHANGELOG.md)：套件發佈說明。
+- [WebUI 變更日誌](../../CHANGELOG.md)：專案版本發佈說明。

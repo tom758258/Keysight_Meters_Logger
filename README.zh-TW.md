@@ -10,7 +10,7 @@ Meters Tool 是供支援的數位萬用電表使用的 Python 資料擷取與紀
 
 * 透過 VISA 控制支援的數位萬用電表
 * 設定量測範圍 (range)、NPLC、Auto Zero、AC 頻寬 (bandwidth)、電流端子 (current terminal) 與 DC 電壓輸入阻抗 (input impedance)
-* 支援 software、timer、external hardware、immediate 與 buffered 觸發工作流程
+* 支援 software 工作流程（可透過 `--timer-interval-s` 選用計時排程）、external hardware、immediate 與 custom/buffered 觸發工作流程
 * 使用 dry-run 模式預覽儀器命令
 * 使用內建模擬器在沒有硬體的情況下測試工作流程
 * 透過 CLI 或本機 WebUI 進行操作
@@ -104,15 +104,41 @@ Windows 會建立 virtualenv console wrappers，例如
 `.\.venv\Scripts\meters-tool-webui.exe` 與
 `.\.venv\Scripts\meters-tool-webui-launcher.exe`。
 
-## 建置
+## 快速開始
 
-準備發布時，請在建置發布產物之前先執行無硬體發布門檻檢查：
+安裝後，可在沒有硬體的情況下執行安全的模擬器工作流程：
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\release-cli-check.ps1 -Target keysight-34461a
+.\.venv\Scripts\meters-tool.exe start-trigger-record `
+  --resource SIM::34461A `
+  --simulate `
+  --measurement voltage-dc `
+  --trigger-mode immediate `
+  --max-samples 1 `
+  --csv .tmp_tests\quick-start-simulator.csv `
+  --status-format jsonl
 ```
 
-預設 target 為 `keysight-34461a`。只有在發布變更明確與 34460A 型號相關時，才改用 `keysight-34460a`。此包裝器負責驗證發布就緒狀態，但不會建置發布產物。
+啟動 WebUI 主控台伺服器：
+
+```powershell
+.\.venv\Scripts\meters-tool-webui.exe --host 127.0.0.1 --port 8767
+```
+
+或啟動 WebUI launcher：
+
+```powershell
+.\.venv\Scripts\meters-tool-webui-launcher.exe
+```
+
+詳細選項與工作流程請參閱 [CLI README](docs/cli/README.zh-TW.md) 和
+[WebUI README](docs/webui/README.zh-TW.md)。
+
+預設情況下，實機工作階段會透過 `pyvisa.ResourceManager()` 使用系統 VISA
+執行階段。CLI 開啟 VISA 的指令可使用 `--visa-library "@py"` 選擇選用的
+pyvisa-py 後端；WebUI 一律使用系統 VISA，且不提供後端選擇器。
+
+## 建置
 
 建置 wheel 與 source distribution。這會使用上面安裝的 `dev` extra 中的 `build` 套件：
 
@@ -127,17 +153,10 @@ dist\meters_tool-<version>-py3-none-any.whl
 dist\meters_tool-<version>.tar.gz
 ```
 
-獨立執行檔有分開的 PyInstaller 工作流程。在建置 exe 產物之前，請先安裝 PyInstaller：
-
-```powershell
-uv pip install pyinstaller --python .\.venv\Scripts\python.exe
-```
-
-如果您的虛擬環境直接使用 pip：
-
-```powershell
-.\.venv\Scripts\python.exe -m pip install pyinstaller
-```
+獨立執行檔採用 Windows 導向的 PyInstaller 工作流程。PyInstaller 已包含在
+Windows `dev` 相依套件中，因此透過
+`uv sync --all-extras --locked --link-mode=copy` 建立的開發環境已可用於發布
+建置與正式發布驗收。
 
 建置獨立的 CLI 和 WebUI 啟動器執行檔：
 
@@ -169,6 +188,13 @@ release\<version>\meters_tool-<version>.tar.gz
 release\<version>\checksums.txt
 ```
 
+`release-acceptance.ps1` 是針對乾淨、已提交工作樹的正式無硬體發布驗收。
+它會執行完整無硬體測試（包含 wrapper 測試）、呼叫一次
+`build_release.ps1`，並驗證最終 wheel、source distribution、CLI 獨立 EXE、
+WebUI Launcher 獨立 EXE 與 SHA-256 checksums；接著執行乾淨安裝套件 smoke
+test、最小獨立執行檔 smoke test、指定 target 的 preflight 與既有的
+PlanOnly 驗證。通過後會輸出可直接上傳至 GitHub Release 的版本化目錄。
+
 ## 測試
 
 開發迭代時可先跑 focused tests：
@@ -185,16 +211,20 @@ release\<version>\checksums.txt
 .\.venv\Scripts\python.exe -m ruff check src tests
 ```
 
-執行完整無硬體測試套件：
+執行每日快速無硬體測試套件：
 
 ```powershell
-.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider
+.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider --ignore=tests\cli\test_cli_wrappers.py
 ```
+
+Windows wrapper 合約的 CI 工作會另外執行
+`tests\cli\test_cli_wrappers.py`。完整的 `release-acceptance.ps1` 門檻只應
+在正式發布前執行。
 
 如果 Windows 系統暫存目錄權限阻擋了 pytest，請改用 repository-local 暫存目錄重新執行：
 
 ```powershell
-.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider --basetemp .tmp_tests\pytest_tmp
+.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider --ignore=tests\cli\test_cli_wrappers.py --basetemp .tmp_tests\pytest_tmp
 ```
 
 ## Codex / Agent Skill
