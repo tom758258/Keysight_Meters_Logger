@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   lint:
-    name: Ruff and JavaScript tests
+    name: Ruff and JavaScript syntax
     runs-on: ubuntu-latest
 
     steps:

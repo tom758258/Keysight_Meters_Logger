@@ -158,6 +158,19 @@ class AcquisitionEngineTests(unittest.TestCase):
         self.assertEqual(1, engine.stats.captured)
 
     def test_waiting_trigger_status_is_emitted_once_while_idle(self):
+        class CountingTriggerRouter(TriggerRouter):
+            def __init__(self) -> None:
+                super().__init__()
+                self.wait_calls = 0
+                self.multiple_waits = threading.Event()
+
+            def wait(self, timeout_s: float) -> TriggerEvent | None:
+                self.wait_calls += 1
+                if self.wait_calls >= 3:
+                    self.multiple_waits.set()
+                return super().wait(timeout_s)
+
+        router = CountingTriggerRouter()
         statuses: list[str] = []
         waiting = threading.Event()
 
@@ -167,6 +180,7 @@ class AcquisitionEngineTests(unittest.TestCase):
                 waiting.set()
 
         engine = make_acquisition_engine(
+            router=router,
             status_cb=status_cb,
         )
 
@@ -174,6 +188,10 @@ class AcquisitionEngineTests(unittest.TestCase):
         worker.start()
         try:
             self.assertTrue(waiting.wait(timeout=1.0), "worker did not emit waiting trigger")
+            self.assertTrue(
+                router.multiple_waits.wait(timeout=1.0),
+                "worker did not complete multiple idle waits",
+            )
         finally:
             engine.stop()
             worker.join(timeout=1)
