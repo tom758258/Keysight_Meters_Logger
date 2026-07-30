@@ -179,10 +179,10 @@ def test_release_acceptance_rechecks_final_working_tree_hygiene():
     final_head_start = script.index('$script:currentStep = "git_head_final"')
     final_diff_start = script.index('$script:currentStep = "git_diff_check_final"')
     final_clean_start = script.index('$script:currentStep = "git_clean_final"')
-    catch_start = script.index("} catch {", final_clean_start)
-    final_block = script[final_head_start:catch_start]
+    catch_start = script.index("} catch {", final_head_start)
+    final_block = script[final_diff_start:catch_start]
 
-    assert plan_only_start < final_head_start < final_diff_start < final_clean_start
+    assert plan_only_start < final_diff_start < final_clean_start < final_head_start
     assert '@("-C", $RepoRoot, "rev-parse", "HEAD")' in final_block
     assert script.count('@("-C", $RepoRoot, "rev-parse", "HEAD")') == 2
     assert "$finalGitHead -cne $gitHead" in final_block
