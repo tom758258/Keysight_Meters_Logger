@@ -242,7 +242,15 @@
             <li>在信任較長期的擷取之前，請將 CSV 數值與前面板讀值進行對比。</li>
         </ol>
         <p>進行實機擷取時請使用明確的 <code>--resource</code> 值。傳遞 <code>"$env:METER_RESOURCE"</code> 仍會為 CLI 提供明確的資源；請勿依賴腳本或無人值守的工作流程來猜測應使用哪台儀器。</p>
-        <p>live 啟動省略 <code>--model</code> 時，連接儀器的 <code>*IDN?</code> 決定 runtime profile。明確指定 <code>--model 34460A</code> 或 <code>--model 34461A</code> 只是 expected-model guard；selected model 絕不會覆寫 IDN-selected profile。live mismatch 會在 setup SCPI 前失敗。dry-run 或 simulator 才由 selected model 選擇 profile，除非 simulator resource 已確定型號，例如 <code>SIM::34460A</code> 或 <code>SIM::34461A</code>。型號名稱由 Core 設定檔邏輯進行標準化與驗證，因此未知的型號會以清楚的驗證錯誤失敗。</p>
+        <p>live 啟動省略 <code>--model</code> 時，連接儀器的 <code>*IDN?</code> 決定 runtime profile。明確指定 <code>--model 34460A</code> 或 <code>--model 34461A</code> 只是 expected-model guard；selected model 絕不會覆寫 IDN-selected profile。<code>--model</code> 也接受穩定 model ID：<code>keysight-34460a</code> 與 <code>keysight-34461a</code>。在 live 模式中，任何 model 值仍只是 expected-model guard，不會解鎖其他支援範圍。live mismatch 會在 setup SCPI 前失敗。dry-run 或 simulator 才由 selected model 選擇 profile，除非 simulator resource 已確定型號，例如 <code>SIM::34460A</code> 或 <code>SIM::34461A</code>。型號名稱由 Core 設定檔邏輯進行標準化與驗證，因此未知的型號會以清楚的驗證錯誤失敗。</p>
+        
+        <h2>實機支援範圍提醒</h2>
+        <p>某個 VISA resource 能回應 <code>*IDN?</code> 或出現在 <code>list-resources</code> 中，本身不代表所有型號與 transport/backend 組合都已 Product-open。首次實機執行前，請記住以下操作限制：</p>
+        <ul>
+            <li><code>34461A</code>：USB/system VISA 與 LAN/TCPIP with system VISA 已 Product-open。LAN/TCPIP with pyvisa-py <code>@py</code> 已 Product-open，但僅適用於 CLI。</li>
+            <li><code>34460A</code>：目前 Product-open 的實機 connection scope 是 USB/system VISA。LAN/TCPIP with system VISA 與 LAN/TCPIP with pyvisa-py <code>@py</code> 尚未 Product-open。DCV Ratio 只在 USB/system VISA scope 開放。base profile 不支援 <code>external</code> 或 <code>external-custom</code> trigger、不支援 10 A/current-terminal 選擇，且 reading memory 上限為 1000。</li>
+        </ul>
+        <p>精確的型號、transport/backend、量測與觸發支援範圍，請參閱 <a href="../core/supported-models.html">支援型號</a>。</p>
         <p>CLI 預設使用電腦的系統 VISA 執行階段，例如 Keysight IO Libraries Suite 或 NI-VISA。進階的 pyvisa-py LAN 診斷可以安裝可選的 backend 套件，並在 <code>list-resources</code> 或 <code>start-trigger-record</code> 中加入 <code>--visa-library "@py"</code>；<code>--backend "@py"</code> 也接受作為別名。已驗證的選用 <code>@py</code> 擷取範圍是 LAN/TCPIP 上的 34461A；目前可用的儀器尚未開放 34460A LAN/<code>@py</code>。一般的 WebUI 執行則使用預設的系統 VISA 執行階段。</p>
         
         <h2>選擇量測類型</h2>
@@ -258,8 +266,7 @@
             <li><code>resistance-2w</code>：2 線式電阻。</li>
             <li><code>resistance-4w</code>：4 線式電阻。</li>
         </ul>
-        <p>測量電流或 4 線式電阻前，請先確認輸入端子是否正確。</p>
-        <p>對於 AC、頻率與週期模式，請先執行低風險的快速功能健檢 (smoke test)，並將 CSV 數值與前面板讀值進行對比，確認無誤後再將該設定用於較長期的擷取。</p>
+        <p>測量電流或 4 線式電阻前，請先確認輸入端子是否正確。 對於 AC、頻率與週期模式，請先執行低風險的快速功能健檢 (smoke test)，並將 CSV 數值與前面板讀值進行對比，確認無誤後再將該設定用於較長期的擷取。</p>
         
         <h2>選擇觸發模式</h2>
         <p><code>--trigger-mode immediate</code> 適用於最簡單的工作流程。作業一啟動，儀器就會開始擷取讀值。除非您刻意要進行連續執行，否則請加上 <code>--max-samples</code>。</p>
@@ -317,9 +324,9 @@
         <h2>更多 CLI 文件</h2>
         <ul>
             <li><a href="README.zh-TW.html">CLI README</a>：完整的指令參考、驗證腳本、範例、引數限制與自動化工作流程。</li>
-            <li><a href="cli-integration.md">CLI 整合</a>：CLI 配接器的維護邊界說明。</li>
-            <li><a href="../contracts/meters-cli-jsonl-contract.md">Meters CLI JSON / JSONL 合約</a>：用於自動化的結構化輸出 schema。</li>
-            <li><a href="../contracts/meters-worker-contract.md">Meters Worker 合約</a>：工作器控制面與產物合約。</li>
+            <li><a href="cli-integration.html">CLI 整合</a>：CLI 配接器的維護邊界說明。</li>
+            <li><a href="../contracts/meters-cli-jsonl-contract.html">Meters CLI JSON / JSONL 合約</a>：用於自動化的結構化輸出 schema。</li>
+            <li><a href="../contracts/meters-worker-contract.html">Meters Worker 合約</a>：工作器控制面與產物合約。</li>
         </ul>
 
     </main>

@@ -242,7 +242,7 @@
         <h1>Meters Tool WebUI 說明文件</h1>
         <p>本文件是 WebUI 元件的 WebUI 行為、API、驗證與維護者指南。對於一般的操作人員工作流程與欄位說明，請參閱 <a href="USER_GUIDE.zh-TW.html">WebUI 使用者指南</a>。</p>
         <p>關於版本發佈說明，請參閱套件變更日誌 (changelog)。關於 Core API 和擁有權規則，請參閱 Core 整合指南。請將本指南專注於長期的公開 WebUI 行為與維護者邊界。</p>
-        <p><a href="localization-contract.md">WebUI 本地化合約</a> 定義瀏覽器呈現的 v2 本地化。P2.1 提供不依賴套件的瀏覽器 i18n 基礎；P2.2 至 P2.5 涵蓋靜態與動態表單、app/resource、status/log、Live data、ARIA、瀏覽器錯誤與支援摘要呈現。P2.6 透過右上角永久顯示的地球與文字按鈕啟用英文／繁體中文選擇。有效的已儲存語系優先於瀏覽器偵測與 English fallback；手動選擇使用 <code>meters-tool.webui.locale</code> 儲存鍵。切換會立即更新頁面，不重新載入或呼叫 runtime/API，並從快取狀態重新轉譯，同時保留表單值、作用中的作業、面板、狀態日誌、Live 取樣、圖表設定、資源 metadata 與支援摘要。未知的 Core/backend/status 診斷、原始 status JSON、取樣 metadata 與 schema 保持原始內容。Core、HTTP API 端點與狀態碼、現有回應欄位、表單值、支援政策、儀器執行階段，以及 CSV/JSON/JSONL schema 都不變。P2.7 完成最終的語系目錄品質與術語審查、跨 Part 整合驗證、操作人員文件，以及不改變上述邊界的重點標籤修整。</p>
+        <p><a href="localization-contract.html">WebUI 本地化合約</a> 定義瀏覽器呈現的 v2 本地化。P2.1 提供不依賴套件的瀏覽器 i18n 基礎；P2.2 至 P2.5 涵蓋靜態與動態表單、app/resource、status/log、Live data、ARIA、瀏覽器錯誤與支援摘要呈現。P2.6 透過右上角永久顯示的地球與文字按鈕啟用英文／繁體中文選擇。有效的已儲存語系優先於瀏覽器偵測與 English fallback；手動選擇使用 <code>meters-tool.webui.locale</code> 儲存鍵。切換會立即更新頁面，不重新載入或呼叫 runtime/API，並從快取狀態重新轉譯，同時保留表單值、作用中的作業、面板、狀態日誌、Live 取樣、圖表設定、資源 metadata 與支援摘要。未知的 Core/backend/status 診斷、原始 status JSON、取樣 metadata 與 schema 保持原始內容。Core、HTTP API 端點與狀態碼、現有回應欄位、表單值、支援政策、儀器執行階段，以及 CSV/JSON/JSONL schema 都不變。P2.7 完成最終的語系目錄品質與術語審查、跨 Part 整合驗證、操作人員文件，以及不改變上述邊界的重點標籤修整。</p>
 
         <h2>目的</h2>
         <p>WebUI 配接器 (adapter) 圍繞 <code>meters_tool_core</code> 中共享的 Core 執行階段 (runtime)，提供本機 FastAPI 和瀏覽器介面。</p>
@@ -254,7 +254,7 @@
             <li>從 Core 取樣事件衍生而來的即時資料 (Live data) 顯示狀態。</li>
             <li>資源掃描顯示。</li>
             <li>開啟 CSV 行為。</li>
-            <li>開始 (Start)、觸發 (Trigger)、停止 (Stop) 和狀態輪詢 (polling) 的 UI 行為。</li>
+            <li>開始 (Start)、觸發 (Trigger)、停止 (Stop) 和 SSE 狀態串流與輪詢備援的 UI 行為。</li>
         </ul>
         <p>Core 擁有以下內容的擁有權：</p>
         <ul>
@@ -268,6 +268,7 @@
             <li>SCPI 指令產生與儀器 I/O。</li>
             <li>釋放回本機控制 (release-to-local)、關閉、清理釋放 (cleanup release) 以及控制面 (control-plane) 關閉順序。</li>
         </ul>
+        <p>WebUI 必須使用 Core 的公開 API，不可依賴 CLI 配接器程式碼或直接存取擷取引擎內部運作。</p>
         <p>Core 會驗證量測請求並保護儀器端的限制。WebUI 使用者指南以 UI 術語說明各個欄位；本 README 則將 WebUI 行為、API、驗證與維護者邊界集中整理於一處。</p>
 
         <h2>套件與進入點 (Entry Point)</h2>
@@ -277,12 +278,16 @@
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool-webui.exe</code></pre></div>
         <p>Windows GUI 啟動器包裝器為：</p>
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool-webui-launcher.exe</code></pre></div>
+        <p>PyInstaller 獨立 launcher 執行檔為：</p>
+        <div class="code-wrapper"><pre><code>dist\meters-tool-webui-launcher.exe</code></pre></div>
+        <p>虛擬環境 wrapper 需要已安裝的專案環境；<code>dist\</code> 執行檔則是獨立的 Windows 建置產物。</p>
         <p>預設的本機伺服器為：</p>
         <div class="code-wrapper"><pre><code>http://127.0.0.1:8767/</code></pre></div>
-        <p>該伺服器是一個 Uvicorn/FastAPI 程序。終端機按鍵 <code>q</code> 無法停止它。請使用 <code>Ctrl+C</code>；如果終端機沒有傳送 SIGINT，請透過 PID 停止監聽中的 <code>python.exe</code> 程序。</p>
+        <p>該伺服器是一個 Uvicorn/FastAPI 程序。終端機按鍵 <code>q</code> 無法停止它。請使用 <code>Ctrl+C</code> 進行正常關閉。如果終端機沒有傳送 SIGINT，請先停止作用中的執行並等待清理完成，再透過 PID 終止監聽程序。強制終止只是最後的復原方式，可能會略過儀器的正常清理。</p>
 
         <h2>安裝或重新載入</h2>
-        <p>在 repository 根目錄下執行：</p>
+        <p>主要專案設定請遵循根目錄 <a href="../../README.zh-TW.html#安裝">README 安裝</a> 章節。該流程會建立專案虛擬環境，並使用 copy link mode 同步 all-extras 環境。</p>
+        <p>對於既有的虛擬環境，editable install 是選用的重新載入方式：</p>
         <div class="code-wrapper"><pre><code>uv pip install -e ".[all,dev]" --link-mode=copy</code></pre></div>
         <p>檢查包裝器：</p>
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool-webui.exe --version</code></pre></div>
@@ -292,7 +297,7 @@
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool-webui.exe --port 8767</code></pre></div>
         <p>或啟動雙擊執行的啟動器：</p>
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool-webui-launcher.exe</code></pre></div>
-        <p>啟動器預設為 <code>127.0.0.1:8767</code>，當勾選 <code>Use default port 8767</code> 時，會停用連接埠 (port) 欄位，並在點擊 Start (啟動) 後開啟瀏覽器，且保持視窗可用，以便透過 Quit 離開以停止本機 Uvicorn 伺服器。</p>
+        <p>主控台伺服器支援 <code>--host</code> 與 <code>--port</code>。啟動器一律繫結至 <code>127.0.0.1</code>，且只允許選擇連接埠。它預設為 <code>127.0.0.1:8767</code>；選取 <code>Use default port 8767</code> 時會停用連接埠欄位，點擊 Start 後開啟瀏覽器，並保持視窗可用，以便透過 Quit 停止本機 Uvicorn 伺服器。</p>
         <p>開啟：</p>
         <div class="code-wrapper"><pre><code>http://127.0.0.1:8767/</code></pre></div>
         <p>選用的 host 與 port 旗標：</p>
@@ -350,6 +355,7 @@ GET /api/capabilities?model=34460A
 GET /api/capabilities?model=34461A
 GET /api/capabilities?model=keysight-34461a</code></pre></div>
         <p>當省略 <code>model</code> 時，<code>/api/capabilities</code> 會傳回具有 <code>defaults.instrument_model = null</code> 與 <code>model_resolution.resolved = false</code> 的相容 34461A 形狀能力表。瀏覽器在 Auto 時不送出 <code>instrument_model</code>；明確的 Expected model 選擇會送出 <code>"34460A"</code> 或 <code>"34461A"</code>。在 Auto-detect 模式下，能力控制項與支援摘要會使用該備援功能檢視，直到 Start 或 Scan 偵測到 IDN。此顯示上下文不會選擇實機驅動程式；實機執行仍使用偵測到的 IDN 選擇設定檔作為執行階段驅動程式。</p>
+        
         <p>型號身份 metadata 是附加內容；現有型號欄位保留原本的值與意義：</p>
         <table>
             <thead>
@@ -397,19 +403,24 @@ GET /api/capabilities?model=keysight-34461a</code></pre></div>
                 </tr>
             </tbody>
         </table>
+        
         <p><code>instrument_profile</code> 與每個 <code>available_profiles</code> 項目都包含 <code>model</code> 與 <code>model_id</code>。<code>support_summary.model_id</code> 對應其既有的 <code>model</code>，而 <code>capability_profile_id</code> 對應 <code>capability_profile</code>。對尚未解析的 Auto-detect，兩個 ID 都描述顯示中的 34461A 備援能力設定檔：<code>display_model</code> 保持 <code>Auto-detect</code>、<code>defaults.instrument_model</code> 保持 null，且 <code>model_resolution</code> 保持未解析，同時增加 <code>fallback_profile_id: "keysight-34461a"</code>。此 fallback ID 不代表已偵測到實機儀器。明確的設定檔查詢則讓兩個 fallback 欄位保持 null。</p>
+        
         <p><code>support_summary</code> 保留既有的 English 呈現欄位，並新增下列同層級的語意鍵 metadata：</p>
-        <div class="code-wrapper"><pre><code>status_key
+        <div class="code-wrapper"><pre><code class="language-text">status_key
 runtime_driver_note_key
 open_workflow_keys
 limit_keys
 pending_keys</code></pre></div>
         <p>純量鍵分別對應 <code>status_text</code> 與 <code>runtime_driver_note</code>；鍵列表則依位置對應 <code>open_workflows</code>、<code>limits</code> 與 <code>pending</code>。瀏覽器在可用時使用已識別的鍵。遺失、格式錯誤、未知、較短或較長的鍵列表都不能移除、重新排序或增加文字項目：既有的文字列表仍是權威的顯示項目與備援內容。這些鍵只是呈現 metadata，不會影響支援原則的執行。原始的 <code>validation_status</code>、傳輸、後端、型號與設定檔身份值仍是機器值。最新的原始摘要可從記憶體重新轉譯，不需再次要求 capability。P2.6 在語系切換時使用此快取，且不會將瀏覽器語系傳給 API。P2.7 完成此行為的最終翻譯品質與跨 Part 整合驗證。</p>
+        
         <p>標準型號名稱仍可供一般使用，穩定的型號 ID 也可作為設定檔查詢輸入。選定的型號仍是預期型號防護；從 live <code>*IDN?</code> 偵測到的設定檔仍是執行階段驅動程式。型號 ID 不代表支援狀態或生命週期狀態。</p>
+        
         <p><code>/api/capabilities</code> 也包含額外的支援 metadata。每個確切的實機連線範圍保留其現有的 <code>validation_status</code>、<code>transport_scope</code> 與 <code>backend_scope</code> 欄位，並新增 <code>features.measurement</code> 與 <code>features.trigger_mode</code> 對照表。功能項目公開其自身的 <code>validation_status</code>；量測鍵使用現有的配接器端名稱，例如 <code>voltage-dc-ratio</code>。現有的回應欄位不會被移除或重新命名。</p>
         <p>瀏覽器使用此 metadata 來顯示型號的實機支援，並停用對目前資源傳輸與 WebUI 固定系統-VISA 後端而言非產品開放的功能。它能區分待定實機驗證、型號不支援以及確切範圍不可用。在資源已知之前，Auto-detect 保持現有的備援功能檢視，且僅使用備援設定檔宣告的產品範圍；它絕不會推廣待定功能。對於 34461A，該 metadata 包含驗證過的 USB/system-VISA、LAN/system-VISA 以及選用的 CLI 專用 LAN/pyvisa-py <code>@py</code> 範圍。對於 34460A，DCV Ratio 在 USB/system-VISA 上為 <code>Product-open</code>；34460A LAN/TCPIP system-VISA 與 LAN/TCPIP pyvisa-py <code>@py</code> 仍為 <code>transport_pending</code>。Ratio promotion 是在維護者審查獨立、有界限的實機證據後明確完成；既有的 12-case wrapper full suite 不包含 Ratio，且不延伸至 LAN 或 pyvisa-py scope。現有的量測、觸發、範圍與限制欄位仍是控制項定義的 source of truth。</p>
         <p>Expected model 檢查是選用的。Core 會在 Start 時驗證連接儀器的識別資訊。若明確指定的預期型號與新的 IDN preflight 不符，WebUI 會回報選取的型號以及 IDN 中找到的支援型號。</p>
         <p>選取的 WebUI 型號不得被視為功能解鎖。停用或隱藏的控制項僅為 UX；Core 支援原則與 <code>run_start_session()</code> 最終關卡仍是 WebUI 後端提交的安全邊界。WebUI 不應將 pyvisa-py 後端選擇器作為驗證工具的一部分加入；後端診斷保持 CLI 專用，除非未來的產品決策變更該邊界。</p>
+        
         <p>目前呈現的量測模式包括：</p>
         <ul>
             <li><code>current-dc</code></li>
@@ -423,6 +434,7 @@ pending_keys</code></pre></div>
             <li><code>resistance-4w</code></li>
         </ul>
         <p>前端絕不可自行發明/虛構量測選項。它應該從 <code>/api/capabilities</code> 填入選項、預設值、範圍、NPLC 選項、AC 頻寬/濾波器選項、頻率/週期閘門時間 (gate-time) 選項、頻率逾時 (timeout) 選項、電流端子選項以及量測特有的控制項。</p>
+        
         <p>量測特有的 UI 行為：</p>
         <ul>
             <li>NPLC 僅出現在支援的量測中。</li>
@@ -467,10 +479,11 @@ pending_keys</code></pre></div>
 
         <h2>開始、停止與清除</h2>
         <p>Start 呼叫：</p>
-        <div class="code-wrapper"><pre><code>POST /api/runs</code></pre></div>
+        <div class="code-wrapper"><pre><code class="language-text">POST /api/runs</code></pre></div>
         <p>後端將瀏覽器 payload 轉換為 Core <code>StartRequest</code>，透過 Core 進行驗證，建立配接器可見的狀態，並在背景工作器上啟動 Core <code>run_start_session()</code>。</p>
+        
         <p>Stop 呼叫：</p>
-        <div class="code-wrapper"><pre><code>POST /api/runs/current/stop</code></pre></div>
+        <div class="code-wrapper"><pre><code class="language-text">POST /api/runs/current/stop</code></pre></div>
         <p>停止動作會經由 Core 控制面進行路由。WebUI 程式碼絕不可直接關閉 VISA 握把、呼叫擷取引擎內部或重新排列清除順序。</p>
         <p>保留的清除順序：</p>
         <ol>
@@ -480,12 +493,14 @@ pending_keys</code></pre></div>
             <li>清除釋放。</li>
             <li>停止 HTTP/控制面路徑。</li>
         </ol>
+        <p>當主控台伺服器收到離開訊號時，會先要求 manager 關閉，再允許 Uvicorn 停止。Launcher 的 Quit 會先停止作用中的執行並等待 Core 清理完成，然後才停止 Uvicorn。如果清理逾時或失敗，launcher 會顯示 <code>Shutdown incomplete</code> 並保持開啟，讓操作人員可以重試。</p>
+        <p>一旦開始關閉，<code>WebRunManager</code> 會拒絕新的執行啟動，以避免啟動與終止競態。如果執行仍在啟動且 Core control plane 尚未 ready 時收到 stop request，該請求會被保留，待 control plane ready 後傳遞，不會遺失。</p>
 
         <h2>即時資料 (Live Data)</h2>
         <p>即時資料與狀態更新主要由伺服器傳送事件 (SSE) 驅動：</p>
-        <div class="code-wrapper"><pre><code>GET /api/runs/current/events</code></pre></div>
+        <div class="code-wrapper"><pre><code class="language-text">GET /api/runs/current/events</code></pre></div>
         <p>這會傳回包含目前狀態快照的 <code>run-status</code> 事件的 <code>text/event-stream</code>。若 SSE 連線失敗，前端會自動降級為標準輪詢：</p>
-        <div class="code-wrapper"><pre><code>GET /api/runs/current</code></pre></div>
+        <div class="code-wrapper"><pre><code class="language-text">GET /api/runs/current</code></pre></div>
         <p>狀態回應包含 WebUI 擁有的即時資料欄位：</p>
         <ul>
             <li><code>latest_sample</code></li>
@@ -520,7 +535,7 @@ pending_keys</code></pre></div>
         <h2>CSV 輸出、選擇與開啟 CSV</h2>
         <p>執行 payload 可包含選用的 <code>csv</code> 路徑。若省略，Core/預設行為會選擇 CSV 輸出路徑。</p>
         <p><code>CSV path</code> 欄位也有一個 <code>Select</code> 按鈕。它呼叫：</p>
-        <div class="code-wrapper"><pre><code>POST /api/csv/select-folder</code></pre></div>
+        <div class="code-wrapper"><pre><code class="language-text">POST /api/csv/select-folder</code></pre></div>
         <p>後端行為：</p>
         <ul>
             <li>在執行 WebUI 後端的機器上開啟資料夾選擇器。</li>
@@ -545,7 +560,7 @@ pending_keys</code></pre></div>
             <li><code>Start</code> 會在點擊時使用輸入欄位中的值。</li>
         </ul>
         <p>Open CSV 按鈕呼叫：</p>
-        <div class="code-wrapper"><pre><code>POST /api/runs/current/open-csv</code></pre></div>
+        <div class="code-wrapper"><pre><code class="language-text">POST /api/runs/current/open-csv</code></pre></div>
         <p>後端行為：</p>
         <ul>
             <li>僅開啟管理程式狀態中的目前或上一次完成執行的 CSV。</li>
@@ -573,7 +588,7 @@ pending_keys</code></pre></div>
             <li><code>POST /api/runs</code>：驗證並啟動執行。</li>
             <li><code>GET /api/runs/current</code>：傳回目前或最新的執行狀態。</li>
             <li><code>GET /api/runs/current/events</code>：傳回執行狀態變更的伺服器傳送事件 (SSE) 串流。</li>
-            <li><code>POST /api/runs/current/command</code>：為支援的模式排入軟體觸發。傳回常見命令回應外殼：<code>202</code> 接受、<code>400</code> 驗證錯誤、<code>429</code> 佇列/速率拒絕，或在無執行為作用中或執行未就緒時傳回 <code>409</code>。</li>
+            <li><code>POST /api/runs/current/command</code>：為支援的模式排入軟體觸發。接受 WebUI 私有的 <code>{ "metadata": {} }</code> payload；接受時傳回 <code>202</code>，驗證錯誤傳回 <code>400</code>，佇列/速率拒絕傳回 <code>429</code>，沒有作用中的執行或執行尚未 ready 時傳回 <code>409</code>。</li>
             <li><code>POST /api/runs/current/stop</code>：要求透過 Core 控制面停止。</li>
             <li><code>POST /api/runs/current/open-csv</code>：開啟最新完成的 CSV。</li>
             <li><code>POST /api/csv/select-folder</code>：開啟本機資料夾選擇器，並為現有的 CSV 輸入欄位傳回帶有時間戳記的 CSV 路徑。</li>
@@ -662,15 +677,15 @@ pending_keys</code></pre></div>
         <h2>驗證</h2>
         <p>優先執行窄範圍的相關檢查。</p>
         <p>編輯前端模組後的 JavaScript 語法檢查：</p>
-        <div class="code-wrapper"><pre><code>Get-ChildItem src\meters_tool_webui\static\*.js |
+        <div class="code-wrapper"><pre><code class="language-powershell">Get-ChildItem src\meters_tool_webui\static\*.js |
   ForEach-Object { node --check $_.FullName }</code></pre></div>
         <p>針對 WebUI/Core 的無硬體驗證：</p>
-        <div class="code-wrapper"><pre><code>.\.venv\Scripts\python.exe -m pytest tests/webui/test_webui_package_metadata.py tests/webui/test_webui_api.py tests/webui/test_webui_static.py tests/webui/test_launcher.py -q -p no:cacheprovider</code></pre></div>
+        <div class="code-wrapper"><pre><code class="language-powershell">.\.venv\Scripts\python.exe -m pytest tests/webui/test_webui_package_metadata.py tests/webui/test_webui_api.py tests/webui/test_webui_static.py tests/webui/test_launcher.py -q -p no:cacheprovider</code></pre></div>
         <p>在已安裝 <code>meters-tool</code> 的環境中，使用 PyInstaller 建置選用的本機啟動器 exe。PyInstaller 是本機版本建置工具，非 WebUI 執行階段相依套件，因此在全新機器上重新建置之前，請將其安裝到 venv 中：</p>
-        <div class="code-wrapper"><pre><code>uv pip install pyinstaller</code></pre></div>
-        <div class="code-wrapper"><pre><code>powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_webui_exe.ps1</code></pre></div>
+        <div class="code-wrapper"><pre><code class="language-powershell">uv pip install pyinstaller
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_webui_exe.ps1</code></pre></div>
         <p>可行時執行更廣泛的無硬體驗證：</p>
-        <div class="code-wrapper"><pre><code>uv run pytest tests -q -p no:cacheprovider</code></pre></div>
+        <div class="code-wrapper"><pre><code class="language-powershell">uv run pytest tests -q -p no:cacheprovider</code></pre></div>
         <p>實機驗證需要操作人員提供 VISA 資源。在進行觸發模式或更長期的擷取前，先從低風險的立即模式快速功能健檢、啟用自動量程且 <code>max_samples=1</code> 開始。</p>
         <p>完整的測試執行可能會遇到本機 Windows 暫存或 pytest 快取權限警告。請清楚報告這些警告，並在更廣泛的測試套件被環境權限阻擋時，依賴針對性測試與實機硬體驗證。</p>
 
@@ -707,17 +722,21 @@ pending_keys</code></pre></div>
         <p>包裝器遺失：</p>
         <ul>
             <li>重新執行 <code>uv pip install -e ".[all,dev]" --link-mode=copy</code>。</li>
-            <li>確認 <code>.venv\Scripts\meters-tool-webui.exe</code> 存在。</li>
+            <li>確認 <code>.\.venv\Scripts\meters-tool-webui.exe</code> 存在。</li>
         </ul>
+        
         <p>連接埠已被使用：</p>
         <ul>
-            <li>使用其他連接埠啟動，例如 <code>--port 8768</code>。</li>
-            <li>或者停止現有的監聽程序。</li>
+            <li>如果選取的連接埠已提供 Meters Tool WebUI，Launcher 會開啟現有伺服器。</li>
+            <li>如果其他 HTTP 服務佔用該連接埠，Launcher 會顯示錯誤，不會自動嘗試下一個連接埠。</li>
+            <li>對主控台伺服器，請選擇其他連接埠，例如 <code>--port 8768</code>，或停止現有的監聽程序。</li>
         </ul>
+        
         <p><code>q</code> 無法停止伺服器：</p>
         <ul>
-            <li>這是預期行為。使用 <code>Ctrl+C</code>，或透過 PID 停止監聽中的 <code>python.exe</code>。</li>
+            <li>這是預期行為。使用 <code>Ctrl+C</code> 進行正常關閉；如果無法傳送 SIGINT，請依照上方先清理再透過 PID 終止程序的指引操作。</li>
         </ul>
+        
         <p>掃描找不到實機資源：</p>
         <ul>
             <li>確認儀器已開啟且已連接。</li>
@@ -725,20 +744,23 @@ pending_keys</code></pre></div>
             <li>嘗試手動輸入已知的 VISA 資源。</li>
             <li>在實機擷取前，從立即模式、啟用自動量程且 <code>max_samples=1</code> 的 smoke 測試開始。</li>
         </ul>
+        
         <p>Open CSV 按鈕被停用：</p>
         <ul>
             <li>等待執行變為 inactive。</li>
             <li>確認執行產生了 <code>csv_path</code>。</li>
             <li>執行完成後重新整理瀏覽器仍可顯示 <code>Open CSV</code>，因為後端會保留最新的已完成 CSV 路徑。</li>
         </ul>
+        
         <p>觸發按鈕被隱藏：</p>
         <ul>
             <li>該按鈕僅針對手動軟體觸發模式顯示：無計時器觸發的 <code>software</code> 以及 <code>software-custom</code>。</li>
         </ul>
+        
         <p>即時面板沒有取樣：</p>
         <ul>
             <li>確認執行已擷取到樣本。</li>
-            <li>確認狀態輪詢正常。</li>
+            <li>確認 SSE 狀態串流正常，或輪詢備援正在運作。</li>
             <li>面板僅使用 Core 取樣事件；它不獨立查詢儀器或解析 CSV 檔案。</li>
         </ul>
 
@@ -746,8 +768,8 @@ pending_keys</code></pre></div>
         <ul>
             <li><a href="USER_GUIDE.zh-TW.html">WebUI 使用者指南</a>：面向操作人員的 WebUI 使用指南。</li>
             <li><a href="README.zh-TW.html">WebUI README</a>：本 WebUI 行為、API、驗證與維護者指南。</li>
-            <li><a href="web-ui-change-rules.md">WebUI 變更規則</a>：維護者與面向 Agent 的 UI 變更規則。</li>
-            <li><a href="CHANGELOG.md">WebUI 變更日誌</a>：套件發佈說明。</li>
+            <li><a href="web-ui-change-rules.html">WebUI 變更規則</a>：維護者與面向 Agent 的 UI 變更規則。</li>
+            <li><a href="../../CHANGELOG.html">WebUI 變更日誌</a>：專案版本發佈說明。</li>
         </ul>
 
     </main>

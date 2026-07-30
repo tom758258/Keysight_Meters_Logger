@@ -79,7 +79,7 @@
         main {
             flex: 1;
             padding: 3rem 4rem;
-            max-width: 1000px; /* Slightly wider for the large tables in README */
+            max-width: 1000px;
             margin: 0 auto;
         }
 
@@ -245,17 +245,23 @@
         <ul>
             <li><a href="USER_GUIDE.zh-TW.html">CLI 使用者指南</a> - 操作人員工作流程與常見設定指引。</li>
             <li><a href="README.zh-TW.html">CLI README</a> - 詳細的 CLI 參考、驗證與自動化指南。</li>
-            <li><a href="CHANGELOG.md">Changelog</a> - 版本發佈說明與歷史紀錄。</li>
-            <li><a href="cli-integration.md">CLI 整合</a> - CLI 配接器維護邊界。</li>
-            <li><a href="../contracts/common-cli-jsonl-contract.md">通用 CLI JSON / JSONL 合約</a> - 共享命令列 JSON 外殼規則。</li>
-            <li><a href="../contracts/meters-cli-jsonl-contract.md">Meters CLI JSON / JSONL 合約</a> - Meters 命令列 JSON schema 與別名規則。</li>
-            <li><a href="../contracts/common-orchestrator-workflows.md">通用協調器工作流程</a> - 共享子程序生命週期指引。</li>
-            <li><a href="../contracts/meters-orchestrator-workflows.md">Meters 協調器工作流程</a> - 用於 Agent 和自動化的 Meters 子程序範例。</li>
-            <li><a href="../contracts/meters-worker-contract.md">Meters Worker 合約</a> - 用於 Agent 和協調器的 Meters 工作器控制面、JSONL 與產物合約。</li>
+            <li><a href="../core/supported-models.html">支援型號</a> - 目前型號與確切範圍的支援狀態。</li>
+            <li><a href="../../CHANGELOG.md">變更日誌</a> - 版本發佈說明與歷史紀錄。</li>
+            <li><a href="cli-integration.html">CLI 整合</a> - CLI 配接器維護邊界。</li>
+            <li><a href="../contracts/common-cli-jsonl-contract.html">通用 CLI JSON / JSONL 合約</a> - 共享命令列 JSON 外殼規則。</li>
+            <li><a href="../contracts/meters-cli-jsonl-contract.html">Meters CLI JSON / JSONL 合約</a> - Meters 命令列 JSON schema 與別名規則。</li>
+            <li><a href="../contracts/common-orchestrator-workflows.html">通用協調器工作流程</a> - 共享子程序生命週期指引。</li>
+            <li><a href="../contracts/meters-orchestrator-workflows.html">Meters 協調器工作流程</a> - 用於 Agent 和自動化的 Meters 子程序範例。</li>
+            <li><a href="../contracts/meters-worker-contract.html">Meters Worker 合約</a> - 用於 Agent 和協調器的 Meters 工作器控制面、JSONL 與產物合約。</li>
         </ul>
-        <p>適用於支援的數位萬用電表的 CLI 優先 Python 記錄器，支援透過 VISA 進行 DC/AC 電流、DC/AC 電壓、DCV 比率、頻率、週期以及 2 線式或 4 線式電阻量測。 它為每個擷取的樣本記錄一列 CSV，並支援軟體、外接硬體和立即觸發模式。</p>
+        <p>適用於支援的數位萬用電表的 CLI 優先 Python 記錄器，支援透過 VISA 進行 DC/AC 電流、DC/AC 電壓、DCV 比率、頻率、週期以及 2 線式或 4 線式電阻量測。<br>
+        它為每個擷取的樣本記錄一列 CSV，並支援軟體、外接硬體、立即與自訂/緩衝觸發工作流程。透過 <code>--timer-interval-s</code> 可在軟體模式中啟用軟體計時器擷取。</p>
+        
         <p>對於標準操作人員的工作流程，請從 <a href="USER_GUIDE.zh-TW.html">CLI 使用者指南</a> 開始。本 README 則將詳細的指令參考、驗證路徑、JSON/JSONL 合約、範例及維護人員導向的 CLI 行為彙整於一處。</p>
-        <p><code>meters-tool</code> 是目前的單一 distribution 基準。其套件版本是 root <code>pyproject.toml</code> 內的 <code>[project].version</code>。CLI 保留其匯入套件、主控台指令、JSON/JSONL 合約、包裝器腳本和測試，同時與 Core 和 WebUI 共享同一個版本號。它繼續透過 CLI 公開 Core 量測欄位： <code>voltage-dc-ratio</code>、<code>frequency</code>、<code>period</code>、<code>--auto-zero once</code>、<code>--ac-bandwidth-hz</code>、<code>--gate-time-s</code>、<code>--freq-period-timeout</code> 和 <code>--current-terminal</code>。Core 的啟動驗證、dry-run 規劃、執行階段協調、公開整合匯出以及量測命名，仍與僅限配接器的 CLI 事務保持分離。此基準也保留了舊版根目錄層級匯入清除、CLI 合約診斷、無硬體發佈驗證、包裝器報告 metadata 以及 Core/CLI 邊界防護。</p>
+        
+        <p><code>meters-tool</code> 是目前的單一 distribution 基準。其套件版本是 root <code>pyproject.toml</code> 內的 <code>[project].version</code>。CLI 保留其匯入套件、主控台指令、JSON/JSONL 合約、包裝器腳本和測試，同時與 Core 和 WebUI 共享同一個版本號。它繼續透過 CLI 公開 Core 量測欄位：<br>
+        <code>voltage-dc-ratio</code>、<code>frequency</code>、<code>period</code>、<code>--auto-zero once</code>、<code>--ac-bandwidth-hz</code>、<code>--gate-time-s</code>、<code>--freq-period-timeout</code> 和 <code>--current-terminal</code>。Core 的啟動驗證、dry-run 規劃、執行階段協調、公開整合匯出以及量測命名，仍與僅限配接器的 CLI 事務保持分離。此基準也保留了舊版根目錄層級匯入清除、CLI 合約診斷、無硬體發佈驗證、包裝器報告 metadata 以及 Core/CLI 邊界防護。</p>
+        
         <p>Python 整合應從 <code>meters_tool_core</code> 或 <code>meters_tool_core.*</code> 匯入共享的 API。不再支援舊的根層級 Core 模組匯入，例如 <code>meters_tool.measurement</code> 和 <code>meters_tool.instrument</code>。</p>
 
         <h2>目前範圍</h2>
@@ -289,7 +295,7 @@
             <li>AC、頻率與週期模式透過 <code>--ac-bandwidth-hz</code> 公開 34461A 的 <code>3</code>、<code>20</code> 和 <code>200</code> Hz 頻寬/濾波器設定。在實際投入生產使用前，請使用操作人員提供的 VISA 資源執行低風險的實機資源快速功能健檢 (smoke test)，並將 CLI 記錄列與 34461A 前面板讀值進行對比。</li>
             <li><code>--nplc</code> 和 <code>--auto-zero</code> 是 DC/電阻控制項。AC 電流、AC 電壓、頻率與週期僅接受中性預設值 <code>--nplc 1.0</code>；任何其他 NPLC 值都將被拒絕，因為這些模式不會寫入 NPLC SCPI。它們也不會寫入 Auto Zero SCPI 指令。</li>
             <li>不支援在同一次執行中混合使用軟體和硬體擷取。</li>
-            <li>單純呼叫 <code>list-resources</code> 會列出由探測傳回的 VISA 資源，可能包含過期的快取項目。使用 <code>list-resources --verify</code> 開啟每個資源並查詢 <code>*IDN?</code>；驗證成功的非 ASRL 資源會在關閉前盡力釋放回本機狀態。當您只需要有回應的資源時，請使用 <code>list-resources --live-only</code>。ASRL/RS-232 驗證使用短暫的有界限開啟與查詢逾時，因此過期的序列埠項目不會阻擋後續的 USB 或 TCPIP 資源。</li>
+            <li>單純呼叫 <code>list-resources</code> 會列出由探測傳回的 VISA 資源，可能包含過期的快取項目。使用 <code>list-resources --verify</code> 開啟每個資源、查詢 <code>*IDN?</code>，然後關閉工作階段而不執行清理命令。當您只需要有回應的資源時，請使用 <code>list-resources --live-only</code>。ASRL/RS-232 驗證使用短暫的有界限開啟與查詢逾時，因此過期的序列埠項目不會阻擋後續的 USB 或 TCPIP 資源。</li>
             <li><code>immediate</code>（立即）模式可以連續且快速地進行擷取。除非您刻意需要連續執行，否則請使用 <code>--max-samples</code>。</li>
         </ul>
 
@@ -304,17 +310,16 @@
         <p>目前已驗證的選用 pyvisa-py 擷取範圍是 34461A 經由 LAN/TCPIP。除非未來驗證具備 LAN/LXI 能力的 34460A，否則 34460A LAN/TCPIP 與 34460A LAN/<code>@py</code> 對目前可用的儀器仍未開放。</p>
 
         <h2>開發</h2>
-        <p>在 PowerShell 中，切換到專案目錄，建立或重複使用本機虛擬環境，安裝包含開發相依套件的套件，然後執行預設測試：</p>
+        <p>在 PowerShell 中，切換到專案目錄，建立或重複使用本機虛擬環境，並依照根目錄 <a href="../../README.zh-TW.html#安裝">README 安裝</a> 章節同步 all-extras 開發環境：</p>
         <div class="code-wrapper"><pre><code>cd path\to\meters-tool
 uv venv .venv
-uv pip install -e ".[all,dev]"
-.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider</code></pre></div>
-        <p>如果 <code>uv</code> 警告硬連結（hardlinking）失敗並降級為複製檔案，該警告通常不代表安裝失敗。對於跨磁碟結帳或不支援硬連結的環境，請使用以下命令安裝：</p>
-        <div class="code-wrapper"><pre><code>uv pip install -e ".[all,dev]" --link-mode=copy</code></pre></div>
+uv sync --all-extras --link-mode=copy
+.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider --ignore=tests\cli\test_cli_wrappers.py</code></pre></div>
+        <p>對於 CI 或嚴格的 lock 檔案驗證，可在 sync 命令中加入 <code>--locked</code>。對於既有虛擬環境，<code>uv pip install -e ".[all,dev]" --link-mode=copy</code> 仍可作為選用的重新載入方式。</p>
         <p>在 Windows 上，完整的 pytest 執行可能需要系統管理員權限的 PowerShell 視窗，因為 VISA 相關的探測或本機環境存取可能需要系統管理員權限。</p>
         <p>安裝後，使用 <code>meters-tool</code> 主控台指令來執行專案命令：</p>
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool.exe &lt;command&gt; [options]</code></pre></div>
-        <p><code>.venv\Scripts\meters-tool.exe</code> 是安裝時產生的，並非受版本控制的專案檔案。如果遺失，請重新執行 <code>uv pip install -e ".[all,dev]"</code>。如果 PowerShell 因執行原則限制而阻擋啟用，請繼續使用本指南中顯示的明確 <code>.\.venv\Scripts\...</code> 命令。</p>
+        <p><code>.venv\Scripts\meters-tool.exe</code> 是安裝時產生的，並非受版本控制的專案檔案。如果遺失，請先依照根目錄 <a href="../../README.zh-TW.html#安裝">README 安裝</a> 流程使用 <code>uv sync --all-extras --link-mode=copy</code>；對於既有虛擬環境，也可使用上方開發段落中的選用 editable refresh。如果 PowerShell 因執行原則限制而阻擋啟用，請繼續使用本指南中顯示的明確 <code>.\.venv\Scripts\...</code> 命令。</p>
         <p>也支援將明確的模組形式作為開發／備援替代方案：</p>
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\python.exe -m meters_tool_cli &lt;command&gt; [options]</code></pre></div>
         <p>選用的環境啟用：</p>
@@ -322,9 +327,6 @@ uv pip install -e ".[all,dev]"
         <p>如果 PowerShell 因執行原則限制而阻擋啟用，請使用上方顯示的明確 <code>.\.venv\Scripts\python.exe</code> 指令。</p>
 
         <h2>獨立 EXE 建置</h2>
-        <p>準備發布時，請在建置發布產物之前先執行無硬體發布門檻檢查：</p>
-        <div class="code-wrapper"><pre><code>powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\release-cli-check.ps1 -Target keysight-34461a</code></pre></div>
-        <p>預設 target 為 <code>keysight-34461a</code>。只有在發布變更明確與 34460A 型號相關時，才改用 <code>keysight-34460a</code>。此包裝器負責驗證發布就緒狀態，但不會建置發布產物。</p>
         <p>安裝的 <code>.venv\Scripts\meters-tool.exe</code> 是一個 virtualenv 主控台包裝器。對於沒有專案環境的機器，它並非獨立的執行檔。</p>
         <p>若要建置選用的獨立主控台 exe，請在已安裝 <code>meters-tool</code> 的環境中使用 PyInstaller。PyInstaller 是本機版本建置工具，而非 CLI 執行階段相依套件，因此在全新機器上重新建置之前，請將其安裝到 venv 中：</p>
         <div class="code-wrapper"><pre><code>uv pip install pyinstaller</code></pre></div>
@@ -340,14 +342,20 @@ uv pip install -e ".[all,dev]"
 
         <h2>無硬體驗證</h2>
         <p>在進行實體儀器工作前執行此配方：</p>
-        <div class="code-wrapper"><pre><code>uv pip install -e ".[all,dev]"
-.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\preflight-cli.ps1 -Target keysight-34461a
+        <div class="code-wrapper"><pre><code>.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider --ignore=tests\cli\test_cli_wrappers.py
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\preflight-cli.ps1 -Target all
 .\.venv\Scripts\meters-tool.exe list-resources --dry-run --json</code></pre></div>
         <p><code>list-resources --dry-run</code> 不會建立 VISA 資源管理員、列出 VISA 資源、開啟資源、查詢 <code>*IDN?</code> 或執行釋放回本機控制／清理。如果主控台指令尚未產生，請先安裝套件；上述的模組形式仍可作為開發備援方案。</p>
 
+        <h2>正式發布驗收</h2>
+        <p>正式發布前，請在所有發布變更已提交且工作樹乾淨的情況下，從 repository 根目錄執行無硬體發布驗收：</p>
+        <div class="code-wrapper"><pre><code>powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\release-acceptance.ps1 -Target keysight-34461a</code></pre></div>
+        <p><code>-Target</code> 預設為 <code>keysight-34461a</code>；只有在發布變更明確與型號相關時才使用 <code>keysight-34460a</code>。<code>-Resource</code> 必須是相符的模擬器資源（<code>SIM::34461A</code> 或 <code>SIM::34460A</code>）；省略時，腳本會自動提供相符的資源。若省略 <code>-Release</code>，會使用套件版本；明確指定的 release 必須等於套件版本。<code>-OutputRoot</code> 必須位於 <code>.tmp_tests</code> 下。</p>
+        <p>驗收會驗證 lock 檔案與乾淨的 Git 狀態，執行包含 wrapper 測試的完整無硬體測試套件，呼叫一次 <code>build_release.ps1</code>，並驗證最終的 wheel、source distribution、CLI 獨立 EXE、WebUI Launcher 獨立 EXE 與 SHA-256 checksums。接著執行 clean-install 套件 smoke test、兩個獨立執行檔的最小 smoke check、指定 target 的 preflight，以及既有的 <code>live-cli-check.ps1 -PlanOnly</code> 驗證。</p>
+        <p>它不會開啟 VISA 硬體資源。<code>build_release.ps1</code> 會建置獨立執行檔，而 release acceptance 會透過上述最小 smoke check 驗證它們。通過後會輸出可直接上傳至 GitHub Release 的版本化目錄。主要輸出位於 <code>.tmp_tests/release_acceptance/&lt;target&gt;/&lt;timestamp&gt;/</code>，包括 <code>report.json</code>、<code>summary.md</code>、<code>checksums.txt</code> 與建置出的 distribution 產物。這是正式發布門檻，不是一般本機套件建置或重新建置獨立 EXE 的必要步驟。</p>
+
         <h2>實體儀器驗證路徑</h2>
-        <p>當搬移到新電腦、新的 VISA 執行階段或不同的 34460A 或 34461A 時，請使用本段落。先從無硬體驗證開始，然後探測作用中的資源，接著在允許包裝器接觸儀器前，執行僅限規劃的實機驗證包裝器。</p>
+        <p>當搬移到新電腦、新的 VISA 執行階段或不同的已連接支援型號時，請使用本段落。先從無硬體驗證開始，然後探測作用中的資源，接著在允許包裝器接觸儀器前，執行僅限規劃的實機驗證包裝器。一般產品執行（包括一般 CLI 啟動、WebUI 與直接的 Core 實機呼叫）必須使用連接型號的 Product-open 確切傳輸/後端範圍。下方的維護者 <code>live-cli-check.ps1</code> 驗證 harness 則可針對明確註冊的待定範圍執行有界限的證據收集；型號專屬安全限制與 Core 驗證仍會強制套用。驗證證據不會自動提升支援狀態。</p>
         <ol>
             <li>執行上方的無硬體配方。</li>
             <li>探測目前有回應 <code>*IDN?</code> 的資源：</li>
@@ -358,9 +366,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\preflight-cli.
         </ol>
         <div class="code-wrapper"><pre><code>$env:METER_RESOURCE = "USB0::...::INSTR"</code></pre></div>
         <p>此值可以是探測傳回的任何作用中 VISA 資源，包括 USB 或 TCPIP/LAN 資源。</p>
-        <p>實機驗證包裝器是驗證 harness，而非產品使用介面。它可以針對明確由操作人員提供的資源，執行明確註冊的 <code>transport_pending</code> 連線範圍以及 <code>feature_pending</code> 量測/觸發模式項目，以便收集產物 (artifacts)。通過的 <code>report.json</code> 或 <code>summary.md</code> 本身並不會提升公開支援狀態。一般的 CLI 啟動、WebUI 以及直接的 Core 實機呼叫仍會受到產品限制，直到審核過的產物被接受，且支援的 metadata 與說明文件更新為止。</p>
+        <p>實機驗證包裝器是驗證 harness，而非產品使用介面。它可以針對明確由操作人員提供的資源，執行明確註冊的 <code>transport_pending</code> 連線範圍以及 <code>feature_pending</code> 量測/觸發模式項目，以便收集產物 (artifacts)。通過的 <code>report.json</code> 或 <code>summary.md</code> 本身不會提升公開支援狀態；仍需要經審核的產物以及相應的支援 metadata 與說明文件。</p>
         <p>任何已建立執行目錄的呼叫（包括 <code>-PlanOnly</code>、需要確認、preflight 失敗、通過及失敗的執行）都會自動使用以下產物配置：</p>
-        <div class="code-wrapper"><pre><code>.tmp_tests/cli_live/&lt;model-id&gt;/&lt;connection&gt;/&lt;suite&gt;/&lt;timestamp&gt;/
+        <div class="code-wrapper"><pre><code class="language-text">.tmp_tests/cli_live/&lt;model-id&gt;/&lt;connection&gt;/&lt;suite&gt;/&lt;timestamp&gt;/
 |- private/
 |  |- report.json
 |  |- summary.md
@@ -371,7 +379,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\preflight-cli.
    `- ... 已遮罩的命令、診斷、JSONL、stderr 與 CSV 證據</code></pre></div>
         <p>最後的 <code>summary:</code> 主控台列會指向 repository 相對路徑的 <code>shareable/summary.md</code>。<code>private/</code> 是完整的本機除錯證據，絕不可提交、附加或發佈。只有 <code>shareable/</code> 適合 Pull Request；請壓縮並附加整個 shareable 目錄，以保留其相對參照。兩份報告都使用 artifact schema <code>1.1</code>。private 報告保留原始資源與本機路徑；shareable 報告與樹狀結構會遮罩資源、完整 IDN 與序號、私有位址、操作人員 metadata，以及個人或絕對路徑。</p>
         <p>完整擷取 CSV 僅保留在 <code>private/</code>。每個含有 CSV 的實機案例都會產生 shareable <code>csv-evidence.json</code>，記錄安全的 schema 與資料列事實，不包含量測值或觸發 metadata。JSON 與 JSONL 會在遮罩前解析；遺失或格式錯誤的輸入會產生安全的佔位內容，而不是複製原始文字。未知的二進位格式仍保留在 private。若無法產生 shareable 證據，包裝器會 fail closed，不會將原始證據當作備援。通過或失敗的產物僅是候選證據，永遠不會自動提升產品支援。</p>
-        <p>包裝器的 <code>-Target</code> 值是穩定的 Core 型號 ID。目前維護的值為 <code>keysight-34461a</code> 與 <code>keysight-34460a</code>，分別對應實體 CLI 型號 token <code>34461A</code> 與 <code>34460A</code>。包裝器 target 仍是實機驗證的預期型號防護，而偵測到的 <code>*IDN?</code> 會選擇執行階段設定檔。型號 ID 不代表產品開放支援、生命週期、傳輸/後端、量測、觸發模式或驗證狀態；Meters 支援政策仍以工作流程為中心。</p>
+        <p>CLI <code>--model</code> 接受 canonical model token，例如 <code>34461A</code>，或已註冊的穩定型號 ID，例如 <code>keysight-34461a</code>。在 live 模式下它是預期型號防護；在 dry-run 或 simulator 模式下它會選擇規劃設定檔。</p>
+        <p>PowerShell wrapper 的 <code>-Target</code> 值是穩定的 Core 型號 ID。目前維護的值為 <code>keysight-34461a</code> 與 <code>keysight-34460a</code>，分別對應實體 CLI 型號 token <code>34461A</code> 與 <code>34460A</code>。wrapper target 仍是實機驗證的預期型號防護，而偵測到的 <code>*IDN?</code> 會選擇執行階段設定檔。型號 ID 不代表產品開放支援、生命週期、傳輸/後端、量測、觸發模式或驗證狀態；Meters 支援政策仍以工作流程為中心。</p>
         <ol start="4">
             <li>產生實機規劃，而不開啟 VISA 或變更儀器：</li>
         </ol>
@@ -403,8 +412,31 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\preflight-cli.
         <p>若要驗證選用的 PyVISA 後端，請向包裝器傳遞 <code>-VisaLibrary "@py"</code>。<code>-Backend "@py"</code> 可作為別名接受，而 <code>-visa-library "@py"</code> 則作為與 CLI 選項名稱相符的便利別名接受。包裝器會將此轉寄給 CLI <code>--visa-library</code> 並將後端記錄在產物中。省略時，包裝器使用系統 VISA，並將 <code>visa_library</code>/<code>backend</code> 記錄為 <code>system_visa</code>。若包裝器輸出顯示 <code>VISA library/backend: system_visa</code>，則該執行不是 <code>@py</code> 驗證產物。待定的 34460A LAN/TCPIP 驗證僅為證據收集，並不會使一般的 34460A LAN/TCPIP 產品啟動開啟。</p>
         <p>待定支援意指尚未開放供產品使用，但非無法驗證。包裝器使用隱藏的 <code>--validation-allow-pending-live-support</code> Core 原則選擇器。它僅允許明確註冊的 <code>transport_pending</code> 和 <code>feature_pending</code> 項目；它不是一般的強制選項。缺少範圍/功能 metadata、未知型號、不支援的設定檔能力、無效請求以及硬性安全限制仍會被拒絕。34460A 基礎設定檔仍保持 external/external-custom 關閉，拒絕 10 A/電流端子請求，並保留 1000 筆讀值的緩衝區限制。其 USB/system-VISA DCV Ratio 項目為 <code>Product-open</code>，不需要此隱藏選擇器；LAN/TCPIP system-VISA 與 LAN/TCPIP pyvisa-py <code>@py</code> 仍為 <code>transport_pending</code>，且不會覆寫硬性限制或繼承 Ratio 的提升。<br>對於 34460A，LAN/TCPIP system-VISA 與 LAN/TCPIP pyvisa-py <code>@py</code> 是未來針對具備 LAN/LXI 能力之單元或貢獻者提供之經審核產物的驗證路徑。它們不是目前維護者針對現有 USB-only 34460A 單元的驗證債務，且非發佈阻擋因素。</p>
 
-        <h2>CLI 驗證指令腳本</h2>
-        <p>CLI 套件有三個包裝器腳本：</p>
+        <h2>建置與驗證指令腳本</h2>
+        <p>建置腳本：</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>腳本</th>
+                    <th>目的</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>scripts\build_cli_exe.ps1</code></td>
+                    <td>建置 Windows 導向的 CLI 獨立 EXE。</td>
+                </tr>
+                <tr>
+                    <td><code>scripts\build_webui_exe.ps1</code></td>
+                    <td>建置 Windows 導向的 WebUI Launcher 獨立 EXE。</td>
+                </tr>
+                <tr>
+                    <td><code>scripts\build_release.ps1</code></td>
+                    <td>組合版本化 wheel、sdist、獨立 EXE 與 checksums。</td>
+                </tr>
+            </tbody>
+        </table>
+        <p>驗證與發布腳本：</p>
         <table>
             <thead>
                 <tr>
@@ -417,17 +449,17 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\preflight-cli.
                 <tr>
                     <td><code>scripts\preflight-cli.ps1</code></td>
                     <td>無硬體</td>
-                    <td>執行 dry-run、模擬器、用戶端 dry-run、模擬的 <code>list-resources</code> 以及包裝器合約檢查。在實機工作前使用。</td>
+                    <td>執行依 target 的 dry-run 案例、模擬器案例、用戶端命令 dry-run、<code>list-resources</code> dry-run 合約，以及模擬的 <code>list-resources</code> pytest 覆蓋。一般無硬體驗證請使用 <code>-Target all</code>。</td>
                 </tr>
                 <tr>
                     <td><code>scripts\live-cli-check.ps1</code></td>
                     <td>實機硬體（除非設定了 <code>-PlanOnly</code>）</td>
-                    <td>執行實機驗證包裝器規劃，並在互動確認後，針對明確的 <code>-Resource</code> 執行有界限的實機驗證案例。頻率/週期案例會先執行個別指令的 SCPI 錯誤診斷。套件包含 <code>minimal</code>、<code>basic</code>、<code>frequency-period</code>、<code>external</code> 與 <code>full</code>；34460A 拒絕 <code>external</code>，且其 <code>full</code> 套件排除外接案例。</td>
+                    <td>執行依 target 的實機 wrapper 規劃，並在互動確認後，針對明確的 <code>-Resource</code> 與確切連線/後端範圍執行有界限的實機驗證案例。</td>
                 </tr>
                 <tr>
-                    <td><code>scripts\release-cli-check.ps1</code></td>
-                    <td>預設無硬體</td>
-                    <td>執行發佈門檻檢查，包括完整 pytest、preflight 和 <code>live-cli-check.ps1 -PlanOnly</code>。其預設驗證模式為 <code>release_no_hardware</code>。</td>
+                    <td><code>scripts\release-acceptance.ps1</code></td>
+                    <td>無硬體</td>
+                    <td>執行包含 wrapper 測試的完整無硬體套件，呼叫一次 <code>build_release.ps1</code>，驗證 wheel/sdist、兩個獨立執行檔與 SHA-256 checksums，接著執行 clean-install 套件 smoke test、兩個獨立執行檔的最小 smoke check、指定 target 的 preflight 與 <code>live-cli-check.ps1 -PlanOnly</code>。</td>
                 </tr>
             </tbody>
         </table>
@@ -559,11 +591,11 @@ uv run meters-tool start-trigger-record `
                 </tr>
                 <tr>
                     <td><code>--verify</code></td>
-                    <td>開啟每個偵測到的資源並查詢 <code>*IDN?</code>。文字輸出將資料列標記為 <code>live</code>（作用中）或 <code>stale</code>（過期）；JSON 輸出包含 <code>live</code>、<code>status</code> 和 <code>detail</code>。成功的作用中檢查會在關閉前盡力執行釋放回本機狀態。</td>
+                    <td>開啟每個偵測到的資源、查詢 <code>*IDN?</code>，然後關閉工作階段與資源管理員。不執行擷取清理，也不傳送 release-to-local SCPI。文字輸出將資料列標記為 <code>live</code>（作用中）或 <code>stale</code>（過期）；JSON 輸出包含 <code>live</code>、<code>status</code> 和 <code>detail</code>。ASRL/RS-232 檢查使用短暫的有界限逾時。</td>
                 </tr>
                 <tr>
                     <td><code>--live-only</code></td>
-                    <td>驗證資源並僅列印有回應的資料列。成功的作用中檢查會在關閉前盡力執行釋放回本機狀態。如果沒有連接或可連線的資源，文字輸出會列印 <code>no live VISA resources found</code>。</td>
+                    <td>驗證資源並僅列印有回應的資料列。這隱含 <code>--verify</code>，會隱藏過期資源，並在 ASRL 過期逾時後繼續執行。驗證會在 <code>*IDN?</code> 查詢後關閉每個工作階段與資源管理員，不執行擷取清理或 release-to-local SCPI。如果沒有連接或可連線的資源，文字輸出會列印 <code>no live VISA resources found</code>。</td>
                 </tr>
                 <tr>
                     <td><code>--dry-run</code></td>
@@ -620,7 +652,7 @@ uv run meters-tool start-trigger-record `
                 <tr>
                     <td><code>--arguments-json JSON</code></td>
                     <td><code>{}</code></td>
-                    <td>完整的 JSON 指令引數物件。使用 <code>{"metadata":{...}}</code> 來附加寫入 CSV 中 <code>trigger_metadata</code> 欄位的觸發 metadata。無效的 JSON、非物件的 metadata 以及其他指令驗證失敗將在傳送請求前被拒絕。</td>
+                    <td>完整的 JSON 指令引數物件。使用 <code>{"metadata":{...}}</code> 來附加寫入 CSV 中 <code>trigger_metadata</code> 欄位的觸發 metadata。無效的 JSON、非物件的 metadata 以及其他指令驗證失敗將在傳送請求前被拒貼。</td>
                 </tr>
                 <tr>
                     <td><code>--job-id TEXT</code></td>
@@ -634,12 +666,12 @@ uv run meters-tool start-trigger-record `
                 </tr>
                 <tr>
                     <td><code>--json</code></td>
-                    <td>否</td>
+                    <td>關閉</td>
                     <td><code>--format json</code> 的別名。</td>
                 </tr>
                 <tr>
                     <td><code>--dry-run</code></td>
-                    <td>否</td>
+                    <td>關閉</td>
                     <td>在本機預覽請求而不傳送 HTTP。</td>
                 </tr>
             </tbody>
@@ -672,12 +704,12 @@ uv run meters-tool start-trigger-record `
                 </tr>
                 <tr>
                     <td><code>--json</code></td>
-                    <td>否</td>
+                    <td>關閉</td>
                     <td><code>--format json</code> 的別名。</td>
                 </tr>
                 <tr>
                     <td><code>--dry-run</code></td>
-                    <td>否</td>
+                    <td>關閉</td>
                     <td>在本機預覽請求而不傳送 HTTP。</td>
                 </tr>
             </tbody>
@@ -710,12 +742,12 @@ uv run meters-tool start-trigger-record `
                 </tr>
                 <tr>
                     <td><code>--json</code></td>
-                    <td>否</td>
+                    <td>關閉</td>
                     <td><code>--format json</code> 的別名。</td>
                 </tr>
                 <tr>
                     <td><code>--dry-run</code></td>
-                    <td>否</td>
+                    <td>關閉</td>
                     <td>在本機預覽非變更性的 GET 請求而不傳送 HTTP。</td>
                 </tr>
             </tbody>
@@ -748,7 +780,7 @@ uv run meters-tool start-trigger-record `
                 </tr>
                 <tr>
                     <td><code>--json</code></td>
-                    <td>否</td>
+                    <td>關閉</td>
                     <td><code>--format json</code> 的別名。</td>
                 </tr>
             </tbody>
@@ -768,10 +800,10 @@ uv run meters-tool start-trigger-record `
             <tbody>
                 <tr>
                     <td><code>software</code></td>
-                    <td><code>send-command</code> 發送至本機 HTTP 端點，或 <code>--timer-interval-s</code> 建立自動計時器事件。</td>
+                    <td><code>send-command</code> 發送至本機 HTTP 端點，或 <code>--timer-interval-s</code> 建立自動的計時軟體事件。</td>
                     <td><code>READ?</code></td>
                     <td><code>software</code> 或 <code>timer</code></td>
-                    <td>省略 <code>--trigger-mode</code> 時的預設值。計時器模式在每次擷取嘗試後使用固定延遲間隔。</td>
+                    <td>省略 <code>--trigger-mode</code> 時的預設值。計時軟體路徑在每次擷取嘗試後使用固定延遲間隔。</td>
                 </tr>
                 <tr>
                     <td><code>external</code></td>
@@ -811,7 +843,7 @@ uv run meters-tool start-trigger-record `
             </tbody>
         </table>
         <p>在 <code>external</code> 模式下，意外的軟體觸發會被忽略，且不應中斷硬體觸發流程。在 <code>immediate</code> 模式下，軟體觸發同樣會被忽略。</p>
-        <p>當 <code>--timer-interval-s</code> 作用中時，一般的 <code>send-command</code> 請求會被忽略，而 <code>stop</code> 仍可停止執行。當記錄開始時會擷取第一個計時器樣本；後續的每個計時器樣本會在前一次擷取嘗試完成後，至少等待設定的間隔時間。計時器模式是簡單的軟體模式擷取路徑，因此 <code>--max-samples</code> 有效，並會在達到該數量成功的計時器 CSV 資料列後停止執行。</p>
+        <p>當 <code>--timer-interval-s</code> 作用中時，一般的 <code>send-command</code> 請求會被忽略，而 <code>stop</code> 仍可停止執行。當記錄開始時會擷取第一個計時器樣本；後續的每個計時器樣本會在前一次擷取嘗試完成後，至少等待設定的間隔時間。這是簡單的軟體模式擷取路徑，因此 <code>--max-samples</code> 有效，並會在達到該數量成功的計時軟體 CSV 資料列後停止執行。</p>
 
         <h2><code>start-trigger-record</code> 選項</h2>
         <table>
@@ -834,7 +866,7 @@ uv run meters-tool start-trigger-record `
                     <td><code>--model MODEL</code>、<code>--instrument-model MODEL</code></td>
                     <td>否</td>
                     <td>live 為 auto；非確定性 dry-run/simulate 必要</td>
-                    <td>live 執行的預期型號防護；dry-run/simulate 的型號設定檔選擇器。Core 設定檔邏輯會標準化並驗證型號名稱，例如 <code>34460A</code> 或 <code>34461A</code>，並在不支援時列出支援的型號。</td>
+                    <td>接受 canonical model token 或已註冊的穩定型號 ID。它是 live 執行的預期型號防護，也是 dry-run/simulate 的規劃設定檔選擇器。Core 設定檔邏輯會標準化並驗證 <code>34460A</code>、<code>34461A</code>、<code>keysight-34460a</code> 與 <code>keysight-34461a</code> 等值。</td>
                 </tr>
                 <tr>
                     <td><code>--visa-library TEXT</code>、<code>--backend TEXT</code></td>
@@ -1031,7 +1063,8 @@ uv run meters-tool start-trigger-record `
             </tbody>
         </table>
 
-        <p><code>--measurement</code> 預設為 <code>current-dc</code>，因此現有的電流量測記錄指令不需要特別指定。新指令應偏好使用 <code>--range</code>；<code>--current-range</code> 繼續適用於現有的 DC 電流腳本。對於 <code>current-ac</code>、<code>voltage-dc</code>、<code>voltage-dc-ratio</code>、<code>voltage-ac</code>、<code>frequency</code>、<code>period</code>、<code>resistance-2w</code> 和 <code>resistance-4w</code> 請使用 <code>--range</code>；<code>--current-range</code> 在這些量測下會被拒絕。<br><code>--dcv-input-impedance</code> 僅在 <code>--measurement voltage-dc</code> 或 <code>--measurement voltage-dc-ratio</code> 時有效。使用 <code>default</code> 以保持儀器目前的 Input Z 設定不變，<code>10m</code> 強制為 10 MOhm，或 <code>auto</code> 啟用 34461A 的 Auto Input Z 行為。當 Auto 作用於較低 DC 電壓範圍時，儀器可能會顯示 HighZ。</p>
+        <p><code>--measurement</code> 預設為 <code>current-dc</code>，因此現有的電流量測記錄指令不需要特別指定。新指令應偏好使用 <code>--range</code>；<code>--current-range</code> 繼續適用於現有的 DC 電流腳本。對於 <code>current-ac</code>、<code>voltage-dc</code>、<code>voltage-dc-ratio</code>、<code>voltage-ac</code>、<code>frequency</code>、<code>period</code>、<code>resistance-2w</code> 和 <code>resistance-4w</code> 請使用 <code>--range</code>；<code>--current-range</code> 在這些量測下會被拒絕。<br>
+        <code>--dcv-input-impedance</code> 僅在 <code>--measurement voltage-dc</code> 或 <code>--measurement voltage-dc-ratio</code> 時有效。使用 <code>default</code> 以保持儀器目前的 Input Z 設定不變，<code>10m</code> 強制為 10 MOhm，或 <code>auto</code> 啟用 34461A 的 Auto Input Z 行為。當 Auto 作用於較低 DC 電壓範圍時，儀器可能會顯示 HighZ。</p>
 
         <h2>友善 Agent 的 CLI 工作流程</h2>
         <p>使用 <code>--dry-run</code> 來驗證命令並檢查規劃的 SCPI/讀取路徑，而不接觸實體儀器：</p>
@@ -1073,7 +1106,7 @@ uv run meters-tool start-trigger-record `
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool.exe send-command --port 8765 --format json</code></pre></div>
         <p>輸出：</p>
         <div class="code-wrapper"><pre><code class="language-json">{"command": "software_trigger", "event": "send-command", "http_status": 202,
- "job_id": null, "message": "command accepted", "schema_version": 1,
+ "job_id": null, "message": "command accepted", "schema_version": 2,
  "status": "accepted", "timestamp_utc": "2026-05-18T..."}</code></pre></div>
         <p>本機驗證和工作器 HTTP <code>400</code> 回應會以代碼 2 退出。HTTP <code>409</code>、<code>429</code>、連線/請求失敗，以及無效或空的成功回應主體會以代碼 3 退出。結構化 JSON 診斷會合併工作器的 <code>command</code>、<code>job_id</code>、<code>reason</code>、<code>error</code> 和 <code>message</code> 欄位（如果可用）。</p>
 
@@ -1081,7 +1114,7 @@ uv run meters-tool start-trigger-record `
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool.exe stop --port 8765 --format json</code></pre></div>
         <p>輸出：</p>
         <div class="code-wrapper"><pre><code class="language-json">{"event": "stop", "http_status": 202, "message": "stop accepted",
- "schema_version": 1, "status": "accepted", "timestamp_utc": "2026-05-18T..."}</code></pre></div>
+ "schema_version": 2, "status": "accepted", "timestamp_utc": "2026-05-18T..."}</code></pre></div>
         <p>如果端點未在監聽（程序已停止），則以代碼 0 退出，並發出 <code>{"status": "already_stopped", ...}</code>。</p>
 
         <h3>status --format json</h3>
@@ -1216,6 +1249,7 @@ uv run meters-tool start-trigger-record `
         <p>對於 Agent 或自動化使用，<code>start-trigger-record --status-format jsonl</code> 和 <code>--json</code> 別名會在控制面啟動後發出一個 <code>ready</code> 事件。該事件包含 <code>command_url</code>、<code>stop_url</code> 和 <code>status_url</code>。請將其視為可以傳送 <code>/command</code>、<code>/stop</code> 和非變更性 <code>/status</code> 請求的訊號；這不是第一個樣本或量測完成的訊號。</p>
         <p><code>--trigger-timeout-ms</code> 對於外接硬體觸發模式最為重要。如果它短於外接邊緣之間的預期時間，主控台將會一直列印硬體觸發逾時/重新 arm 狀態，且在逾時視窗內有新的邊緣到達前不會進行任何擷取。在軟體模式下，此值僅用於工作器輪詢步調，並在內部限制為每次等待最多 200 ms；這不是量測完成的逾時。</p>
         <p>對於 Agent 或自動化使用，請保守分類觸發等待結果：尚未到達的外接觸發邊緣是正常等待狀態，而非錯誤。在簡單的外接模式中，重複的 PyVISA 狀態位元組輪詢逾時只會發出診斷，不會成為致命的擷取失敗：第 5 次連續逾時會發出警告，第 25 次連續逾時會增加 <code>errors</code> 數並發出降級狀態，之後每增加 25 次連續逾時會再次增加 <code>errors</code> 數。成功讀取狀態位元組會重設連續逾時次數。實際的 <code>READ?</code>、<code>FETC?</code>、連線、識別或 SCPI 指令失敗則是擷取錯誤且可能是致命的。</p>
+        
         <p>手動量程值針對每種量測類型進行白名單管理：</p>
         <table>
             <thead>
@@ -1296,7 +1330,8 @@ uv run meters-tool start-trigger-record `
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool.exe list-resources</code></pre></div>
         <p>驗證哪些資源是作用中（live）的：</p>
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool.exe list-resources --verify</code></pre></div>
-        <p>成功驗證的作用中資源會在掃描工作階段關閉前盡力釋放回本機狀態。未通過 IDN 查詢的過期資源將在不執行釋放 SCPI 的情況下關閉。</p>
+        <p>驗證只會開啟每個資源、查詢 <code>*IDN?</code>，再關閉工作階段與資源管理員。不會執行擷取清理或 release-to-local SCPI。ASRL/RS-232 驗證使用短暫的有界限逾時，並簡潔回報過期的序列埠逾時。</p>
+        
         <p>僅顯示作用中資源並隱藏過期的 VISA 快取項目：</p>
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool.exe list-resources --live-only</code></pre></div>
         <p>在腳本中使用 JSON 輸出：</p>
@@ -1305,11 +1340,16 @@ uv run meters-tool start-trigger-record `
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool.exe list-resources --dry-run --live-only --json</code></pre></div>
         <p>驗證後的文字輸出以 tab 分隔：</p>
         <div class="code-wrapper"><pre><code class="language-text">live    USB0::...::INSTR    Keysight Technologies,34461A,...
-stale   USB0::OLD::RESOURCE::INSTR                     VisaIOError: ...</code></pre></div>
+stale   USB0::OLD::RESOURCE::INSTR                     VisaIOError: ...
+stale   ASRL6::INSTR                                   ASRL 驗證在 1000 ms 後逾時</code></pre></div>
         <p><code>--live-only</code> 仍會驗證每個資源，但會隱藏過期（stale）的資料列。如果沒有資源回應，文字輸出會列印：</p>
         <div class="code-wrapper"><pre><code class="language-text">no live VISA resources found</code></pre></div>
-        <p>驗證後的 JSON 輸出為單一物件：</p>
+        <p>縮寫的 schema 2 JSON 範例（時間戳記與資源細節僅供說明）：</p>
         <div class="code-wrapper"><pre><code class="language-json">{
+  "count": 1,
+  "diagnostic_hints": [],
+  "event": "list-resources",
+  "live_count": 1,
   "resources": [
     {
       "detail": "Keysight Technologies,34461A,...",
@@ -1318,10 +1358,18 @@ stale   USB0::OLD::RESOURCE::INSTR                     VisaIOError: ...</code></
       "status": "live"
     }
   ],
+  "schema_version": 2,
+  "stale_count": 0,
+  "timestamp_utc": "2026-05-18T...",
+  "visa_library": null,
   "verify": true
 }</code></pre></div>
         <p><code>--live-only --format json</code> 保留相同的資源記錄格式，篩選掉過期的項目，並加入 <code>live_only</code>：</p>
         <div class="code-wrapper"><pre><code class="language-json">{
+  "count": 1,
+  "diagnostic_hints": [],
+  "event": "list-resources",
+  "live_count": 1,
   "live_only": true,
   "resources": [
     {
@@ -1331,23 +1379,27 @@ stale   USB0::OLD::RESOURCE::INSTR                     VisaIOError: ...</code></
       "status": "live"
     }
   ],
+  "schema_version": 2,
+  "stale_count": 0,
+  "timestamp_utc": "2026-05-18T...",
+  "visa_library": null,
   "verify": true
 }</code></pre></div>
         <p>資源字串範例：</p>
         <div class="code-wrapper"><pre><code class="language-text">USB0::...::INSTR
 TCPIP0::...::hislip0::INSTR</code></pre></div>
-        <p>請直接從 VISA discovery 輸出複製實際值，不要手動拼接資源字串。</p>
+        <p>請直接從 VISA 探測輸出複製實際值，不要手動組合資源字串。</p>
 
         <h3>實機驗證路徑</h3>
         <p>在檢查環境設定時，請使用此順序：</p>
         <ol>
             <li>執行 <code>list-resources --live-only</code> 並選擇作用中的資源。當需要診斷過期的 VISA 快取項目時，請改用 <code>list-resources --verify</code>。</li>
             <li>以 <code>--trigger-mode immediate</code> 與 <code>--max-samples 1</code> 執行單一樣本的電流、電壓、頻率、週期或電阻快速功能健檢。</li>
-            <li>執行實驗所需的特定觸發模式：軟體、計時器、外接、立即或自訂/緩衝。</li>
+            <li>執行實驗所需的特定觸發模式：軟體（可選擇計時）、外接、立即或自訂/緩衝。</li>
             <li>確認 CSV 中的 <code>measurement_type</code>、<code>unit</code>、<code>trigger_source</code> 與列數。</li>
             <li>在信賴長期無人值守執行前，先用 <code>stop</code>、Ctrl+C、Ctrl+Break 或 <code>q</code> 確認正常停止行為。</li>
         </ol>
-        <p>在進行無人值守擷取前，請使用操作者提供的 Keysight 34461A VISA 資源來驗證工作流程。從立即模式、自動量程開啟以及 <code>--max-samples 1</code> 開始，然後擴展至預期的量測、觸發模式與緩衝模式。對於 AC 電流、AC 電壓、頻率與週期，請在快速功能健檢期間將 CLI CSV 資料列與 34461A 前面板讀值進行對比。</p>
+        <p>在進行無人值守擷取前，請使用操作人員提供、連接至支援型號的 VISA 資源，以及 Product-open 的確切傳輸/後端範圍來驗證工作流程。從立即模式、自動量程開啟以及 <code>--max-samples 1</code> 開始，然後擴展至預期的量測、觸發模式與緩衝模式。在適用時，請將 CLI CSV 資料列與連接型號的前面板讀值進行對比。請保留型號專屬限制，包括 34460A 的 USB/system-VISA 範圍、1000 筆讀值限制，以及基礎設定檔不支援外接觸發。</p>
 
         <h3>DC 電流快速功能健檢</h3>
         <p>單一立即電流取樣：</p>
@@ -1416,7 +1468,8 @@ TCPIP0::...::hislip0::INSTR</code></pre></div>
         <p>執行 <code>send-command</code> 指令五次。記錄器會因為 <code>--max-samples 5</code> 而在成功取得五個樣本後自動停止。</p>
 
         <h3>驗證過的 DC 電壓基本功能健檢</h3>
-        <p>這兩個電壓指令在實機 34461A 上回報正常：自動量程、手動 10 V 量程，且 CSV 欄位/數值看起來都很正常。<br>在相同的儀器上，額外的電壓觸發檢查也回報正常：軟體觸發 (1-2 列)、軟體計時器 (2-3 列) 以及外接觸發 (單一外接邊緣)。搭配 <code>voltage-dc</code> 的 <code>immediate-custom</code>、<code>software-custom</code> 和 <code>external-custom</code> 粗略檢查也正常。</p>
+        <p>這兩個電壓指令在實機 34461A 上回報正常：自動量程、手動 10 V 量程，且 CSV 欄位/數值看起來都很正常。<br>
+        在相同的儀器上，額外的電壓觸發檢查也回報正常：軟體觸發 (1-2 列)、軟體計時器 (2-3 列) 以及外接觸發 (單一外接邊緣)。搭配 <code>voltage-dc</code> 的 <code>immediate-custom</code>、<code>software-custom</code> 和 <code>external-custom</code> 粗略檢查也正常。</p>
         <p>Dry-run Auto Zero once 檢查：</p>
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool.exe start-trigger-record `
   --resource "$env:METER_RESOURCE" `
@@ -1469,6 +1522,7 @@ TCPIP0::...::hislip0::INSTR</code></pre></div>
   --max-samples 1 `
   --status-format jsonl</code></pre></div>
         <p>對於電壓列，預期 CSV 中的 <code>measurement_type=voltage_dc</code> 且 <code>unit=V</code>。電壓也可以透過 <code>--measurement voltage-dc</code> 來配合自訂/緩衝模式使用；這些路徑使用相同的量測設定以及現有的自訂模式觸發/讀取流程。在信賴電壓緩衝擷取以進行生產前，請先使用操作者提供的 VISA 資源執行較長期的緩衝驗證。</p>
+        
         <p>DCV Input Z 快速功能健檢，自動模式：</p>
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool.exe start-trigger-record `
   --resource "$env:METER_RESOURCE" `
@@ -1609,7 +1663,7 @@ TCPIP0::...::hislip0::INSTR</code></pre></div>
   --auto-zero off `
   --nplc 1.0 `
   --max-samples 1</code></pre></div>
-        <p>對於電阻列，預期 CSV 中的 <code>measurement_type=resistance_2w</code> 且 <code>unit=Ohm</code>。量測值應對於連接的電阻或開路/治具狀態是合理的。<code>resistance-2w</code> 也支援現有的軟體、計時器、外接和自訂/緩衝模式；在生產環境使用這些觸發路徑前，請先執行專注的實體儀器檢查。</p>
+        <p>對於電阻列，預期 CSV 中的 <code>measurement_type=resistance_2w</code> 且 <code>unit=Ohm</code>。量測值應對於連接的電阻或開路/治具狀態是合理的。<code>resistance-2w</code> 也支援現有的軟體（可選擇計時）、外接和自訂/緩衝模式；在生產環境使用這些觸發路徑前，請先執行專注的實體儀器檢查。</p>
 
         <h3>4 線式電阻快速功能健檢</h3>
         <p>這些指令使用與其他純量（scalar）量測相同的觸發/讀取流程，但 4 線式 SCPI 功能為 <code>FRES</code>。CLI 不會寫入 <code>FRES:ZERO:AUTO</code>，因為 34461A 在內部處理 4 線電阻的 Auto Zero。移除 <code>FRES:ZERO:AUTO</code> 後，這些快速功能健檢在真實的 34461A 上回報正常。</p>
@@ -1852,8 +1906,7 @@ software trigger server stopped</code></pre></div>
 
         <h2>疑難排解</h2>
         <ul>
-            <li>如果 <code>uv</code> 警告硬連結失敗並降級為複製檔案，安裝通常仍已成功。對於跨磁碟或受硬連結限制的環境，請使用 <code>uv pip install -e ".[all,dev]" --link-mode=copy</code> 重新執行安裝。</li>
-            <li>如果缺少 <code>.\.venv\Scripts\meters-tool.exe</code>，請重新執行 <code>uv pip install -e ".[all,dev]"</code>。主控台指令是安裝產物，而非版本控制下的專案檔案。</li>
+            <li>如果缺少 <code>.\.venv\Scripts\meters-tool.exe</code>，請先依照根目錄 <a href="../../README.zh-TW.html#安裝">README 安裝</a> 流程使用 <code>uv sync --all-extras --link-mode=copy</code>。對於既有虛擬環境，也可使用開發段落中的選用 editable refresh。</li>
             <li>如果 PowerShell 啟用受阻，請繼續使用明確的 <code>.\.venv\Scripts\python.exe</code> 或 <code>.\.venv\Scripts\meters-tool.exe</code> 指令，而非啟用虛擬環境。</li>
             <li>如果未出現 VISA 資源，請確認 VISA 執行階段已安裝，且儀器在廠商連線工具中是可見的。</li>
             <li>如果 <code>list-resources</code> 顯示過期的快取資源，請執行 <code>list-resources --live-only</code> 來隱藏過期的項目。當需要檢查過期資源錯誤時，請使用 <code>list-resources --verify</code>。</li>
@@ -1865,9 +1918,10 @@ software trigger server stopped</code></pre></div>
         </ul>
 
         <h2>測試</h2>
-        <p>在執行測試前，請依「開發」段落所示，使用 <code>uv pip install -e ".[all,dev]"</code> 安裝開發相依套件。</p>
-        <p>預設 pytest 執行：</p>
-        <div class="code-wrapper"><pre><code>.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider</code></pre></div>
+        <p>在執行測試前，請依照根目錄 <a href="../../README.zh-TW.html#安裝">README 安裝</a> 流程安裝專案環境。對於既有虛擬環境，也可使用開發段落中的選用 editable refresh。</p>
+        <p>每日快速 pytest 執行：</p>
+        <div class="code-wrapper"><pre><code>.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider --ignore=tests\cli\test_cli_wrappers.py</code></pre></div>
+        <p>Windows wrapper 合約的 CI 工作會另外驗證 <code>tests\cli\test_cli_wrappers.py</code>。完整的無硬體 <code>release-acceptance.ps1</code> 門檻只應在正式發布前執行。</p>
         <p>與 GitHub Actions 一致的單元測試搜集與執行：</p>
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\python.exe -m unittest discover -s tests -p "test_*.py" -v</code></pre></div>
 

@@ -79,7 +79,7 @@
         main {
             flex: 1;
             padding: 3rem 4rem;
-            max-width: 1000px;
+            max-width: 900px;
             margin: 0 auto;
         }
 
@@ -106,7 +106,6 @@
             margin-top: 2rem;
             margin-bottom: 1rem;
             color: var(--text-main);
-            scroll-margin-top: 2rem;
         }
 
         p {
@@ -123,11 +122,6 @@
         li {
             margin-bottom: 0.5rem;
         }
-        
-        strong {
-            color: var(--text-main);
-            font-weight: 600;
-        }
 
         a {
             color: var(--primary);
@@ -138,38 +132,13 @@
             text-decoration: underline;
         }
 
-        /* Table Styling */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 1.5rem;
-            font-size: 0.95rem;
-        }
-
-        th, td {
-            border: 1px solid var(--border-color);
-            padding: 0.75rem 1rem;
-            text-align: left;
-            vertical-align: top;
-        }
-
-        th {
-            background-color: #f1f5f9;
-            font-weight: 600;
-            color: var(--text-main);
-        }
-
-        tr:nth-child(even) {
-            background-color: #f8fafc;
-        }
-
         /* Code Blocks & Inline Code */
         code {
             font-family: "Fira Code", "Consolas", monospace;
             font-size: 0.9em;
         }
 
-        p > code, li > code, td > code {
+        p > code, li > code {
             background-color: var(--bg-inline-code);
             color: #be123c;
             padding: 0.2em 0.4em;
@@ -262,9 +231,11 @@
 
         <h2>啟動 WebUI</h2>
         <p>一般使用情況下，請雙擊發佈版本或本機建置所提供的 WebUI 啟動器：</p>
-        <div class="code-wrapper"><pre><code>meters-tool-webui-launcher.exe</code></pre></div>
+        <div class="code-wrapper"><pre><code class="language-text">meters-tool-webui-launcher.exe</code></pre></div>
+        
         <p>發佈資料夾可能包含帶有版本號的啟動器名稱，例如：</p>
-        <div class="code-wrapper"><pre><code>meters-tool-webui-launcher-&lt;version&gt;.exe</code></pre></div>
+        <div class="code-wrapper"><pre><code class="language-text">meters-tool-webui-launcher-&lt;version&gt;.exe</code></pre></div>
+        
         <p>在啟動器視窗中：</p>
         <ol>
             <li>除非該連接埠已被佔用，否則請保持選取 <code>Use default port 8767</code> (使用預設連接埠 8767)。</li>
@@ -272,8 +243,10 @@
             <li>等待瀏覽器開啟。啟動器會在這台電腦上啟動一個本機 WebUI 伺服器，並為您自動開啟瀏覽器頁面。</li>
             <li>使用完 WebUI 後，點擊啟動器中的 <code>Quit</code> (離開)。</li>
         </ol>
+        
         <p>如果瀏覽器沒有自動開啟，請手動開啟此網址：</p>
-        <div class="code-wrapper"><pre><code>http://127.0.0.1:8767/</code></pre></div>
+        <div class="code-wrapper"><pre><code class="language-text">http://127.0.0.1:8767/</code></pre></div>
+        
         <p>開發人員或從原始碼簽出 (source-checkout) 的使用者，應參閱 <a href="README.zh-TW.html">WebUI README</a> 以取得終端機指令、驗證與建置的詳細資訊。</p>
 
         <h2>畫面總覽</h2>
@@ -360,10 +333,10 @@
         <p>如果您是從開發人員終端機而非啟動器執行 WebUI，請參閱 <a href="README.zh-TW.html">WebUI README</a> 以取得關閉細節。</p>
 
         <h2>常見問題</h2>
-        
+
         <h3>瀏覽器未開啟</h3>
         <p>請手動開啟此網址：</p>
-        <div class="code-wrapper"><pre><code>http://127.0.0.1:8767/</code></pre></div>
+        <div class="code-wrapper"><pre><code class="language-text">http://127.0.0.1:8767/</code></pre></div>
         <p>如果頁面仍然無法載入，請回到啟動器並檢查是否顯示啟動錯誤。</p>
 
         <h3>啟動器顯示連接埠已被佔用</h3>
@@ -406,7 +379,7 @@
         <h2>更多 WebUI 文件</h2>
         <ul>
             <li><a href="README.zh-TW.html">WebUI README</a>：工程設定、WebUI API 行為、驗證、建置說明與維護者邊界。</li>
-            <li><a href="CHANGELOG.md">WebUI 變更日誌 (Changelog)</a>：版本發佈說明。</li>
+            <li><a href="../../CHANGELOG.html">WebUI 變更日誌 (Changelog)</a>：專案版本發佈說明。</li>
         </ul>
 
     </main>
@@ -415,22 +388,15 @@
         document.addEventListener("DOMContentLoaded", () => {
             // 自動產生 TOC 側邊導航欄
             const toc = document.getElementById("toc");
-            const headers = document.querySelectorAll("h2, h3");
+            const headers = document.querySelectorAll("h2");
 
-            headers.forEach(heading => {
-                if (!heading.id) {
-                    heading.id = heading.innerText.replace(/\s+/g, '-').toLowerCase();
+            headers.forEach(h2 => {
+                if (!h2.id) {
+                    h2.id = h2.innerText.replace(/\s+/g, '-').toLowerCase();
                 }
                 const a = document.createElement("a");
-                a.href = "#" + heading.id;
-                a.innerText = heading.innerText;
-                
-                // 增加縮進區分 h2 還是 h3，保留層次感
-                if(heading.tagName.toLowerCase() === 'h3') {
-                    a.style.paddingLeft = "1.5rem";
-                    a.style.fontSize = "0.85rem";
-                }
-                
+                a.href = "#" + h2.id;
+                a.innerText = h2.innerText;
                 a.className = "toc-link";
                 toc.appendChild(a);
             });
