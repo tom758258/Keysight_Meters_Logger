@@ -245,14 +245,14 @@
         <ul>
             <li><a href="USER_GUIDE.zh-TW.html">CLI 使用者指南</a> - 操作人員工作流程與常見設定指引。</li>
             <li><a href="README.zh-TW.html">CLI README</a> - 詳細的 CLI 參考、驗證與自動化指南。</li>
-            <li><a href="../core/supported-models.html">支援型號</a> - 目前型號與確切範圍的支援狀態。</li>
+            <li><a href="../core/supported-models.md">支援型號</a> - 目前型號與確切範圍的支援狀態。</li>
             <li><a href="../../CHANGELOG.md">變更日誌</a> - 版本發佈說明與歷史紀錄。</li>
-            <li><a href="cli-integration.html">CLI 整合</a> - CLI 配接器維護邊界。</li>
-            <li><a href="../contracts/common-cli-jsonl-contract.html">通用 CLI JSON / JSONL 合約</a> - 共享命令列 JSON 外殼規則。</li>
-            <li><a href="../contracts/meters-cli-jsonl-contract.html">Meters CLI JSON / JSONL 合約</a> - Meters 命令列 JSON schema 與別名規則。</li>
-            <li><a href="../contracts/common-orchestrator-workflows.html">通用協調器工作流程</a> - 共享子程序生命週期指引。</li>
-            <li><a href="../contracts/meters-orchestrator-workflows.html">Meters 協調器工作流程</a> - 用於 Agent 和自動化的 Meters 子程序範例。</li>
-            <li><a href="../contracts/meters-worker-contract.html">Meters Worker 合約</a> - 用於 Agent 和協調器的 Meters 工作器控制面、JSONL 與產物合約。</li>
+            <li><a href="cli-integration.md">CLI 整合</a> - CLI 配接器維護邊界。</li>
+            <li><a href="../contracts/common-cli-jsonl-contract.md">通用 CLI JSON / JSONL 合約</a> - 共享命令列 JSON 外殼規則。</li>
+            <li><a href="../contracts/meters-cli-jsonl-contract.md">Meters CLI JSON / JSONL 合約</a> - Meters 命令列 JSON schema 與別名規則。</li>
+            <li><a href="../contracts/common-orchestrator-workflows.md">通用協調器工作流程</a> - 共享子程序生命週期指引。</li>
+            <li><a href="../contracts/meters-orchestrator-workflows.md">Meters 協調器工作流程</a> - 用於 Agent 和自動化的 Meters 子程序範例。</li>
+            <li><a href="../contracts/meters-worker-contract.md">Meters Worker 合約</a> - 用於 Agent 和協調器的 Meters 工作器控制面、JSONL 與產物合約。</li>
         </ul>
         <p>適用於支援的數位萬用電表的 CLI 優先 Python 記錄器，支援透過 VISA 進行 DC/AC 電流、DC/AC 電壓、DCV 比率、頻率、週期以及 2 線式或 4 線式電阻量測。<br>
         它為每個擷取的樣本記錄一列 CSV，並支援軟體、外接硬體、立即與自訂/緩衝觸發工作流程。透過 <code>--timer-interval-s</code> 可在軟體模式中啟用軟體計時器擷取。</p>
@@ -310,7 +310,7 @@
         <p>目前已驗證的選用 pyvisa-py 擷取範圍是 34461A 經由 LAN/TCPIP。除非未來驗證具備 LAN/LXI 能力的 34460A，否則 34460A LAN/TCPIP 與 34460A LAN/<code>@py</code> 對目前可用的儀器仍未開放。</p>
 
         <h2>開發</h2>
-        <p>在 PowerShell 中，切換到專案目錄，建立或重複使用本機虛擬環境，並依照根目錄 <a href="../../README.zh-TW.html#安裝">README 安裝</a> 章節同步 all-extras 開發環境：</p>
+        <p>在 PowerShell 中，切換到專案目錄，建立或重複使用本機虛擬環境，並依照根目錄 <a href="../../README.zh-TW.md#安裝">README 安裝</a> 章節同步 all-extras 開發環境：</p>
         <div class="code-wrapper"><pre><code>cd path\to\meters-tool
 uv venv .venv
 uv sync --all-extras --link-mode=copy
@@ -319,7 +319,7 @@ uv sync --all-extras --link-mode=copy
         <p>在 Windows 上，完整的 pytest 執行可能需要系統管理員權限的 PowerShell 視窗，因為 VISA 相關的探測或本機環境存取可能需要系統管理員權限。</p>
         <p>安裝後，使用 <code>meters-tool</code> 主控台指令來執行專案命令：</p>
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool.exe &lt;command&gt; [options]</code></pre></div>
-        <p><code>.venv\Scripts\meters-tool.exe</code> 是安裝時產生的，並非受版本控制的專案檔案。如果遺失，請先依照根目錄 <a href="../../README.zh-TW.html#安裝">README 安裝</a> 流程使用 <code>uv sync --all-extras --link-mode=copy</code>；對於既有虛擬環境，也可使用上方開發段落中的選用 editable refresh。如果 PowerShell 因執行原則限制而阻擋啟用，請繼續使用本指南中顯示的明確 <code>.\.venv\Scripts\...</code> 命令。</p>
+        <p><code>.venv\Scripts\meters-tool.exe</code> 是安裝時產生的，並非受版本控制的專案檔案。如果遺失，請先依照根目錄 <a href="../../README.zh-TW.md#安裝">README 安裝</a> 流程使用 <code>uv sync --all-extras --link-mode=copy</code>；對於既有虛擬環境，也可使用上方開發段落中的選用 editable refresh。如果 PowerShell 因執行原則限制而阻擋啟用，請繼續使用本指南中顯示的明確 <code>.\.venv\Scripts\...</code> 命令。</p>
         <p>也支援將明確的模組形式作為開發／備援替代方案：</p>
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\python.exe -m meters_tool_cli &lt;command&gt; [options]</code></pre></div>
         <p>選用的環境啟用：</p>
@@ -652,7 +652,7 @@ uv run meters-tool start-trigger-record `
                 <tr>
                     <td><code>--arguments-json JSON</code></td>
                     <td><code>{}</code></td>
-                    <td>完整的 JSON 指令引數物件。使用 <code>{"metadata":{...}}</code> 來附加寫入 CSV 中 <code>trigger_metadata</code> 欄位的觸發 metadata。無效的 JSON、非物件的 metadata 以及其他指令驗證失敗將在傳送請求前被拒貼。</td>
+                    <td>完整的 JSON 指令引數物件。使用 <code>{"metadata":{...}}</code> 來附加寫入 CSV 中 <code>trigger_metadata</code> 欄位的觸發 metadata。無效的 JSON、非物件的 metadata 以及其他指令驗證失敗將在傳送請求前被拒絕。</td>
                 </tr>
                 <tr>
                     <td><code>--job-id TEXT</code></td>
@@ -1086,8 +1086,8 @@ uv run meters-tool start-trigger-record `
   --status-format jsonl</code></pre></div>
         <p>JSONL 輸出是每行一個 JSON 物件。這是專為 Agent 和腳本設計的；預設的文字輸出仍然是面向人類的介面。模擬器數值是確定的工作流程資料，並非真實的 34461A 量測驗證。</p>
         <p>自動化呼叫端應解析 JSONL、單一回應 JSON、CSV 檔案以及包裝器 <code>report.json</code> 產物來做出決策。人類文字訊息僅用於診斷，且可能會因可讀性而有所變更。</p>
-        <p>有關目前的 schema 和別名規則，請參閱 <a href="../contracts/meters-cli-jsonl-contract.html">Meters CLI JSON / JSONL 合約</a>。</p>
-        <p>有關 Meters 工作器模式、本機控制端點、狀態 payload 以及包裝器產物/報告 schema，請參閱 <a href="../contracts/meters-worker-contract.html">Meters Worker 合約</a>。</p>
+        <p>有關目前的 schema 和別名規則，請參閱 <a href="../contracts/meters-cli-jsonl-contract.md">Meters CLI JSON / JSONL 合約</a>。</p>
+        <p>有關 Meters 工作器模式、本機控制端點、狀態 payload 以及包裝器產物/報告 schema，請參閱 <a href="../contracts/meters-worker-contract.md">Meters Worker 合約</a>。</p>
         <p>當工作器執行中，<code>status</code> 會包裝非變更性的 <code>GET /status</code> 並傳回正規化 JSON 以供協調器健康檢查：</p>
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool.exe status --port 8765 --json</code></pre></div>
         <p>推薦的協調器流程：</p>
@@ -1099,7 +1099,7 @@ uv run meters-tool start-trigger-record `
             <li>僅在軟體觸發模式下使用 <code>POST /command</code>，並使用 <code>POST /stop</code> 進行正常停止。</li>
             <li>讀取 stdout 的 JSONL、CSV 以及例如 <code>report.json</code> 的包裝器產物以做出成功/失敗的決策。</li>
         </ol>
-        <p>請參閱 <a href="../contracts/meters-orchestrator-workflows.html">Meters 協調器工作流程</a> 了解完整的 Python 子程序工作流程。</p>
+        <p>請參閱 <a href="../contracts/meters-orchestrator-workflows.md">Meters 協調器工作流程</a> 了解完整的 Python 子程序工作流程。</p>
         <p><code>ready</code> 事件與 <code>wait-ready</code> 代表本機控制面可以接受 <code>/command</code>、<code>/stop</code> 與 <code>/status</code> 請求。它們並不代表第一個樣本已經擷取。使用 JSONL <code>run_id</code> 作為同一次執行的 stdout 執行階段事件、<code>status</code> 或直接 <code>GET /status</code> 以及包裝器產物之間的關聯鍵。</p>
 
         <h3>send-command --format json</h3>
@@ -1906,7 +1906,7 @@ software trigger server stopped</code></pre></div>
 
         <h2>疑難排解</h2>
         <ul>
-            <li>如果缺少 <code>.\.venv\Scripts\meters-tool.exe</code>，請先依照根目錄 <a href="../../README.zh-TW.html#安裝">README 安裝</a> 流程使用 <code>uv sync --all-extras --link-mode=copy</code>。對於既有虛擬環境，也可使用開發段落中的選用 editable refresh。</li>
+            <li>如果缺少 <code>.\.venv\Scripts\meters-tool.exe</code>，請先依照根目錄 <a href="../../README.zh-TW.md#安裝">README 安裝</a> 流程使用 <code>uv sync --all-extras --link-mode=copy</code>。對於既有虛擬環境，也可使用開發段落中的選用 editable refresh。</li>
             <li>如果 PowerShell 啟用受阻，請繼續使用明確的 <code>.\.venv\Scripts\python.exe</code> 或 <code>.\.venv\Scripts\meters-tool.exe</code> 指令，而非啟用虛擬環境。</li>
             <li>如果未出現 VISA 資源，請確認 VISA 執行階段已安裝，且儀器在廠商連線工具中是可見的。</li>
             <li>如果 <code>list-resources</code> 顯示過期的快取資源，請執行 <code>list-resources --live-only</code> 來隱藏過期的項目。當需要檢查過期資源錯誤時，請使用 <code>list-resources --verify</code>。</li>
@@ -1918,7 +1918,7 @@ software trigger server stopped</code></pre></div>
         </ul>
 
         <h2>測試</h2>
-        <p>在執行測試前，請依照根目錄 <a href="../../README.zh-TW.html#安裝">README 安裝</a> 流程安裝專案環境。對於既有虛擬環境，也可使用開發段落中的選用 editable refresh。</p>
+        <p>在執行測試前，請依照根目錄 <a href="../../README.zh-TW.md#安裝">README 安裝</a> 流程安裝專案環境。對於既有虛擬環境，也可使用開發段落中的選用 editable refresh。</p>
         <p>每日快速 pytest 執行：</p>
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider --ignore=tests\cli\test_cli_wrappers.py</code></pre></div>
         <p>Windows wrapper 合約的 CI 工作會另外驗證 <code>tests\cli\test_cli_wrappers.py</code>。完整的無硬體 <code>release-acceptance.ps1</code> 門檻只應在正式發布前執行。</p>

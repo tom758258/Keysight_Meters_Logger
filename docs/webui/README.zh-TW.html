@@ -242,7 +242,7 @@
         <h1>Meters Tool WebUI 說明文件</h1>
         <p>本文件是 WebUI 元件的 WebUI 行為、API、驗證與維護者指南。對於一般的操作人員工作流程與欄位說明，請參閱 <a href="USER_GUIDE.zh-TW.html">WebUI 使用者指南</a>。</p>
         <p>關於版本發佈說明，請參閱套件變更日誌 (changelog)。關於 Core API 和擁有權規則，請參閱 Core 整合指南。請將本指南專注於長期的公開 WebUI 行為與維護者邊界。</p>
-        <p><a href="localization-contract.html">WebUI 本地化合約</a> 定義瀏覽器呈現的 v2 本地化。P2.1 提供不依賴套件的瀏覽器 i18n 基礎；P2.2 至 P2.5 涵蓋靜態與動態表單、app/resource、status/log、Live data、ARIA、瀏覽器錯誤與支援摘要呈現。P2.6 透過右上角永久顯示的地球與文字按鈕啟用英文／繁體中文選擇。有效的已儲存語系優先於瀏覽器偵測與 English fallback；手動選擇使用 <code>meters-tool.webui.locale</code> 儲存鍵。切換會立即更新頁面，不重新載入或呼叫 runtime/API，並從快取狀態重新轉譯，同時保留表單值、作用中的作業、面板、狀態日誌、Live 取樣、圖表設定、資源 metadata 與支援摘要。未知的 Core/backend/status 診斷、原始 status JSON、取樣 metadata 與 schema 保持原始內容。Core、HTTP API 端點與狀態碼、現有回應欄位、表單值、支援政策、儀器執行階段，以及 CSV/JSON/JSONL schema 都不變。P2.7 完成最終的語系目錄品質與術語審查、跨 Part 整合驗證、操作人員文件，以及不改變上述邊界的重點標籤修整。</p>
+        <p><a href="localization-contract.md">WebUI 本地化合約</a> 定義瀏覽器呈現的 v2 本地化。P2.1 提供不依賴套件的瀏覽器 i18n 基礎；P2.2 至 P2.5 涵蓋靜態與動態表單、app/resource、status/log、Live data、ARIA、瀏覽器錯誤與支援摘要呈現。P2.6 透過右上角永久顯示的地球與文字按鈕啟用英文／繁體中文選擇。有效的已儲存語系優先於瀏覽器偵測與 English fallback；手動選擇使用 <code>meters-tool.webui.locale</code> 儲存鍵。切換會立即更新頁面，不重新載入或呼叫 runtime/API，並從快取狀態重新轉譯，同時保留表單值、作用中的作業、面板、狀態日誌、Live 取樣、圖表設定、資源 metadata 與支援摘要。未知的 Core/backend/status 診斷、原始 status JSON、取樣 metadata 與 schema 保持原始內容。Core、HTTP API 端點與狀態碼、現有回應欄位、表單值、支援政策、儀器執行階段，以及 CSV/JSON/JSONL schema 都不變。P2.7 完成最終的語系目錄品質與術語審查、跨 Part 整合驗證、操作人員文件，以及不改變上述邊界的重點標籤修整。</p>
 
         <h2>目的</h2>
         <p>WebUI 配接器 (adapter) 圍繞 <code>meters_tool_core</code> 中共享的 Core 執行階段 (runtime)，提供本機 FastAPI 和瀏覽器介面。</p>
@@ -286,7 +286,7 @@
         <p>該伺服器是一個 Uvicorn/FastAPI 程序。終端機按鍵 <code>q</code> 無法停止它。請使用 <code>Ctrl+C</code> 進行正常關閉。如果終端機沒有傳送 SIGINT，請先停止作用中的執行並等待清理完成，再透過 PID 終止監聽程序。強制終止只是最後的復原方式，可能會略過儀器的正常清理。</p>
 
         <h2>安裝或重新載入</h2>
-        <p>主要專案設定請遵循根目錄 <a href="../../README.zh-TW.html#安裝">README 安裝</a> 章節。該流程會建立專案虛擬環境，並使用 copy link mode 同步 all-extras 環境。</p>
+        <p>主要專案設定請遵循根目錄 <a href="../../README.zh-TW.md#安裝">README 安裝</a> 章節。該流程會建立專案虛擬環境，並使用 copy link mode 同步 all-extras 環境。</p>
         <p>對於既有的虛擬環境，editable install 是選用的重新載入方式：</p>
         <div class="code-wrapper"><pre><code>uv pip install -e ".[all,dev]" --link-mode=copy</code></pre></div>
         <p>檢查包裝器：</p>
@@ -768,8 +768,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_webui_ex
         <ul>
             <li><a href="USER_GUIDE.zh-TW.html">WebUI 使用者指南</a>：面向操作人員的 WebUI 使用指南。</li>
             <li><a href="README.zh-TW.html">WebUI README</a>：本 WebUI 行為、API、驗證與維護者指南。</li>
-            <li><a href="web-ui-change-rules.html">WebUI 變更規則</a>：維護者與面向 Agent 的 UI 變更規則。</li>
-            <li><a href="../../CHANGELOG.html">WebUI 變更日誌</a>：專案版本發佈說明。</li>
+            <li><a href="web-ui-change-rules.md">WebUI 變更規則</a>：維護者與面向 Agent 的 UI 變更規則。</li>
+            <li><a href="../../CHANGELOG.md">WebUI 變更日誌</a>：專案版本發佈說明。</li>
         </ul>
 
     </main>

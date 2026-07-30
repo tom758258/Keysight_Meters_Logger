@@ -250,7 +250,7 @@
             <li><code>34461A</code>：USB/system VISA 與 LAN/TCPIP with system VISA 已 Product-open。LAN/TCPIP with pyvisa-py <code>@py</code> 已 Product-open，但僅適用於 CLI。</li>
             <li><code>34460A</code>：目前 Product-open 的實機 connection scope 是 USB/system VISA。LAN/TCPIP with system VISA 與 LAN/TCPIP with pyvisa-py <code>@py</code> 尚未 Product-open。DCV Ratio 只在 USB/system VISA scope 開放。base profile 不支援 <code>external</code> 或 <code>external-custom</code> trigger、不支援 10 A/current-terminal 選擇，且 reading memory 上限為 1000。</li>
         </ul>
-        <p>精確的型號、transport/backend、量測與觸發支援範圍，請參閱 <a href="../core/supported-models.html">支援型號</a>。</p>
+        <p>精確的型號、transport/backend、量測與觸發支援範圍，請參閱 <a href="../core/supported-models.md">支援型號</a>。</p>
         <p>CLI 預設使用電腦的系統 VISA 執行階段，例如 Keysight IO Libraries Suite 或 NI-VISA。進階的 pyvisa-py LAN 診斷可以安裝可選的 backend 套件，並在 <code>list-resources</code> 或 <code>start-trigger-record</code> 中加入 <code>--visa-library "@py"</code>；<code>--backend "@py"</code> 也接受作為別名。已驗證的選用 <code>@py</code> 擷取範圍是 LAN/TCPIP 上的 34461A；目前可用的儀器尚未開放 34460A LAN/<code>@py</code>。一般的 WebUI 執行則使用預設的系統 VISA 執行階段。</p>
         
         <h2>選擇量測類型</h2>
@@ -324,9 +324,9 @@
         <h2>更多 CLI 文件</h2>
         <ul>
             <li><a href="README.zh-TW.html">CLI README</a>：完整的指令參考、驗證腳本、範例、引數限制與自動化工作流程。</li>
-            <li><a href="cli-integration.html">CLI 整合</a>：CLI 配接器的維護邊界說明。</li>
-            <li><a href="../contracts/meters-cli-jsonl-contract.html">Meters CLI JSON / JSONL 合約</a>：用於自動化的結構化輸出 schema。</li>
-            <li><a href="../contracts/meters-worker-contract.html">Meters Worker 合約</a>：工作器控制面與產物合約。</li>
+            <li><a href="cli-integration.md">CLI 整合</a>：CLI 配接器的維護邊界說明。</li>
+            <li><a href="../contracts/meters-cli-jsonl-contract.md">Meters CLI JSON / JSONL 合約</a>：用於自動化的結構化輸出 schema。</li>
+            <li><a href="../contracts/meters-worker-contract.md">Meters Worker 合約</a>：工作器控制面與產物合約。</li>
         </ul>
 
     </main>
