@@ -152,6 +152,11 @@ Or start the WebUI launcher:
 .\.venv\Scripts\meters-tool-webui-launcher.exe
 ```
 
+The launcher binds only to local loopback. With no arguments it starts at port
+`8767`, tries up to 100 ports until one can be bound, waits for the WebUI
+capabilities identity, and then opens the browser. Use `--port 9000` for one
+fixed port, or `--port 9000 --auto-port` to search from port `9000`.
+
 See the [CLI README](docs/cli/README.md) and [WebUI README](docs/webui/README.md)
 for detailed options and workflows.
 

@@ -34,19 +34,26 @@ Release folders may include a versioned launcher name, such as:
 meters-tool-webui-launcher-<version>.exe
 ```
 
-In the launcher window:
+The launcher starts automatically. It begins at port `8767`, tries up to 100
+local ports when needed, waits until the WebUI is ready, and then opens the
+browser at the port it actually bound. Another running Meters Tool WebUI is
+treated as a port owner and is not reused.
 
-1. Keep `Use default port 8767` selected unless that port is already in use.
-2. Click `Start`.
-3. Wait for the browser to open. The launcher starts a local WebUI server on
-   this computer and opens the browser page for you.
-4. Click `Quit` in the launcher when you are done with the WebUI.
+During normal startup no port window or Start action is required. After startup,
+a small launcher window shows the running URL and `Quit`. Use `Quit` when you
+are done so active-run cleanup can finish before the local server closes.
+
+Only when all automatic candidates are occupied does the full port window
+appear. Enter another port from `1` through `65535` and click `Start`. Each
+manual retry tries only that port once and leaves the window open if it fails.
 
 If the browser does not open automatically, open this address manually:
 
 ```text
 http://127.0.0.1:8767/
 ```
+
+The actual port may be higher; use the URL shown in the launcher window.
 
 Developers or source-checkout users should use the [WebUI README](README.md)
 for terminal commands, validation, and build details.
@@ -275,8 +282,8 @@ active.
 Use `Stop` in the browser to stop the current acquisition run. The WebUI keeps
 the latest readings visible after the run stops so you can review them.
 
-Use `Quit` in the launcher window to stop the local WebUI server and close the
-launcher. Closing only the browser tab does not necessarily stop the server.
+Use `Quit` in the small running launcher window to stop the local WebUI server
+and close the launcher. Closing only the browser tab does not stop the server.
 
 If you are running the WebUI from a developer terminal instead of the launcher,
 use the [WebUI README](README.md) for shutdown details.
@@ -285,7 +292,8 @@ use the [WebUI README](README.md) for shutdown details.
 
 ### The browser does not open
 
-Open this address manually:
+Open the running URL shown in the launcher window. The default starting address
+is:
 
 ```text
 http://127.0.0.1:8767/
@@ -296,9 +304,11 @@ shows a startup error.
 
 ### The launcher says the port is already in use
 
-Another program is already using the selected port. If another WebUI is already
-running on that port, the launcher opens it. If the port is used by something
-else, choose a different port or close the other program.
+The default launcher mode automatically tries the next port. This also applies
+when another Meters Tool WebUI owns the port, because separate instances may be
+needed for different instruments. A fixed `--port` reports the conflict without
+incrementing. If the automatic 100-port search is exhausted, enter another
+legal port in the fallback window; each manual retry tries only that port.
 
 ### Scan Device finds nothing
 

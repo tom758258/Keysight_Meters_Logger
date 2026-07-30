@@ -136,10 +136,28 @@ Or start the double-click launcher:
 ```
 
 The console server supports `--host` and `--port`. The launcher always binds to
-`127.0.0.1` and allows only the port to be selected. It defaults to
-`127.0.0.1:8767`, disables the port field while
-`Use default port 8767` is selected, opens the browser after Start, and keeps
-the window available so Quit can stop the local Uvicorn server.
+`127.0.0.1`. With no arguments, it starts at port `8767` and uses actual socket
+binds to try at most 100 candidates through `8866`. It passes the successfully
+bound socket directly to Uvicorn, waits for `/api/capabilities` to return the
+`meters-tool-webui` identity, and then opens the browser at the actual port.
+Another Meters Tool WebUI is treated like any other port owner and is not
+reused.
+
+Use a fixed port or choose another automatic-search starting point:
+
+```powershell
+.\.venv\Scripts\meters-tool-webui-launcher.exe --port 9000
+.\.venv\Scripts\meters-tool-webui-launcher.exe --port 9000 --auto-port
+```
+
+`--port 9000` tries only port `9000`. Adding `--auto-port` tries up to 100 ports
+from `9000` through `9099`. `--auto-port` without `--port` uses the default
+starting port. Searches near `65535` stop at the legal port limit.
+
+The port controls remain hidden during normal startup. After the browser opens,
+the launcher shows only the running URL and `Quit`. The full port window appears
+only when all automatic candidates are occupied; each manual Start/Retry then
+tries only the entered port once.
 
 Open:
 
@@ -840,10 +858,11 @@ Wrapper is missing:
 
 Port is already in use:
 
-- If the selected port already serves Meters Tool WebUI, the Launcher opens the
-  existing server.
-- If another HTTP service owns the port, the Launcher shows an error. It does
-  not automatically try the next port.
+- The default launcher mode automatically tries the next port, whether the
+  owner is another Meters Tool WebUI or an unrelated service.
+- A fixed `--port` is tried once and reports an error if occupied.
+- If all automatic candidates are occupied, enter another legal port in the
+  fallback window and select Start. Each manual retry tries only that port.
 - For the console server, choose another port, for example `--port 8768`, or
   stop the existing listening process.
 

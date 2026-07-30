@@ -108,9 +108,26 @@ meters-tool-webui <package-version>
 ```
 
 主控台伺服器支援 `--host` 與 `--port`。啟動器一律繫結至 `127.0.0.1`，
-且只允許選擇連接埠。它預設為 `127.0.0.1:8767`；選取
-`Use default port 8767` 時會停用連接埠欄位，點擊 Start 後開啟瀏覽器，並
-保持視窗可用，以便透過 Quit 停止本機 Uvicorn 伺服器。
+未提供參數時會從 `8767` 開始，透過實際 socket bind 最多嘗試到 `8866`。
+成功 bind 後會將同一個 socket 直接交給 Uvicorn，等待
+`/api/capabilities` 回傳 `meters-tool-webui` identity，再以實際 Port 開啟
+瀏覽器。其他已執行的 Meters Tool WebUI 與任何其他 Port 擁有者相同，都不會
+被重用。
+
+可指定固定 Port，或指定自動搜尋起點：
+
+```powershell
+.\.venv\Scripts\meters-tool-webui-launcher.exe --port 9000
+.\.venv\Scripts\meters-tool-webui-launcher.exe --port 9000 --auto-port
+```
+
+`--port 9000` 只嘗試 `9000`。加上 `--auto-port` 時，最多嘗試
+`9000` 到 `9099` 共 100 個 Port。單獨使用 `--auto-port` 會採用預設起點；
+接近 `65535` 時則於合法 Port 上限停止。
+
+正常啟動期間不會顯示 Port 控制項。瀏覽器開啟後，Launcher 只顯示實際 URL
+與 `Quit`。只有全部自動候選都被占用時才顯示完整 Port 視窗；此後每次手動
+Start／Retry 都只嘗試輸入的 Port 一次。
 
 開啟：
 
@@ -617,8 +634,9 @@ uv run pytest tests -q -p no:cacheprovider
 
 連接埠已被使用：
 
-- 如果選取的連接埠已提供 Meters Tool WebUI，Launcher 會開啟現有伺服器。
-- 如果其他 HTTP 服務佔用該連接埠，Launcher 會顯示錯誤，不會自動嘗試下一個連接埠。
+- 預設 Launcher 模式會自動嘗試下一個 Port，不論占用者是另一個 Meters Tool WebUI 或其他服務。
+- 固定的 `--port` 只會嘗試一次，若被占用則顯示錯誤。
+- 若全部自動候選都被占用，請在 fallback 視窗輸入其他合法 Port 並選擇 Start；每次手動重試只嘗試該 Port。
 - 對主控台伺服器，請選擇其他連接埠，例如 `--port 8768`，或停止現有的監聽程序。
 
 `q` 無法停止伺服器：

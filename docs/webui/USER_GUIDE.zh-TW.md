@@ -29,18 +29,25 @@ meters-tool-webui-launcher.exe
 meters-tool-webui-launcher-<version>.exe
 ```
 
-在啟動器視窗中：
+Launcher 會自動啟動。它會從 `8767` 開始，必要時最多嘗試 100 個本機
+Port，等待 WebUI ready 後，再以實際成功 bind 的 Port 開啟瀏覽器。其他已
+執行的 Meters Tool WebUI 會被視為 Port 擁有者，不會被重用。
 
-1. 除非該連接埠已被佔用，否則請保持選取 `Use default port 8767` (使用預設連接埠 8767)。
-2. 點擊 `Start` (啟動)。
-3. 等待瀏覽器開啟。啟動器會在這台電腦上啟動一個本機 WebUI 伺服器，並為您自動開啟瀏覽器頁面。
-4. 使用完 WebUI 後，點擊啟動器中的 `Quit` (離開)。
+正常啟動期間不需要 Port 視窗或 Start 操作。啟動後會顯示一個包含實際 URL
+與 `Quit` 的小視窗。使用完畢時請按 `Quit`，讓作用中 run 的清理完成後再
+關閉本機伺服器。
+
+只有全部自動候選都被占用時，才會顯示完整 Port 視窗。請輸入 `1` 到
+`65535` 的其他 Port 並按 `Start`。每次手動重試只會嘗試該 Port 一次；
+失敗時視窗會保留，供您修改後重試。
 
 如果瀏覽器沒有自動開啟，請手動開啟此網址：
 
 ```text
 http://127.0.0.1:8767/
 ```
+
+實際 Port 可能較高；請以 Launcher 視窗顯示的 URL 為準。
 
 開發人員或從原始碼簽出 (source-checkout) 的使用者，應參閱 [WebUI README](README.zh-TW.md) 以取得終端機指令、驗證與建置的詳細資訊。
 
@@ -165,7 +172,8 @@ WebUI 使用電腦的預設系統 VISA 執行階段。它不提供 PyVISA backen
 
 在瀏覽器中使用 `Stop` 來停止目前的擷取作業。WebUI 會在作業停止後保留畫面上最新的讀值，以供您檢視。
 
-在啟動器視窗中使用 `Quit` (離開) 來停止本機 WebUI 伺服器並關閉啟動器。僅關閉瀏覽器分頁不一定會停止伺服器。
+在 Launcher 的 Running／Quit 小視窗中使用 `Quit` 來停止本機 WebUI
+伺服器並關閉 Launcher。僅關閉瀏覽器分頁不會停止伺服器。
 
 如果您是從開發人員終端機而非啟動器執行 WebUI，請參閱 [WebUI README](README.zh-TW.md) 以取得關閉細節。
 
@@ -173,7 +181,7 @@ WebUI 使用電腦的預設系統 VISA 執行階段。它不提供 PyVISA backen
 
 ### 瀏覽器未開啟
 
-請手動開啟此網址：
+請手動開啟 Launcher 視窗顯示的執行中 URL。預設起始網址為：
 
 ```text
 http://127.0.0.1:8767/
@@ -183,7 +191,10 @@ http://127.0.0.1:8767/
 
 ### 啟動器顯示連接埠已被佔用
 
-所選的連接埠已由另一個程式使用中。如果有另一個 WebUI 已經在該連接埠上執行，啟動器會直接開啟它。如果該連接埠被其他不同的程式佔用，請選擇另一個連接埠或關閉該程式。
+預設 Launcher 模式會自動嘗試下一個 Port。即使占用者是另一個 Meters Tool
+WebUI，也會採用相同行為，因為不同儀器可能需要不同的 WebUI 執行個體。
+固定的 `--port` 會回報衝突而不遞增。若 100 個自動候選全部用完，請在
+fallback 視窗輸入其他合法 Port；每次手動重試只會嘗試該 Port。
 
 ### Scan Device 找不到任何裝置
 

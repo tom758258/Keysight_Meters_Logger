@@ -131,6 +131,11 @@ uv sync --all-extras --link-mode=copy --reinstall-package meters-tool
 .\.venv\Scripts\meters-tool-webui-launcher.exe
 ```
 
+Launcher 只會繫結本機 loopback。未提供參數時會從 `8767` 開始，最多嘗試
+100 個 Port，直到實際 bind 成功；接著等待 WebUI capabilities identity ready
+後開啟瀏覽器。使用 `--port 9000` 可固定只嘗試一個 Port；使用
+`--port 9000 --auto-port` 則會從 `9000` 開始自動搜尋。
+
 詳細選項與工作流程請參閱 [CLI README](docs/cli/README.zh-TW.md) 和
 [WebUI README](docs/webui/README.zh-TW.md)。
 

@@ -19,6 +19,10 @@
 
 ### WebUI
 
+- The Windows launcher now binds the first available loopback port from a
+  bounded 100-port search, hands that same socket to Uvicorn, waits for the
+  WebUI capabilities identity before opening the browser, and shows the manual
+  port window only when automatic selection is exhausted.
 - The launcher now exits only after active-run cleanup completes and rejects
   new runs after shutdown begins.
 - Added a headless launcher self-test for required WebUI imports and packaged

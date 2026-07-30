@@ -296,7 +296,12 @@
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool-webui.exe --port 8767</code></pre></div>
         <p>或啟動雙擊執行的啟動器：</p>
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool-webui-launcher.exe</code></pre></div>
-        <p>主控台伺服器支援 <code>--host</code> 與 <code>--port</code>。啟動器一律繫結至 <code>127.0.0.1</code>，且只允許選擇連接埠。它預設為 <code>127.0.0.1:8767</code>；選取 <code>Use default port 8767</code> 時會停用連接埠欄位，點擊 Start 後開啟瀏覽器，並保持視窗可用，以便透過 Quit 停止本機 Uvicorn 伺服器。</p>
+        <p>主控台伺服器支援 <code>--host</code> 與 <code>--port</code>。啟動器一律繫結至 <code>127.0.0.1</code>，未提供參數時會從 <code>8767</code> 開始，透過實際 socket bind 最多嘗試到 <code>8866</code>。成功 bind 後會將同一個 socket 直接交給 Uvicorn，等待 <code>/api/capabilities</code> 回傳 <code>meters-tool-webui</code> identity，再以實際 Port 開啟瀏覽器。其他已執行的 Meters Tool WebUI 與任何其他 Port 擁有者相同，都不會被重用。</p>
+        <p>可指定固定 Port，或指定自動搜尋起點：</p>
+        <div class="code-wrapper"><pre><code class="language-powershell">.\.venv\Scripts\meters-tool-webui-launcher.exe --port 9000
+.\.venv\Scripts\meters-tool-webui-launcher.exe --port 9000 --auto-port</code></pre></div>
+        <p><code>--port 9000</code> 只嘗試 <code>9000</code>。加上 <code>--auto-port</code> 時，最多嘗試 <code>9000</code> 到 <code>9099</code> 共 100 個 Port。單獨使用 <code>--auto-port</code> 會採用預設起點；接近 <code>65535</code> 時則於合法 Port 上限停止。</p>
+        <p>正常啟動期間不會顯示 Port 控制項。瀏覽器開啟後，Launcher 只顯示實際 URL 與 <code>Quit</code>。只有全部自動候選都被占用時才顯示完整 Port 視窗；此後每次手動 Start／Retry 都只嘗試輸入的 Port 一次。</p>
         <p>開啟：</p>
         <div class="code-wrapper"><pre><code>http://127.0.0.1:8767/</code></pre></div>
         <p>選用的 host 與 port 旗標：</p>
@@ -725,8 +730,9 @@ pending_keys</code></pre></div>
         
         <p>連接埠已被使用：</p>
         <ul>
-            <li>如果選取的連接埠已提供 Meters Tool WebUI，Launcher 會開啟現有伺服器。</li>
-            <li>如果其他 HTTP 服務佔用該連接埠，Launcher 會顯示錯誤，不會自動嘗試下一個連接埠。</li>
+            <li>預設 Launcher 模式會自動嘗試下一個 Port，不論占用者是另一個 Meters Tool WebUI 或其他服務。</li>
+            <li>固定的 <code>--port</code> 只會嘗試一次，若被占用則顯示錯誤。</li>
+            <li>若全部自動候選都被占用，請在 fallback 視窗輸入其他合法 Port 並選擇 Start；每次手動重試只嘗試該 Port。</li>
             <li>對主控台伺服器，請選擇其他連接埠，例如 <code>--port 8768</code>，或停止現有的監聽程序。</li>
         </ul>
         

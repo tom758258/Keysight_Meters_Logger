@@ -82,10 +82,11 @@ Developer runtime entry point:
 ```
 
 Operator releases normally start from the built launcher executable documented
-in `USER_GUIDE.md`. Source-checkout and validation workflows belong in
-`README.md`.
+in `USER_GUIDE.md`. The launcher begins its bounded automatic port search at
+`8767`; the actual local port may be higher when another process already owns a
+candidate. Source-checkout and validation workflows belong in `README.md`.
 
-Local URL:
+Default starting URL:
 
 ```text
 http://127.0.0.1:8767/
