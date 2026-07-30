@@ -74,12 +74,12 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-& powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "build_cli_exe.ps1") -DistPath $versionDir -Name "meters-tool-$Version" -WorkRoot $buildRoot
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "build_cli_exe.ps1") -DistPath $versionDir -Name "meters-tool-$Version" -WorkRoot $buildRoot -SourceRoot $sourceRoot
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-& powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "build_webui_exe.ps1") -DistPath $versionDir -Name "meters-tool-webui-launcher-$Version" -WorkRoot $buildRoot
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "build_webui_exe.ps1") -DistPath $versionDir -Name "meters-tool-webui-launcher-$Version" -WorkRoot $buildRoot -SourceRoot $sourceRoot
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }

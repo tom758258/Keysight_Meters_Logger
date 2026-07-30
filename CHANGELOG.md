@@ -31,6 +31,8 @@
   wrapper tests, invokes the release build once, and validates the final wheel,
   sdist, standalone CLI and WebUI Launcher executables, and SHA-256 checksums.
   A passing run produces a directory ready for direct GitHub Release upload.
+- Formal release acceptance now verifies that Git HEAD remains unchanged, and
+  builds all four release artifacts from the same tracked source snapshot.
 
 ## v2.0.0
 

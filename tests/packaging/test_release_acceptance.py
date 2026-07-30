@@ -5,6 +5,9 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 RELEASE_ACCEPTANCE = REPO_ROOT / "scripts" / "release-acceptance.ps1"
+BUILD_RELEASE = REPO_ROOT / "scripts" / "build_release.ps1"
+BUILD_CLI_EXE = REPO_ROOT / "scripts" / "build_cli_exe.ps1"
+BUILD_WEBUI_EXE = REPO_ROOT / "scripts" / "build_webui_exe.ps1"
 OLD_RELEASE_CHECK = REPO_ROOT / "scripts" / "release-cli-check.ps1"
 
 
@@ -173,13 +176,56 @@ def test_release_acceptance_keeps_output_under_tmp_tests():
 def test_release_acceptance_rechecks_final_working_tree_hygiene():
     script = release_acceptance_text()
     plan_only_start = script.index('$script:currentStep = "live_cli_plan_only"')
+    final_head_start = script.index('$script:currentStep = "git_head_final"')
     final_diff_start = script.index('$script:currentStep = "git_diff_check_final"')
     final_clean_start = script.index('$script:currentStep = "git_clean_final"')
     catch_start = script.index("} catch {", final_clean_start)
-    final_block = script[final_diff_start:catch_start]
+    final_block = script[final_head_start:catch_start]
 
-    assert plan_only_start < final_diff_start < final_clean_start
+    assert plan_only_start < final_head_start < final_diff_start < final_clean_start
+    assert '@("-C", $RepoRoot, "rev-parse", "HEAD")' in final_block
+    assert script.count('@("-C", $RepoRoot, "rev-parse", "HEAD")') == 2
+    assert "$finalGitHead -cne $gitHead" in final_block
+    assert "Git HEAD changed during release acceptance." in final_block
     assert '@("-C", $RepoRoot, "diff", "--check")' in final_block
     assert '@("-C", $RepoRoot, "status", "--porcelain")' in final_block
     assert script.count('@("-C", $RepoRoot, "status", "--porcelain")') == 2
     assert "Git working tree must remain clean after release acceptance." in final_block
+
+
+def test_release_build_passes_one_source_snapshot_to_both_exe_builders():
+    script = BUILD_RELEASE.read_text(encoding="utf-8-sig")
+
+    assert '$sourceRoot = Join-Path $buildRoot "source"' in script
+    assert script.count("-SourceRoot $sourceRoot") == 2
+    for builder in ("build_cli_exe.ps1", "build_webui_exe.ps1"):
+        invocation = next(line for line in script.splitlines() if builder in line)
+        assert "-SourceRoot $sourceRoot" in invocation
+
+
+def test_exe_builders_use_optional_source_root_for_pyinstaller_inputs():
+    cli_script = BUILD_CLI_EXE.read_text(encoding="utf-8-sig")
+    webui_script = BUILD_WEBUI_EXE.read_text(encoding="utf-8-sig")
+
+    for script in (cli_script, webui_script):
+        assert "[string]$SourceRoot" in script
+        assert "$sourceRootFull = $repoFull" in script
+        assert "SourceRoot directory not found" in script
+        assert "SourceRoot must stay under the repository" in script
+        assert '$sourcePath = Join-Path $sourceRootFull "src"' in script
+        assert "$env:PYTHONPATH = $sourcePath" in script
+        assert "--paths $sourcePath" in script
+
+    assert (
+        '(Join-Path $sourceRootFull "src\\meters_tool_cli\\cli.py")'
+        in cli_script
+    )
+    assert (
+        "$(Join-Path $sourceRootFull "
+        "'src\\meters_tool_webui\\static');meters_tool_webui\\static"
+        in webui_script
+    )
+    assert (
+        '(Join-Path $sourceRootFull "src\\meters_tool_webui\\launcher.py")'
+        in webui_script
+    )

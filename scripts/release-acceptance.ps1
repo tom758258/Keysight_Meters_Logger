@@ -91,6 +91,7 @@ $script:currentStep = "initialize"
 $failedStep = $null
 $failureMessage = $null
 $gitHead = $null
+$finalGitHead = $null
 $finalReleaseDir = $null
 $checksumsPath = $null
 $cliExe = $null
@@ -501,6 +502,23 @@ try {
             "-SkipPreflight"
         ))
 
+    $script:currentStep = "git_head_final"
+    $finalGitHeadResult = Invoke-RecordedCommand `
+        -Name $script:currentStep `
+        -FilePath $gitCommand.Source `
+        -Arguments @("-C", $RepoRoot, "rev-parse", "HEAD")
+    $finalGitHead = (Get-Content -Raw -LiteralPath $finalGitHeadResult.stdout).Trim()
+    if ([string]::IsNullOrWhiteSpace($finalGitHead)) {
+        Set-RecordedCommandFailure `
+            -Result $finalGitHeadResult `
+            -Message "Could not resolve final Git HEAD."
+    }
+    if ($finalGitHead -cne $gitHead) {
+        Set-RecordedCommandFailure `
+            -Result $finalGitHeadResult `
+            -Message "Git HEAD changed during release acceptance."
+    }
+
     $script:currentStep = "git_diff_check_final"
     [void](Invoke-RecordedCommand `
         -Name $script:currentStep `
@@ -543,6 +561,7 @@ $report = [ordered]@{
     package_name = $packageName
     package_version = $packageVersion
     git_head = $gitHead
+    final_git_head = $finalGitHead
     target = $resolvedTarget
     model_id = $resolvedTarget
     expected_model = $targetModel

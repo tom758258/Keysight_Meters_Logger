@@ -1,7 +1,8 @@
 param(
     [string]$DistPath = "dist",
     [string]$Name = "meters-tool",
-    [string]$WorkRoot = "build"
+    [string]$WorkRoot = "build",
+    [string]$SourceRoot
 )
 
 Set-StrictMode -Version Latest
@@ -35,17 +36,42 @@ if ([System.IO.Path]::IsPathRooted($WorkRoot)) {
 if (-not $workRootFull.StartsWith($repoPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
     throw "WorkRoot must stay under the repository: $workRootFull"
 }
+if ([string]::IsNullOrWhiteSpace($SourceRoot)) {
+    $sourceRootFull = $repoFull
+} elseif ([System.IO.Path]::IsPathRooted($SourceRoot)) {
+    $sourceRootFull = [System.IO.Path]::GetFullPath($SourceRoot)
+} else {
+    $sourceRootFull = [System.IO.Path]::GetFullPath((Join-Path $RepoRoot $SourceRoot))
+}
+if (-not (Test-Path -LiteralPath $sourceRootFull -PathType Container)) {
+    throw "SourceRoot directory not found: $sourceRootFull"
+}
+$sourceRootFull = (Resolve-Path -LiteralPath $sourceRootFull).Path
+if (-not (
+    $sourceRootFull.Equals($repoFull, [System.StringComparison]::OrdinalIgnoreCase) -or
+    $sourceRootFull.StartsWith($repoPrefix, [System.StringComparison]::OrdinalIgnoreCase)
+)) {
+    throw "SourceRoot must stay under the repository: $sourceRootFull"
+}
+$sourcePath = Join-Path $sourceRootFull "src"
+$previousPythonPath = $env:PYTHONPATH
 
-& $Python -m PyInstaller `
-    --onefile `
-    --console `
-    --name $Name `
-    --distpath $distFull `
-    --workpath (Join-Path $workRootFull "pyinstaller-cli") `
-    --specpath (Join-Path $workRootFull "pyinstaller-specs") `
-    --paths (Join-Path $RepoRoot "src") `
-    (Join-Path $RepoRoot "src\meters_tool_cli\cli.py")
+try {
+    $env:PYTHONPATH = $sourcePath
+    & $Python -m PyInstaller `
+        --onefile `
+        --console `
+        --name $Name `
+        --distpath $distFull `
+        --workpath (Join-Path $workRootFull "pyinstaller-cli") `
+        --specpath (Join-Path $workRootFull "pyinstaller-specs") `
+        --paths $sourcePath `
+        (Join-Path $sourceRootFull "src\meters_tool_cli\cli.py")
+    $pyinstallerExitCode = $LASTEXITCODE
+} finally {
+    $env:PYTHONPATH = $previousPythonPath
+}
 
-if ($LASTEXITCODE -ne 0) {
-    exit $LASTEXITCODE
+if ($pyinstallerExitCode -ne 0) {
+    exit $pyinstallerExitCode
 }
