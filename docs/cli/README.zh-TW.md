@@ -85,9 +85,13 @@ uv sync --all-extras --link-mode=copy
 .\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider --ignore=tests\cli\test_cli_wrappers.py
 ```
 
-對於 CI 或嚴格的 lock 檔案驗證，可在 sync 命令中加入 `--locked`。對於既有
-虛擬環境，`uv pip install -e ".[all,dev]" --link-mode=copy` 仍可作為選用的
-重新載入方式。
+對於 CI 或嚴格的 lock 檔案驗證，可在 sync 命令中加入 `--locked`。一般開發請依照根 README 的普通 `uv sync` 流程。若既有虛擬環境已完成同步，但仍缺少 console wrapper，或需要重建專案安裝 metadata，才使用：
+
+```powershell
+uv sync --all-extras --link-mode=copy --reinstall-package meters-tool
+```
+
+這個針對性的重新安裝不需要每次開發都執行，也不需要 pip。
 
 在 Windows 上，完整的 pytest 執行可能需要系統管理員權限的 PowerShell 視窗，因為 VISA 相關的探測或本機環境存取可能需要系統管理員權限。
 
@@ -97,7 +101,13 @@ uv sync --all-extras --link-mode=copy
 .\.venv\Scripts\meters-tool.exe <command> [options]
 ```
 
-`.venv\Scripts\meters-tool.exe` 是安裝時產生的，並非受版本控制的專案檔案。如果遺失，請先依照根目錄 [README 安裝](../../README.zh-TW.md#安裝) 流程使用 `uv sync --all-extras --link-mode=copy`；對於既有虛擬環境，也可使用上方開發段落中的選用 editable refresh。如果 PowerShell 因執行原則限制而阻擋啟用，請繼續使用本指南中顯示的明確 `.\.venv\Scripts\...` 命令。
+`.venv\Scripts\meters-tool.exe` 是安裝時產生的，並非受版本控制的專案檔案。如果遺失，請先依照根目錄 [README 安裝](../../README.zh-TW.md#安裝) 流程使用普通的 `uv sync --all-extras --link-mode=copy`。如果普通同步完成後 wrapper 仍然遺失，請強制 uv 只重新安裝本專案套件：
+
+```powershell
+uv sync --all-extras --link-mode=copy --reinstall-package meters-tool
+```
+
+這會重建 console wrapper，不需要 pip。如果 PowerShell 因執行原則限制而阻擋啟用，請繼續使用本指南中顯示的明確 `.\.venv\Scripts\...` 命令。
 
 也支援將明確的模組形式作為開發／備援替代方案：
 
@@ -117,11 +127,7 @@ uv sync --all-extras --link-mode=copy
 
 安裝的 `.venv\Scripts\meters-tool.exe` 是一個 virtualenv 主控台包裝器。對於沒有專案環境的機器，它並非獨立的執行檔。
 
-若要建置選用的獨立主控台 exe，請在已安裝 `meters-tool` 的環境中使用 PyInstaller。PyInstaller 是本機版本建置工具，而非 CLI 執行階段相依套件，因此在全新機器上重新建置之前，請將其安裝到 venv 中：
-
-```powershell
-uv pip install pyinstaller
-```
+若要建置選用的獨立主控台 exe，請在已安裝 `meters-tool` 的環境中使用 PyInstaller。PyInstaller 已包含在根 README 所述的 all-extras 開發環境中，完成標準的 `uv sync --all-extras --link-mode=copy` 後，可直接執行建置腳本：
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_cli_exe.ps1
@@ -1453,7 +1459,13 @@ CSV 欄位：
 
 ## 疑難排解
 
-- 如果缺少 `.\.venv\Scripts\meters-tool.exe`，請先依照根目錄 [README 安裝](../../README.zh-TW.md#安裝) 流程使用 `uv sync --all-extras --link-mode=copy`。對於既有虛擬環境，也可使用開發段落中的選用 editable refresh。
+- 如果缺少 `.\.venv\Scripts\meters-tool.exe`，請先依照根目錄 [README 安裝](../../README.zh-TW.md#安裝) 流程使用普通的 `uv sync --all-extras --link-mode=copy`。如果普通同步完成後 wrapper 仍然遺失，請使用：
+
+  ```powershell
+  uv sync --all-extras --link-mode=copy --reinstall-package meters-tool
+  ```
+
+  這會重建 console wrapper，不需要 pip。
 - 如果 PowerShell 啟用受阻，請繼續使用明確的 `.\.venv\Scripts\python.exe` 或 `.\.venv\Scripts\meters-tool.exe` 指令，而非啟用虛擬環境。
 - 如果未出現 VISA 資源，請確認 VISA 執行階段已安裝，且儀器在廠商連線工具中是可見的。
 - 如果 `list-resources` 顯示過期的快取資源，請執行 `list-resources --live-only` 來隱藏過期的項目。當需要檢查過期資源錯誤時，請使用 `list-resources --verify`。
@@ -1465,7 +1477,7 @@ CSV 欄位：
 
 ## 測試
 
-在執行測試前，請依照根目錄 [README 安裝](../../README.zh-TW.md#安裝) 流程安裝專案環境。對於既有虛擬環境，也可使用開發段落中的選用 editable refresh。
+在執行測試前，請依照根目錄 [README 安裝](../../README.zh-TW.md#安裝) 流程安裝專案環境。
 
 每日快速 pytest 執行：
 

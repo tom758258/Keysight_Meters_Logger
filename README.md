@@ -108,21 +108,22 @@ uv venv .venv --python 3.12
 ```
 
 The `uv.lock` file is used by uv for development and CI reproducibility.
-`pip install .` reads `pyproject.toml`, not `uv.lock`. Users without uv must
-install uv before using the locked environment.
-
-If you need pip directly, use the virtual environment's Python:
-
-```powershell
-.\.venv\Scripts\python.exe -m pip install .
-.\.venv\Scripts\python.exe -m pip install ".[webui]"
-.\.venv\Scripts\python.exe -m pip install -e ".[all,dev]"
-```
 
 Windows creates virtualenv console wrappers such as
 `.\.venv\Scripts\meters-tool.exe`,
 `.\.venv\Scripts\meters-tool-webui.exe`, and
 `.\.venv\Scripts\meters-tool-webui-launcher.exe`.
+
+If an existing virtual environment is synchronized but one or more console
+wrappers are missing, force uv to reinstall only the project package:
+
+```powershell
+uv sync --all-extras --link-mode=copy --reinstall-package meters-tool
+```
+
+This rebuilds the project package and recreates the console wrappers without
+requiring pip. It is normally unnecessary for a newly created virtual
+environment.
 
 ## Quick Start
 

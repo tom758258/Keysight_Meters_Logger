@@ -108,12 +108,8 @@ For the primary project setup, follow the root [README Install](../../README.md#
 section. It creates the project virtual environment and synchronizes the
 all-extras environment using the copy link mode described there.
 
-For an existing virtual environment, an editable install is an optional refresh
-path:
-
-```powershell
-uv pip install -e ".[all,dev]" --link-mode=copy
-```
+If an existing virtual environment is missing one or more WebUI console
+wrappers, use the console-wrapper troubleshooting flow in the root README.
 
 Check the wrapper:
 
@@ -776,13 +772,9 @@ Focused WebUI/Core no-hardware validation:
 ```
 
 Build the optional local launcher exe with PyInstaller from an environment that
-already has `meters-tool` installed. PyInstaller is a local release-build tool,
-not a WebUI runtime dependency, so install it into the venv before rebuilding on
-a fresh machine:
-
-```powershell
-uv pip install pyinstaller
-```
+already has `meters-tool` installed. PyInstaller is included in the all-extras
+development environment described in the root README; after following that
+setup, run the existing build script directly:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_webui_exe.ps1
@@ -843,7 +835,7 @@ For Frequency and Period real-instrument inspection:
 
 Wrapper is missing:
 
-- Re-run `uv pip install -e ".[all,dev]" --link-mode=copy`.
+- Follow the console-wrapper troubleshooting flow in the root README.
 - Confirm `.venv\Scripts\meters-tool-webui.exe` exists.
 
 Port is already in use:

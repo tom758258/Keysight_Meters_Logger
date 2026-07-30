@@ -89,20 +89,20 @@ uv sync --all-extras --locked --link-mode=copy
 uv venv .venv --python 3.12
 ```
 
-`uv.lock` 檔案用於 uv 的開發與 CI 可重現環境。`pip install .` 讀取的是 `pyproject.toml`，不會讀取 `uv.lock`。未使用 uv 的使用者若要使用鎖定環境，必須先安裝 uv。
-
-如果需要直接使用 pip，請使用虛擬環境中的 Python：
-
-```powershell
-.\.venv\Scripts\python.exe -m pip install .
-.\.venv\Scripts\python.exe -m pip install ".[webui]"
-.\.venv\Scripts\python.exe -m pip install -e ".[all,dev]"
-```
+`uv.lock` 檔案用於 uv 的開發與 CI 可重現環境。
 
 Windows 會建立 virtualenv console wrappers，例如
 `.\.venv\Scripts\meters-tool.exe`、
 `.\.venv\Scripts\meters-tool-webui.exe` 與
 `.\.venv\Scripts\meters-tool-webui-launcher.exe`。
+
+如果既有虛擬環境已完成同步，但仍缺少一個或多個 console wrapper，請強制 uv 只重新安裝本專案套件：
+
+```powershell
+uv sync --all-extras --link-mode=copy --reinstall-package meters-tool
+```
+
+這會重新建置專案套件並重建 console wrappers，不需要 pip。新建立的虛擬環境通常不需要執行此命令。
 
 ## 快速開始
 

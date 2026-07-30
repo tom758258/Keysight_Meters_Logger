@@ -81,11 +81,7 @@ http://127.0.0.1:8767/
 主要專案設定請遵循根目錄 [README 安裝](../../README.zh-TW.md#安裝) 章節。
 該流程會建立專案虛擬環境，並使用 copy link mode 同步 all-extras 環境。
 
-對於既有的虛擬環境，editable install 是選用的重新載入方式：
-
-```powershell
-uv pip install -e ".[all,dev]" --link-mode=copy
-```
+如果既有虛擬環境缺少一個或多個 WebUI console wrapper，請使用根 README 的 console-wrapper 疑難排解流程。
 
 檢查包裝器：
 
@@ -566,11 +562,7 @@ Get-ChildItem src\meters_tool_webui\static\*.js |
 .\.venv\Scripts\python.exe -m pytest tests/webui/test_webui_package_metadata.py tests/webui/test_webui_api.py tests/webui/test_webui_static.py tests/webui/test_launcher.py -q -p no:cacheprovider
 ```
 
-在已安裝 `meters-tool` 的環境中，使用 PyInstaller 建置選用的本機啟動器 exe。PyInstaller 是本機版本建置工具，非 WebUI 執行階段相依套件，因此在全新機器上重新建置之前，請將其安裝到 venv 中：
-
-```powershell
-uv pip install pyinstaller
-```
+在已安裝 `meters-tool` 的環境中，使用 PyInstaller 建置選用的本機啟動器 exe。PyInstaller 已包含在根 README 所述的 all-extras 開發環境中；完成該設定後，可直接執行既有的建置腳本：
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_webui_exe.ps1
@@ -620,7 +612,7 @@ uv run pytest tests -q -p no:cacheprovider
 
 包裝器遺失：
 
-- 重新執行 `uv pip install -e ".[all,dev]" --link-mode=copy`。
+- 請使用根 README 的 console-wrapper 疑難排解流程。
 - 確認 `.venv\Scripts\meters-tool-webui.exe` 存在。
 
 連接埠已被使用：
