@@ -166,9 +166,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\release-accept
 
 `-Target` 預設為 `keysight-34461a`；只有在發布變更明確與型號相關時才使用 `keysight-34460a`。`-Resource` 必須是相符的模擬器資源（`SIM::34461A` 或 `SIM::34460A`）；省略時，腳本會自動提供相符的資源。若省略 `-Release`，會使用套件版本；明確指定的 release 必須等於套件版本。`-OutputRoot` 必須位於 `.tmp_tests` 下。
 
-驗收會驗證 lock 檔案與乾淨的 Git 狀態，只執行一次快速測試套件，建置 wheel 與 sdist，將每個產物安裝到乾淨環境，檢查公開 entry points，執行 preflight 與 `live-cli-check.ps1 -PlanOnly`，並記錄 SHA-256 checksums。
+驗收會驗證 lock 檔案與乾淨的 Git 狀態，執行包含 wrapper 測試的完整無硬體測試套件，呼叫一次 `build_release.ps1`，並驗證最終的 wheel、source distribution、CLI 獨立 EXE、WebUI Launcher 獨立 EXE 與 SHA-256 checksums。接著執行 clean-install 套件 smoke test、兩個獨立執行檔的最小 smoke check、指定 target 的 preflight，以及既有的 `live-cli-check.ps1 -PlanOnly` 驗證。
 
-它不會開啟 VISA 硬體資源，也不會建置獨立執行檔。主要輸出位於 `.tmp_tests/release_acceptance/<target>/<timestamp>/`，包括 `report.json`、`summary.md`、`checksums.txt` 與建置出的 distribution 產物。這是正式發布門檻，不是一般本機套件建置或重新建置獨立 EXE 的必要步驟。
+它不會開啟 VISA 硬體資源。`build_release.ps1` 會建置獨立執行檔，而 release acceptance 會透過上述最小 smoke check 驗證它們。通過後會輸出可直接上傳至 GitHub Release 的版本化目錄。主要輸出位於 `.tmp_tests/release_acceptance/<target>/<timestamp>/`，包括 `report.json`、`summary.md`、`checksums.txt` 與建置出的 distribution 產物。這是正式發布門檻，不是一般本機套件建置或重新建置獨立 EXE 的必要步驟。
 
 ## 實體儀器驗證路徑
 
@@ -275,7 +275,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\live-cli-check
 | --- | --- | --- |
 | `scripts\preflight-cli.ps1` | 無硬體 | 執行依 target 的 dry-run 案例、模擬器案例、用戶端命令 dry-run、`list-resources` dry-run 合約，以及模擬的 `list-resources` pytest 覆蓋。一般無硬體驗證請使用 `-Target all`。 |
 | `scripts\live-cli-check.ps1` | 實機硬體（除非設定了 `-PlanOnly`） | 執行依 target 的實機 wrapper 規劃，並在互動確認後，針對明確的 `-Resource` 與確切連線/後端範圍執行有界限的實機驗證案例。 |
-| `scripts\release-acceptance.ps1` | 無硬體 | 驗證 wheel/sdist、乾淨安裝、entry points、preflight、`live-cli-check.ps1 -PlanOnly` 與 SHA-256 checksums，不建置獨立 EXE。 |
+| `scripts\release-acceptance.ps1` | 無硬體 | 執行包含 wrapper 測試的完整無硬體套件，呼叫一次 `build_release.ps1`，驗證 wheel/sdist、兩個獨立執行檔與 SHA-256 checksums，接著執行 clean-install 套件 smoke test、兩個獨立執行檔的最小 smoke check、指定 target 的 preflight 與 `live-cli-check.ps1 -PlanOnly`。 |
 
 從 `transport_pending` 或 `feature_pending` 提升為 `live_validated_full_suite` 需要經審核的產物以及明確的精確範圍支援 metadata/說明文件更新。除非已經提供並核准了經審核的產物，否則請勿在僅啟用驗證模式執行的同一次變更中，將待定的範圍或功能標記為公開實機支援。
 

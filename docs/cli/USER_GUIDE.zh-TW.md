@@ -53,7 +53,16 @@ $env:METER_RESOURCE = "USB0::...::INSTR"
 
 進行實機擷取時請使用明確的 `--resource` 值。傳遞 `"$env:METER_RESOURCE"` 仍會為 CLI 提供明確的資源；請勿依賴腳本或無人值守的工作流程來猜測應使用哪台儀器。
 
-live 啟動省略 `--model` 時，連接儀器的 `*IDN?` 決定 runtime profile。明確指定 `--model 34460A` 或 `--model 34461A` 只是 expected-model guard；selected model 絕不會覆寫 IDN-selected profile。live mismatch 會在 setup SCPI 前失敗。dry-run 或 simulator 才由 selected model 選擇 profile，除非 simulator resource 已確定型號，例如 `SIM::34460A` 或 `SIM::34461A`。型號名稱由 Core 設定檔邏輯進行標準化與驗證，因此未知的型號會以清楚的驗證錯誤失敗。
+live 啟動省略 `--model` 時，連接儀器的 `*IDN?` 決定 runtime profile。明確指定 `--model 34460A` 或 `--model 34461A` 只是 expected-model guard；selected model 絕不會覆寫 IDN-selected profile。`--model` 也接受穩定 model ID：`keysight-34460a` 與 `keysight-34461a`。在 live 模式中，任何 model 值仍只是 expected-model guard，不會解鎖其他支援範圍。live mismatch 會在 setup SCPI 前失敗。dry-run 或 simulator 才由 selected model 選擇 profile，除非 simulator resource 已確定型號，例如 `SIM::34460A` 或 `SIM::34461A`。型號名稱由 Core 設定檔邏輯進行標準化與驗證，因此未知的型號會以清楚的驗證錯誤失敗。
+
+## 實機支援範圍提醒
+
+某個 VISA resource 能回應 `*IDN?` 或出現在 `list-resources` 中，本身不代表所有型號與 transport/backend 組合都已 Product-open。首次實機執行前，請記住以下操作限制：
+
+- `34461A`：USB/system VISA 與 LAN/TCPIP with system VISA 已 Product-open。LAN/TCPIP with pyvisa-py `@py` 已 Product-open，但僅適用於 CLI。
+- `34460A`：目前 Product-open 的實機 connection scope 是 USB/system VISA。LAN/TCPIP with system VISA 與 LAN/TCPIP with pyvisa-py `@py` 尚未 Product-open。DCV Ratio 只在 USB/system VISA scope 開放。base profile 不支援 `external` 或 `external-custom` trigger、不支援 10 A/current-terminal 選擇，且 reading memory 上限為 1000。
+
+精確的型號、transport/backend、量測與觸發支援範圍，請參閱 [支援型號](../core/supported-models.md)。
 
 CLI 預設使用電腦的系統 VISA 執行階段，例如 Keysight IO Libraries Suite 或 NI-VISA。進階的 pyvisa-py LAN 診斷可以安裝可選的 backend 套件，並在 `list-resources` 或 `start-trigger-record` 中加入 `--visa-library "@py"`；`--backend "@py"` 也接受作為別名。已驗證的選用 `@py` 擷取範圍是 LAN/TCPIP 上的 34461A；目前可用的儀器尚未開放 34460A LAN/`@py`。一般的 WebUI 執行則使用預設的系統 VISA 執行階段。
 

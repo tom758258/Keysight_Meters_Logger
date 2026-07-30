@@ -71,11 +71,31 @@ used.
 Live starts auto-detect 34460A or 34461A from the connected instrument IDN when
 `--model` is omitted. Add `--model 34460A` or `--model 34461A` only when Start
 must require that IDN match; a live mismatch fails before setup, and the
-selected model never overrides the IDN-selected profile. Dry-run and simulate
-commands use the selected model profile and need `--model` unless the resource
-is the deterministic simulator resource `SIM::34460A` or `SIM::34461A`. Model
-names are normalized and validated by Core profile logic, so unknown models
-fail with a clear validation error.
+selected model never overrides the IDN-selected profile. `--model` also accepts
+the stable IDs `keysight-34460a` and `keysight-34461a`. In live mode, any
+model value remains an expected-model guard and does not unlock another support
+scope. Dry-run and simulate commands use the selected model profile and need
+`--model` unless the resource is the deterministic simulator resource
+`SIM::34460A` or `SIM::34461A`. Model names are normalized and validated by Core
+profile logic, so unknown models fail with a clear validation error.
+
+## Live Support Scope Reminder
+
+A VISA resource that answers `*IDN?` or appears in `list-resources` is not by
+itself Product-open for every model and transport/backend combination. Before
+the first live run, keep these operator-facing limits in mind:
+
+- `34461A`: USB/system VISA and LAN/TCPIP with system VISA are Product-open.
+  LAN/TCPIP with pyvisa-py `@py` is Product-open for CLI only.
+- `34460A`: the current Product-open live connection scope is USB/system VISA.
+  LAN/TCPIP with system VISA and LAN/TCPIP with pyvisa-py `@py` are not
+  Product-open. DCV Ratio is Product-open only within the USB/system VISA
+  scope. The base profile does not support `external` or `external-custom`,
+  does not support 10 A/current-terminal selection, and has a 1000-reading
+  memory limit.
+
+For the exact model, transport/backend, measurement, and trigger support scope,
+see [Supported Models](../core/supported-models.md).
 
 By default, the CLI uses the computer's system VISA runtime, such as Keysight
 IO Libraries Suite or NI-VISA. For advanced pyvisa-py LAN diagnostics, an

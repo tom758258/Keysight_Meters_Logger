@@ -255,13 +255,17 @@ script supplies that matching resource automatically. If `-Release` is
 omitted, the package version is used; a specified release must equal the
 package version. `-OutputRoot` must remain under `.tmp_tests`.
 
-The acceptance verifies the lock file and clean Git state, runs the fast test
-suite once, builds the wheel and sdist, installs each artifact into a clean
-environment, checks public entry points, runs preflight and
-`live-cli-check.ps1 -PlanOnly`, and records SHA-256 checksums.
+The acceptance verifies the lock file and clean Git state, runs the complete
+no-hardware test suite including wrapper tests, invokes `build_release.ps1`
+once, and validates the final wheel, source distribution, standalone CLI EXE,
+standalone WebUI Launcher EXE, and SHA-256 checksums. It then runs clean-install
+package smokes, minimal standalone executable smokes, selected-target preflight,
+and the existing `live-cli-check.ps1 -PlanOnly` validation.
 
-It does not open a VISA hardware resource or build standalone executables. The
-main outputs are written under
+It does not open a VISA hardware resource. `build_release.ps1` builds the
+standalone executables; release acceptance validates those executables with
+the minimal smoke checks above. A passing run prints the versioned directory
+that can be uploaded directly to a GitHub Release. The main outputs are written under
 `.tmp_tests/release_acceptance/<target>/<timestamp>/` and include
 `report.json`, `summary.md`, `checksums.txt`, and the built distribution
 artifacts. It is a formal release gate, not a prerequisite for ordinary local
@@ -476,7 +480,7 @@ Validation and release scripts:
 | --- | --- | --- |
 | `scripts\preflight-cli.ps1` | No hardware | Runs target-aware dry-run cases, simulator cases, client-command dry-runs, the `list-resources` dry-run contract, and mocked `list-resources` pytest coverage. Use `-Target all` for general no-hardware validation. |
 | `scripts\live-cli-check.ps1` | Live hardware unless `-PlanOnly` is set | Runs target-aware live-wrapper plans and, with interactive confirmation, bounded live validation cases against the explicit `-Resource` and exact connection/backend scope. |
-| `scripts\release-acceptance.ps1` | No hardware | Validates wheel/sdist, clean installs, entry points, preflight, `live-cli-check.ps1 -PlanOnly`, and SHA-256 checksums without building standalone EXEs. |
+| `scripts\release-acceptance.ps1` | No hardware | Runs the complete no-hardware suite including wrapper tests, invokes `build_release.ps1` once, validates wheel/sdist, both standalone executables, and SHA-256 checksums, then runs clean-install package smokes, minimal standalone executable smokes, selected-target preflight, and `live-cli-check.ps1 -PlanOnly`. |
 
 Promotion from `transport_pending` or `feature_pending` to
 `live_validated_full_suite` requires reviewed artifacts and an explicit exact-
