@@ -1,57 +1,156 @@
 # Meters Tool Core
 
 Core contains the public API and acquisition runtime contract used by the CLI
-and WebUI components for supported digital multimeter integrations.
-
-Core owns the shared request model, validation, dry-run planning, runtime
-session orchestration, event/result types, control-plane interfaces, profile
-metadata, and safety rules for the Meters Tool acquisition runtime. It is
-shipped inside the single `meters-tool` distribution while preserving the
+and WebUI components for supported digital multimeter integrations. It ships
+inside the single `meters-tool` distribution while preserving the
 `meters_tool_core` import boundary.
+
+## Purpose And Ownership
+
+Core owns the shared request model, request validation, dry-run planning,
+runtime session orchestration, instrument-profile metadata, live-support
+policy, runtime events and results, control-plane interfaces, and acquisition
+safety rules.
+
+CLI and WebUI own their input parsing, display text, localization, terminal and
+browser workflows, serialization, websocket or HTTP payloads, and other
+adapter-specific contracts. Core must not import `meters_tool_cli` or
+`meters_tool_webui`.
 
 Core can carry an optional `visa_library` value through `StartRequest` and
 `InstrumentConfig`. When it is unset, live VISA sessions use
-`pyvisa.ResourceManager()` and therefore the system default VISA runtime. CLI
-diagnostics may pass values such as `@py`; WebUI runs leave it unset.
+`pyvisa.ResourceManager()` and therefore the system-default VISA runtime. CLI
+diagnostics may pass an explicit value such as `@py`; normal WebUI runs leave
+the value unset.
 
-Current support scope is:
+## Request Admission And Adapter Boundary
 
-- 34461A: validated USB/system VISA, LAN/system VISA, and CLI-only
-  LAN/TCPIP with pyvisa-py `@py`.
-- 34460A: USB/system VISA is open for the currently approved workflows,
-  including the explicitly promoted DCV Ratio scope. LAN/TCPIP scopes remain
+`StartRequest` is the shared Core request boundary for validation, dry-run
+planning, simulation, and runtime session setup. Adapters must convert their
+own input into Core-owned values before submitting a request.
+
+Before constructing `StartRequest`, adapters should:
+
+- convert empty optional fields to `None`;
+- convert numeric inputs to `int` or `float`;
+- convert toggles to booleans or the documented Core semantic values;
+- normalize adapter-owned aliases;
+- map localized labels and display choices to canonical Core values;
+- keep terminal formatting, localized strings, browser labels, websocket
+  payload details, wrapper compatibility fields, and other adapter schemas
+  outside Core.
+
+CLI `argparse.Namespace` objects and WebUI form or JSON objects must not become
+the Core validation contract. They must first be translated into
+`StartRequest`.
+
+Core validation is authoritative even when an adapter has already disabled or
+filtered an option. Unsupported profile combinations, invalid request values,
+and missing live-support scopes fail closed. `run_start_session()` resolves
+the runtime profile and repeats the final request-validation and support-policy
+gate before backend connection and instrument setup, so direct Core callers
+cannot bypass the same boundary used by CLI and WebUI.
+
+See [Core Integration](integration.md#request-boundary) for the complete field
+normalization and validation flow.
+
+## Physical Identity And Profile Boundary
+
+`InstrumentProfile.model` is the canonical instrument model token used by
+existing request, expected-model, IDN, CLI, WebUI, and runtime contracts:
+
+| Instrument | Canonical model | Stable model ID |
+| --- | --- | --- |
+| Keysight 34461A | `34461A` | `keysight-34461a` |
+| Keysight 34460A | `34460A` | `keysight-34460a` |
+
+The canonical model and stable model ID are related but have different roles.
+Display text such as `Keysight 34461A` is presentation only. Stable model IDs
+are explicitly declared by Core profiles and are not generated from localized
+or display text.
+
+For a live start:
+
+- omitted `StartRequest.instrument_model` means that Core resolves the
+  connected profile from `*IDN?`;
+- an explicitly selected model is an expected-model guard only;
+- the detected `*IDN?` identity remains authoritative;
+- a selected/detected mismatch must fail before instrument-affecting setup or
+  write SCPI;
+- selecting a model or stable model ID never unlocks support for different
+  hardware.
+
+For dry-run and simulation, the selected model is the no-hardware planning
+profile. An explicit model is required unless the simulator resource
+deterministically names one, such as `SIM::34460A` or `SIM::34461A`.
+
+Adapters must use Core profile lookup and normalization rather than maintaining
+a competing model or model-ID registry.
+
+See [Core Integration](integration.md#profile-identity) for the full identity
+contract.
+
+## Live Support Policy
+
+Normal CLI, WebUI, and direct Core starts use Product mode. Product mode
+requires the exact connection scope and requested features to be Product-open.
+Live evaluation is based on all of the following:
+
+1. the detected model profile;
+2. the exact transport and VISA backend scope;
+3. the normalized measurement feature;
+4. the effective trigger-mode feature.
+
+Evidence for one connection scope does not open another scope. For example,
+USB/system-VISA evidence does not automatically open LAN/system-VISA or
+LAN/pyvisa-py.
+
+Current connection scope is:
+
+- 34461A: validated USB/system VISA and LAN/system VISA, plus CLI-only
+  LAN/TCPIP with pyvisa-py `@py`;
+- 34460A: USB/system VISA is Product-open for the currently approved workflows,
+  including the explicitly promoted DCV Ratio scope; LAN/TCPIP scopes remain
   pending.
 
-Stable model identity is:
+Maintainer-only Validation mode may execute only explicitly registered pending
+transport or feature scopes for bounded evidence collection. Validation mode
+does not mutate Product metadata, and passing validation artifacts does not
+automatically promote public support.
 
-| Instrument | Stable model ID |
+Missing entries, unknown statuses, unsupported scopes, and pending scopes used
+from Product mode fail closed. The simulator validates deterministic contracts
+and workflows only; it is not evidence of live measurement accuracy or hardware
+support.
+
+See [Supported Models](supported-models.md) for the user-facing support matrix
+and [Core Integration](integration.md#validation-flow) for the enforcing flow.
+
+## Public Package Surface
+
+Consumers should prefer imports from the `meters_tool_core` package root. The
+package-root `__all__` list is the stable public import boundary. The following
+modules provide the main public areas behind that boundary:
+
+| Module | Public responsibility |
 | --- | --- |
-| `34461A` | `keysight-34461a` |
-| `34460A` | `keysight-34460a` |
+| `meters_tool_core.capabilities` | Adapter-facing measurement and profile capability projections |
+| `meters_tool_core.models` | `StartRequest`, instrument profiles, model normalization, and profile resolution |
+| `meters_tool_core.run_plan` | Dry-run `StartPlan` construction |
+| `meters_tool_core.validation` | Request validation, trigger-mode resolution, and buffer-overflow warnings |
+| `meters_tool_core.support_policy` | Exact live-support lookup, feature requirements, metadata validation, and enforcing policy gates |
+| `meters_tool_core.session` | Runtime events, results, control-plane interfaces, and stop control |
+| `meters_tool_core.runner` | Final runtime orchestration through `run_start_session()` |
 
-See [Core Integration](integration.md) and
-[Supported Models](supported-models.md) for the detailed identity and support
-rules.
+These modules explain ownership; downstream adapters should still prefer the
+documented package-root imports rather than relying on implementation-only
+helpers inside submodules.
 
-For CLI/WebUI starts, `StartRequest.instrument_model = None` means auto-detect
-for live resources. Adapters may resolve the connected profile with an IDN-only
-preflight before validation and planning, but that preflight is not the final
-safety boundary. `run_start_session()` performs Core-owned runtime profile
-resolution, request validation, and the final support-policy gate again. Dry-
-run and simulator starts must use an explicit model unless the simulator
-resource deterministically names one, such as `SIM::34460A` or `SIM::34461A`.
+Do not present internal helpers, test hooks, or compatibility aliases as public
+API. The exact package-root export list is defined by
+`src/meters_tool_core/__init__.py` and documented in
+[Core Integration](integration.md#public-imports).
 
-Normal CLI, WebUI, and Core starts use Product mode, which requires the exact
-scope and requested features to be product-open. Maintainer-only Validation
-mode can execute only explicitly registered pending transport or feature
-scopes for evidence collection. Passing validation artifacts does not promote
-public support automatically. The simulator provides deterministic contract
-and workflow validation only; it is not evidence of live measurement accuracy
-or hardware support.
-
-The CLI and WebUI components own their command-line, web, wrapper, and
-serialization layers. Core must not import `meters_tool_cli` or
-`meters_tool_webui`.
 
 ## Validation
 

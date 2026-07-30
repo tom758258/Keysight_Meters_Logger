@@ -88,11 +88,9 @@ Important limitations:
   `live_validated_full_suite` for the detected model and exact transport/VISA
   backend. Missing feature metadata fails closed rather than inheriting
   support from another scope.
-- 34460A DCV Ratio is Product-open only on USB/system-VISA after maintainer
-  review and explicit promotion of separate bounded evidence. Normal CLI starts
-  do not need the hidden contributor validation selector. The existing 12-case
-  wrapper full suite did not include Ratio, and the promotion does not extend to
-  34460A LAN or pyvisa-py scopes.
+- 34460A DCV Ratio is Product-open only on USB/system-VISA. Normal CLI starts
+  do not need the hidden contributor validation selector. This support does not
+  extend to 34460A LAN or pyvisa-py scopes.
 - The 34460A has a lower maximum reading rate than the 34461A, but the CLI does
   not actively control high-speed reading rate in this release.
 - AC, Frequency, and Period modes expose the 34461A `3`, `20`, and `200` Hz
@@ -1242,15 +1240,7 @@ Terminal 2, send one software trigger:
 Run the `send-command` command five times. The logger stops automatically after
 five successful samples because of `--max-samples 5`.
 
-### Validated Voltage DC Smoke Tests
-
-These two voltage commands were reported OK on a real 34461A: Auto Range,
-manual 10 V range, and CSV fields/values all looked normal.
-
-Additional voltage trigger checks were also reported OK on the same instrument:
-software trigger with 1-2 rows, software timer with 2-3 rows, and external
-trigger with one external edge. Rough checks with `voltage-dc` plus
-`immediate-custom`, `software-custom`, and `external-custom` were also normal.
+### Voltage DC Smoke Tests
 
 Dry-run Auto Zero once check:
 
@@ -1362,16 +1352,13 @@ DCV Input Z smoke check, fixed 10 MOhm:
 
 For these checks, confirm the front panel Input Z state changes as expected:
 `auto` should select Auto and may show HighZ on lower DC voltage ranges, while
-`10m` should select fixed 10 MOhm. These two DCV Input Z smoke checks were
-reported OK on a real 34461A before the `v1.0.0-cli` baseline.
+`10m` should select fixed 10 MOhm.
 
 ### DCV Ratio Smoke Tests
 
 DCV Ratio uses the existing `VOLT:DC:RAT` implementation. It is Product-open
-for validated 34461A scopes and for 34460A only on USB/system-VISA. The 34460A
-scope was explicitly promoted after maintainer review of separate bounded
-evidence; the existing 12-case wrapper full suite did not include Ratio. Normal
-CLI use in that exact scope does not need the hidden validation selector.
+for validated 34461A scopes and for 34460A only on USB/system-VISA. Normal CLI
+use in that exact scope does not need the hidden validation selector.
 Connect the signal and reference leads according to the instrument manual
 before running live; a miswired ratio measurement can look numerically
 plausible while measuring the wrong relationship.
@@ -1530,10 +1517,7 @@ the private artifacts. Shareable `report.json` and `summary.md` omit measured
 values and private identifiers. `-PlanOnly` remains no-hardware, still creates
 both artifact directories, and does not run the SCPI probe.
 
-### Validated Resistance 2-Wire Smoke Tests
-
-These two resistance commands were reported OK on a real 34461A: Auto Range,
-manual 1000 Ohm range, and CSV fields/values all looked normal.
+### Resistance 2-Wire Smoke Tests
 
 Auto range, one immediate resistance sample:
 
@@ -1575,8 +1559,7 @@ production.
 
 These commands use the same trigger/read flow as other scalar measurements, but
 the 4-wire SCPI function is `FRES`. The CLI does not write `FRES:ZERO:AUTO`
-because the 34461A handles 4-wire resistance Auto Zero internally. These smoke
-tests were reported OK on a real 34461A after removing `FRES:ZERO:AUTO`.
+because the 34461A handles 4-wire resistance Auto Zero internally.
 
 Auto range, one immediate 4-wire resistance sample:
 

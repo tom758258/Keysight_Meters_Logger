@@ -1,43 +1,5 @@
 # Changelog
 
-## Unreleased
-
-### Documentation and contracts
-
-- Updated the copied Common contracts to the v2-only schema.
-- Added the minimum Meters contract changes for schema-2 command envelopes
-  and startup-bound expected/planning model identity while preserving existing
-  Worker, CLI, orchestration, CSV, trigger, and cleanup details.
-- Migrated the Meters Worker command/status runtime, CLI machine output and
-  lifecycle clients, and browser software-trigger request to Common schema 2.
-  Wrapper `report.json` schemas remain separately versioned at schema 1.
-
-### CLI
-
-- Limited live resource verification to opening the resource, querying
-  `*IDN?`, and closing the session without acquisition cleanup commands.
-
-### WebUI
-
-- The Windows launcher now binds the first available loopback port from a
-  bounded 100-port search, hands that same socket to Uvicorn, waits for the
-  WebUI capabilities identity before opening the browser, and shows the manual
-  port window only when automatic selection is exhausted.
-- The launcher now exits only after active-run cleanup completes and rejects
-  new runs after shutdown begins.
-- Added a headless launcher self-test for required WebUI imports and packaged
-  static resources.
-
-### Packaging and release
-
-- Added PyInstaller to the Windows development dependency set.
-- Formal release acceptance now runs the complete no-hardware suite including
-  wrapper tests, invokes the release build once, and validates the final wheel,
-  sdist, standalone CLI and WebUI Launcher executables, and SHA-256 checksums.
-  A passing run produces a directory ready for direct GitHub Release upload.
-- Formal release acceptance now verifies that Git HEAD remains unchanged, and
-  builds all four release artifacts from the same tracked source snapshot.
-
 ## v2.0.0
 
 This is the first public Meters Tool release after the breaking project
@@ -77,6 +39,32 @@ contracts remain unchanged.
 - Consolidated live-start resolution on the detected profile and recomputed
   trigger routing afterward so support validation and execution use the same
   live identity.
+
+### Documentation and contracts
+
+- Updated the copied Common contracts to the v2-only schema.
+- Added the minimum Meters contract changes for schema-2 command envelopes
+  and startup-bound expected/planning model identity while preserving existing
+  Worker, CLI, orchestration, CSV, trigger, and cleanup details.
+- Migrated the Meters Worker command/status runtime, CLI machine output and
+  lifecycle clients, and browser software-trigger request to Common schema 2.
+  Wrapper `report.json` schemas remain separately versioned at schema 1.
+
+### CLI
+
+- Limited live resource verification to opening the resource, querying
+  `*IDN?`, and closing the session without acquisition cleanup commands.
+
+### WebUI
+
+- The Windows launcher now binds the first available loopback port from a
+  bounded 100-port search, hands that same socket to Uvicorn, waits for the
+  WebUI capabilities identity before opening the browser, and shows the manual
+  port window only when automatic selection is exhausted.
+- The launcher now exits only after active-run cleanup completes and rejects
+  new runs after shutdown begins.
+- Added a headless launcher self-test for required WebUI imports and packaged
+  static resources.
 
 ### Adapters, validation, and maintenance
 
@@ -139,7 +127,15 @@ contracts remain unchanged.
   layered CI into Ruff, Linux and Windows Python matrices, and a dedicated
   Windows wrapper-contract job.
 
-### Release preparation
+### Packaging and release
+
+- Added PyInstaller to the Windows development dependency set.
+- Formal release acceptance now runs the complete no-hardware suite including
+  wrapper tests, invokes the release build once, and validates the final wheel,
+  sdist, standalone CLI and WebUI Launcher executables, and SHA-256 checksums.
+  A passing run produces a directory ready for direct GitHub Release upload.
+- Formal release acceptance now verifies that Git HEAD remains unchanged, and
+  builds all four release artifacts from the same tracked source snapshot.
 
 - Bumped the single `meters-tool` distribution version to `2.0.0` across
   package metadata, fallback version plumbing, lock metadata, version tests,

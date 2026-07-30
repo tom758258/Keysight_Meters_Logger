@@ -1,42 +1,99 @@
 # Meters Tool Core
 
-Core 包含供 CLI 與 WebUI 元件在支援的數位萬用電表整合中所使用的公開 API 與擷取執行階段合約。
+Core 包含供 CLI 與 WebUI 元件整合支援的數位萬用電表時使用的公開 API 與擷取執行階段合約。它會隨單一的 `meters-tool` 發行套件一同提供，同時保留 `meters_tool_core` 的 import 邊界。
 
-Core 負責共享的請求模型、驗證、dry-run 規劃、執行階段工作階段協調、事件/結果類型、控制面介面、設定檔 metadata，以及 Meters Tool 擷取執行階段的安全規則。它會隨單一的 `meters-tool` 發行套件一同提供，同時保留 `meters_tool_core` 的 import 邊界。
+## 用途與權責
 
-Core 可以透過 `StartRequest` 與 `InstrumentConfig` 傳遞選用的 `visa_library` 值。當未設定時，live VISA 工作階段會使用 `pyvisa.ResourceManager()`，也就是系統預設的 VISA 執行階段。CLI 診斷可以傳入像 `@py` 這類值；WebUI 執行則會保持未設定。
+Core 負責共享請求模型、請求驗證、dry-run 規劃、執行階段工作階段協調、儀器設定檔 metadata、實機支援政策、執行階段事件與結果、控制面介面，以及擷取安全規則。
 
-目前支援範圍如下：
+CLI 與 WebUI 負責各自的輸入解析、顯示文字、在地化、終端機與瀏覽器工作流程、序列化、websocket 或 HTTP payload，以及其他配接器專屬合約。Core 不得 import `meters_tool_cli` 或 `meters_tool_webui`。
 
-- 34461A：已驗證 USB/system VISA、LAN/system VISA，以及僅限 CLI、使用
-  pyvisa-py `@py` 的 LAN/TCPIP。
-- 34460A：目前已核准工作流程中的 USB/system VISA，包括明確提升的 DCV
-  Ratio 範圍；LAN/TCPIP 範圍仍待驗證。
+Core 可以透過 `StartRequest` 與 `InstrumentConfig` 傳遞選用的 `visa_library` 值。未設定時，live VISA 工作階段會使用 `pyvisa.ResourceManager()`，也就是系統預設的 VISA 執行階段。CLI 診斷可以傳入像 `@py` 這類明確值；一般 WebUI 執行則會保持未設定。
 
-穩定的型號身份如下：
+## 請求准入與配接器邊界
 
-| 儀器 | 穩定型號 ID |
+`StartRequest` 是 Core 供驗證、dry-run 規劃、模擬與執行階段工作階段設定共用的請求邊界。配接器必須先將自己的輸入轉換為 Core 擁有的值，再送出請求。
+
+建立 `StartRequest` 前，配接器應：
+
+- 將空白的選用欄位轉換為 `None`；
+- 將數值輸入轉換為 `int` 或 `float`；
+- 將切換選項轉換為布林值或文件定義的 Core 語意值；
+- 正規化配接器擁有的 alias；
+- 將在地化標籤與顯示選項對應至 canonical Core 值；
+- 將終端機格式、在地化字串、瀏覽器標籤、websocket payload 細節、wrapper 相容欄位及其他配接器 schema 保留在 Core 之外。
+
+CLI 的 `argparse.Namespace` 與 WebUI 的表單或 JSON 物件不得直接成為 Core 驗證合約。它們必須先轉換為 `StartRequest`。
+
+即使配接器已停用或過濾某個選項，Core 驗證仍是權威邊界。不受支援的設定檔組合、無效的請求值與缺少的實機支援 scope 都必須 fail closed。`run_start_session()` 會解析執行階段設定檔，並在連接 backend 與設定儀器之前再次執行最終請求驗證與支援政策閘門，因此直接呼叫 Core 的程式也不能繞過 CLI 與 WebUI 使用的相同邊界。
+
+完整的欄位正規化與驗證流程請參閱 [Core 整合](integration.md#request-boundary)。
+
+## 實體身份與設定檔邊界
+
+`InstrumentProfile.model` 是既有 request、expected-model、IDN、CLI、WebUI 與 runtime 合約使用的 canonical 儀器型號 token：
+
+| 儀器 | Canonical 型號 | 穩定型號 ID |
+| --- | --- | --- |
+| Keysight 34461A | `34461A` | `keysight-34461a` |
+| Keysight 34460A | `34460A` | `keysight-34460a` |
+
+Canonical 型號與穩定型號 ID 彼此相關，但用途不同。像 `Keysight 34461A` 這類顯示文字只屬於 presentation。穩定型號 ID 由 Core 設定檔明確宣告，不會在執行時由在地化文字或顯示文字產生。
+
+對 live 啟動而言：
+
+- 省略 `StartRequest.instrument_model` 代表由 Core 透過 `*IDN?` 解析已連接的設定檔；
+- 明確選擇的型號只作為 expected-model guard；
+- 透過 `*IDN?` 偵測到的身份仍是權威來源；
+- 選擇值與偵測值不一致時，必須在任何會影響儀器的設定或 write SCPI 前失敗；
+- 選擇型號或穩定型號 ID 絕不會為不同硬體解鎖支援。
+
+對 dry-run 與模擬而言，選擇的型號是無硬體規劃設定檔。除非 simulator 資源已確定地命名型號，例如 `SIM::34460A` 或 `SIM::34461A`，否則必須提供明確型號。
+
+配接器必須使用 Core 的設定檔查找與正規化功能，不得維護另一份互相競爭的型號或型號 ID registry。
+
+完整身份合約請參閱 [Core 整合](integration.md#profile-identity)。
+
+## 實機支援政策
+
+一般 CLI、WebUI 與直接 Core 啟動使用 Product mode。Product mode 要求確切的連線 scope 與請求功能都已對產品開放。實機政策評估必須包含：
+
+1. 偵測到的型號設定檔；
+2. 確切的 transport 與 VISA backend scope；
+3. 正規化後的 measurement feature；
+4. 有效的 trigger-mode feature。
+
+某個連線 scope 的證據不會自動開放另一個 scope。例如，USB/system-VISA 的證據不會自動開放 LAN/system-VISA 或 LAN/pyvisa-py。
+
+目前連線範圍如下：
+
+- 34461A：已驗證 USB/system VISA、LAN/system VISA，以及僅限 CLI、使用 pyvisa-py `@py` 的 LAN/TCPIP；
+- 34460A：目前已核准工作流程中的 USB/system VISA 已對產品開放，包括明確提升的 DCV Ratio scope；LAN/TCPIP scope 仍待驗證。
+
+僅限維護者使用的 Validation mode 只能執行明確註冊、尚待驗證的 transport 或 feature scope，以收集有界限的證據。Validation mode 不會改寫 Product metadata，通過驗證的 artifact 也不會自動提升公開支援。
+
+缺少的項目、未知狀態、不受支援的 scope，以及在 Product mode 中使用的 pending scope 都必須 fail closed。Simulator 只驗證確定性的合約與工作流程，不代表實機量測準確度或硬體支援證據。
+
+使用者可閱讀的支援矩陣請參閱 [支援的型號](supported-models.md)，實際執行閘門流程請參閱 [Core 整合](integration.md#validation-flow)。
+
+## 公開套件介面
+
+使用端應優先從 `meters_tool_core` package root import。Package root 的 `__all__` 清單是穩定的公開 import 邊界。以下模組提供該邊界背後的主要公開領域：
+
+| 模組 | 公開職責 |
 | --- | --- |
-| `34461A` | `keysight-34461a` |
-| `34460A` | `keysight-34460a` |
+| `meters_tool_core.capabilities` | 提供配接器使用的量測與設定檔 capability projection |
+| `meters_tool_core.models` | `StartRequest`、儀器設定檔、型號正規化與設定檔解析 |
+| `meters_tool_core.run_plan` | 建立 dry-run `StartPlan` |
+| `meters_tool_core.validation` | 請求驗證、觸發模式解析與 buffer overflow 警告 |
+| `meters_tool_core.support_policy` | 確切實機支援查找、feature requirements、metadata 驗證與政策執行閘門 |
+| `meters_tool_core.session` | 執行階段事件、結果、控制面介面與停止控制 |
+| `meters_tool_core.runner` | 透過 `run_start_session()` 進行最終執行階段協調 |
 
-詳細身份與支援規則請參閱 [Core 整合](integration.md) 和
-[支援的型號](supported-models.md)。
+這些模組用來說明權責；下游配接器仍應優先使用文件定義的 package-root import，不應依賴 submodule 中只供實作使用的 helper。
 
-對 CLI/WebUI 啟動來說，`StartRequest.instrument_model = None` 代表對 live
-資源進行自動偵測。配接器可先以只查 IDN 的 preflight 找出連接中的設定檔，
-但該 preflight 不是最終的安全邊界。`run_start_session()` 會再次執行 Core
-擁有的執行階段設定檔解析、請求驗證與最終支援政策閘門。除非 simulator
-資源已可確定地命名型號，例如 `SIM::34460A` 或 `SIM::34461A`，否則 dry-run
-與 simulator 啟動都必須使用明確的型號。
+不得將內部 helper、測試 hook 或相容 alias 描述為公開 API。確切的 package-root export 清單由 `src/meters_tool_core/__init__.py` 定義，並記錄於 [Core 整合](integration.md#public-imports)。
 
-一般 CLI、WebUI 與 Core 啟動使用 Product mode，要求確切的範圍與請求功能
-已對產品開放。僅限維護者使用的 Validation mode 只能執行明確註冊、尚待
-驗證的傳輸或功能範圍以收集證據。通過驗證的產物不會自動提升公開支援。
-Simulator 只提供確定性的合約與工作流程驗證，不代表實機量測準確度或硬體
-支援。
-
-CLI 與 WebUI 元件各自負責自己的命令列、網頁、包裝器與序列化層。Core 不得 import `meters_tool_cli` 或 `meters_tool_webui`。
 
 ## 驗證
 

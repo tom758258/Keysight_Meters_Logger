@@ -51,7 +51,7 @@ Python 整合應從 `meters_tool_core` 或 `meters_tool_core.*` 匯入共享的 
 - 當 Start 必須要求 34460A IDN 相符時，請選擇 `--model 34460A`。在實機模式下，這僅作為預期型號防護 (expected-model guard)，並不會覆寫由 IDN 決定的設定檔。在 dry-run 或模擬模式下，它會選擇 34460A 的設定檔限制：無 10 A 電流範圍或電流端子選擇、1000 筆讀值的記憶體，且無基礎設定檔外接觸發模式。
 - 當 Start 必須要求 34461A IDN 相符時，請選擇 `--model 34461A`。明確的實機不符會在 setup SCPI 之前失敗。型號名稱由 Core 設定檔邏輯進行標準化與驗證；未知的型號驗證會失敗，並列出支援的型號。
 - 實機產品支援具備功能感知 (feature-aware) 且範圍精確 (exact-scope)：對於偵測到的型號與確切的傳輸/VISA 後端，連線、量測與實際的觸發模式必須均為 `live_validated_full_suite`。缺少的功能 metadata 會以預設關閉 (fail-closed) 處理，而非繼承其他範圍的支援。
-- 34460A DCV Ratio 僅在 USB/system-VISA 上開放產品使用，這是在維護者審查並明確提升分開的有界限證據後完成的。一般 CLI 啟動不需要隱藏的貢獻者驗證選擇器。既有的 12 案例包裝器完整套件不包含 Ratio，且此提升不延伸至 34460A LAN 或 pyvisa-py 範圍。
+- 34460A DCV Ratio 僅在 USB/system-VISA 上開放產品使用。一般 CLI 啟動不需要隱藏的貢獻者驗證選擇器。此支援不延伸至 34460A LAN 或 pyvisa-py 範圍。
 - 34460A 的最大讀值速率低於 34461A，但 CLI 在此版本中不會主動控制高速讀值速率。
 - AC、頻率與週期模式透過 `--ac-bandwidth-hz` 公開 34461A 的 `3`、`20` 和 `200` Hz 頻寬/濾波器設定。在實際投入生產使用前，請使用操作人員提供的 VISA 資源執行低風險的實機資源快速功能健檢 (smoke test)，並將 CLI 記錄列與 34461A 前面板讀值進行對比。
 - `--nplc` 和 `--auto-zero` 是 DC/電阻控制項。AC 電流、AC 電壓、頻率與週期僅接受中性預設值 `--nplc 1.0`；任何其他 NPLC 值都將被拒絕，因為這些模式不會寫入 NPLC SCPI。它們也不會寫入 Auto Zero SCPI 指令。
@@ -889,11 +889,7 @@ Dry-run 10 A 端子檢查：
 
 執行 `send-command` 指令五次。記錄器會因為 `--max-samples 5` 而在成功取得五個樣本後自動停止。
 
-### 驗證過的 DC 電壓基本功能健檢
-
-這兩個電壓指令在實機 34461A 上回報正常：自動量程、手動 10 V 量程，且 CSV 欄位/數值看起來都很正常。
-
-在相同的儀器上，額外的電壓觸發檢查也回報正常：軟體觸發 (1-2 列)、軟體計時器 (2-3 列) 以及外接觸發 (單一外接邊緣)。搭配 `voltage-dc` 的 `immediate-custom`、`software-custom` 和 `external-custom` 粗略檢查也正常。
+### DC 電壓快速功能健檢
 
 Dry-run Auto Zero once 檢查：
 
@@ -998,11 +994,11 @@ DCV Input Z 快速功能健檢，固定 10 MOhm：
   --max-samples 1
 ```
 
-對於這些檢查，請確認前面板 Input Z 狀態是否符合預期變更：`auto` 應選擇自動並在較低的 DC 電壓範圍顯示 HighZ，而 `10m` 應選擇固定的 10 MOhm。這兩個 DCV Input Z 快速功能健檢在 `v1.0.0-cli` 基準前於真實 34461A 上回報正常。
+對於這些檢查，請確認前面板 Input Z 狀態是否符合預期變更：`auto` 應選擇自動並可能在較低的 DC 電壓範圍顯示 HighZ，而 `10m` 應選擇固定的 10 MOhm。
 
-### DCV 比率 (Ratio) 快速功能驗證
+### DCV 比率 (Ratio) 快速功能健檢
 
-DCV 比率 (Ratio) 使用現有的 `VOLT:DC:RAT` 實作。它已對驗證過的 34461A 範圍產品開放，且 34460A 僅在 USB/system-VISA 上為 `Product-open`。34460A 的此 scope 是在維護者審查並明確提升分開的有界限證據後開放；既有的 12-case wrapper full suite 不包含 Ratio。一般 CLI 與 WebUI 啟動不需要隱藏的驗證模式選擇器。34460A LAN/TCPIP system-VISA 與 LAN/TCPIP pyvisa-py `@py` 仍為 `transport_pending`，因此 Ratio 的提升不延伸至這些 scope。進行實機操作前，請依照儀器手冊連接信號和參考導線；錯誤連接的比率量測可能數值看起來合理，但量測的卻是錯誤的關係。
+DCV 比率 (Ratio) 使用現有的 `VOLT:DC:RAT` 實作。它已對驗證過的 34461A scope 開放，且 34460A 僅在 USB/system-VISA 上為 `Product-open`。一般 CLI 與 WebUI 啟動不需要隱藏的驗證模式選擇器。34460A LAN/TCPIP system-VISA 與 LAN/TCPIP pyvisa-py `@py` 仍為 `transport_pending`，因此 Ratio 的支援不延伸至這些 scope。進行實機操作前，請依照儀器手冊連接信號和參考導線；錯誤連接的比率量測可能數值看起來合理，但量測的卻是錯誤的關係。
 
 Dry-run DCV Ratio 檢查：
 
@@ -1029,7 +1025,7 @@ Dry-run DCV Ratio 檢查：
   --status-format jsonl
 ```
 
-產品開放的 34461A 實機 DCV Ratio 快速功能健檢：
+34461A 已驗證 scope 或 34460A USB/system-VISA 的 Product-open 實機 DCV Ratio 快速功能健檢：
 
 ```powershell
 .\.venv\Scripts\meters-tool.exe start-trigger-record `
@@ -1132,9 +1128,7 @@ Dry-run AC 頻寬檢查：
 
 透過 `scripts\live-cli-check.ps1 -Suite frequency-period` 可執行相同的一對檢查。包裝器會先執行行前檢查（preflight）與 dry-run 規劃，在實機 I/O 前需要互動式確認，在每個規劃的頻率/週期指令後檢查 SCPI 錯誤佇列，並將診斷結果及每個量測值和單位記錄在 `report.json` 與 `summary.md` 中。`-PlanOnly` 保持為無硬體模式且不會執行 SCPI 探測。
 
-### 驗證過的 2 線式電阻快速功能健檢
-
-這兩個電阻指令在實機 34461A 上回報正常：自動量程、手動 1000 Ohm 量程，且 CSV 欄位/數值看起來都很正常。
+### 2 線式電阻快速功能健檢
 
 自動量程，單一立即電阻取樣：
 
@@ -1169,7 +1163,7 @@ Dry-run AC 頻寬檢查：
 
 ### 4 線式電阻快速功能健檢
 
-這些指令使用與其他純量（scalar）量測相同的觸發/讀取流程，但 4 線式 SCPI 功能為 `FRES`。CLI 不會寫入 `FRES:ZERO:AUTO`，因為 34461A 在內部處理 4 線電阻的 Auto Zero。移除 `FRES:ZERO:AUTO` 後，這些快速功能健檢在真實的 34461A 上回報正常。
+這些指令使用與其他純量（scalar）量測相同的觸發/讀取流程，但 4 線式 SCPI 功能為 `FRES`。CLI 不會寫入 `FRES:ZERO:AUTO`，因為 34461A 在內部處理 4 線電阻的 Auto Zero。
 
 自動量程，單一立即 4 線電阻取樣：
 

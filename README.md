@@ -15,6 +15,8 @@ frequency, period, and 2-wire or 4-wire resistance measurements over VISA. Each
 captured sample is written as one CSV row with timestamp, measurement type,
 unit, trigger source, and related metadata.
 
+Live instrument access requires a separately installed VISA implementation. Meters Tool does not bundle a system VISA runtime; dry-run and simulation can be used without one.
+
 ## Features
 
 * Control supported digital multimeters over VISA
@@ -25,6 +27,10 @@ unit, trigger source, and related metadata.
 * Preview instrument commands using dry-run mode
 * Test workflows without hardware using the built-in simulator
 * Operate through either the CLI or local WebUI
+* Switch the browser WebUI between English and Traditional Chinese at runtime
+  without reloading the page or resetting the active run, form values, live
+  samples, chart state, status, or other runtime UI state; the manual choice is
+  persisted in the browser
 * Produce JSON and JSONL output for automation, agents, and orchestrators
 
 Live starts auto-detect the connected model from `*IDN?`; an explicitly selected
