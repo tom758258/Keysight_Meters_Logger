@@ -1,6 +1,7 @@
 param(
     [string]$DistPath = "dist",
-    [string]$Name = "meters-tool-webui-launcher"
+    [string]$Name = "meters-tool-webui-launcher",
+    [string]$WorkRoot = "build"
 )
 
 Set-StrictMode -Version Latest
@@ -26,14 +27,22 @@ if (-not (
 )) {
     throw "DistPath must stay under the repository: $distFull"
 }
+if ([System.IO.Path]::IsPathRooted($WorkRoot)) {
+    $workRootFull = [System.IO.Path]::GetFullPath($WorkRoot)
+} else {
+    $workRootFull = [System.IO.Path]::GetFullPath((Join-Path $RepoRoot $WorkRoot))
+}
+if (-not $workRootFull.StartsWith($repoPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+    throw "WorkRoot must stay under the repository: $workRootFull"
+}
 
 & $Python -m PyInstaller `
     --onefile `
     --windowed `
     --name $Name `
     --distpath $distFull `
-    --workpath (Join-Path $RepoRoot "build\pyinstaller-webui") `
-    --specpath (Join-Path $RepoRoot "build\pyinstaller-specs") `
+    --workpath (Join-Path $workRootFull "pyinstaller-webui") `
+    --specpath (Join-Path $workRootFull "pyinstaller-specs") `
     --paths (Join-Path $RepoRoot "src") `
     --add-data "$(Join-Path $RepoRoot 'src\meters_tool_webui\static');meters_tool_webui\static" `
     (Join-Path $RepoRoot "src\meters_tool_webui\launcher.py")

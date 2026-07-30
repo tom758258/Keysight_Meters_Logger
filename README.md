@@ -175,18 +175,10 @@ dist\meters_tool-<version>-py3-none-any.whl
 dist\meters_tool-<version>.tar.gz
 ```
 
-Standalone executables are separate, Windows-oriented PyInstaller workflows.
-Install PyInstaller before building exe artifacts:
-
-```powershell
-uv pip install pyinstaller --python .\.venv\Scripts\python.exe
-```
-
-If your virtual environment uses pip directly:
-
-```powershell
-.\.venv\Scripts\python.exe -m pip install pyinstaller
-```
+Standalone executables are Windows-oriented PyInstaller workflows. PyInstaller
+is included in the Windows `dev` dependency set, so the development environment
+created by `uv sync --all-extras --locked --link-mode=copy` is ready for release
+builds and formal release acceptance.
 
 Build the standalone CLI and WebUI launcher executables:
 
@@ -220,8 +212,13 @@ release\<version>\checksums.txt
 ```
 
 `release-acceptance.ps1` is the formal no-hardware release acceptance for a
-clean committed tree. It validates packages, clean installs, entry points,
-preflight, and PlanOnly workflows; it does not build standalone EXEs.
+clean committed tree. It runs the complete no-hardware test suite, including
+wrapper tests, invokes `build_release.ps1` once, and validates the final wheel,
+source distribution, standalone CLI EXE, standalone WebUI Launcher EXE, and
+SHA-256 checksums. It then runs clean-install package smokes, minimal standalone
+smokes, selected-target preflight, and the existing PlanOnly validation. A
+passing run prints the versioned directory that can be uploaded directly to a
+GitHub Release.
 
 ## Test
 

@@ -85,15 +85,21 @@ New-Item -ItemType Directory -Force -Path $runDir | Out-Null
 
 $reportPath = Join-Path $runDir "report.json"
 $summaryPath = Join-Path $runDir "summary.md"
-$checksumsPath = Join-Path $runDir "checksums.txt"
 $commands = [System.Collections.Generic.List[object]]::new()
 $artifacts = [System.Collections.Generic.List[object]]::new()
 $script:currentStep = "initialize"
 $failedStep = $null
 $failureMessage = $null
 $gitHead = $null
+$finalReleaseDir = $null
+$checksumsPath = $null
+$cliExe = $null
+$launcherExe = $null
 $wheel = $null
 $sdist = $null
+$checksumValidation = "not_run"
+$standaloneCliSmoke = "not_run"
+$launcherSelfTest = "not_run"
 
 function Invoke-RecordedCommand {
     param(
@@ -225,6 +231,12 @@ try {
         -FilePath $Python `
         -Arguments @("--version"))
 
+    $script:currentStep = "pyinstaller_version"
+    [void](Invoke-RecordedCommand `
+        -Name $script:currentStep `
+        -FilePath $Python `
+        -Arguments @("-m", "PyInstaller", "--version"))
+
     $script:currentStep = "git_clean"
     $gitStatusResult = Invoke-RecordedCommand `
         -Name $script:currentStep `
@@ -269,60 +281,110 @@ try {
         )
     }
 
-    $script:currentStep = "pytest_fast"
+    $script:currentStep = "pytest_no_hardware"
     [void](Invoke-RecordedCommand `
         -Name $script:currentStep `
         -FilePath $Python `
         -Arguments @(
             "-m", "pytest", "tests",
             "-q", "-p", "no:cacheprovider",
-            "--ignore=tests\cli\test_cli_wrappers.py",
-            "--basetemp", (Join-Path $runDir "pytest-fast")
+            "--basetemp", (Join-Path $runDir "pytest-no-hardware")
         ))
 
-    $script:currentStep = "prepare_build_output"
-    $buildRoot = Join-Path $runDir "build"
-    $artifactDir = Join-Path $buildRoot "dist"
-    Assert-UnderTmpRoot -Path $buildRoot
-    if (Test-Path -LiteralPath $buildRoot) {
-        Remove-Item -LiteralPath $buildRoot -Recurse -Force
-    }
-    New-Item -ItemType Directory -Force -Path $artifactDir | Out-Null
-
-    $script:currentStep = "build_distribution"
+    $script:currentStep = "build_release"
+    $finalArtifactsRoot = Join-Path $runDir "release"
+    Assert-UnderTmpRoot -Path $finalArtifactsRoot
     [void](Invoke-RecordedCommand `
         -Name $script:currentStep `
-        -FilePath $Python `
-        -Arguments @("-m", "build", "--outdir", $artifactDir))
+        -FilePath "powershell.exe" `
+        -Arguments @(
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            (Join-Path $PSScriptRoot "build_release.ps1"),
+            "-Version",
+            $packageVersion,
+            "-ReleaseRoot",
+            $finalArtifactsRoot
+        ))
 
-    $script:currentStep = "validate_artifacts"
-    $artifactFiles = @(Get-ChildItem -LiteralPath $artifactDir -File)
-    $wheelCandidates = @(
-        $artifactFiles |
-            Where-Object {
-                $_.Name.StartsWith("meters_tool-$packageVersion-") -and
-                $_.Name.EndsWith(".whl")
-            }
+    $script:currentStep = "validate_release_artifacts"
+    $finalReleaseDir = Join-Path $finalArtifactsRoot $packageVersion
+    Assert-UnderTmpRoot -Path $finalReleaseDir
+    $expectedArtifactNames = @(
+        "meters-tool-$packageVersion.exe",
+        "meters-tool-webui-launcher-$packageVersion.exe",
+        "meters_tool-$packageVersion-py3-none-any.whl",
+        "meters_tool-$packageVersion.tar.gz"
     )
-    $sdistCandidates = @(
-        $artifactFiles |
-            Where-Object { $_.Name -eq "meters_tool-$packageVersion.tar.gz" }
+    $expectedReleaseNames = @($expectedArtifactNames + "checksums.txt")
+    $releaseEntries = @(Get-ChildItem -LiteralPath $finalReleaseDir -Force)
+    $invalidEntries = @(
+        $releaseEntries |
+            Where-Object { $_.PSIsContainer -or $_.Name -notin $expectedReleaseNames }
     )
     if (
-        $artifactFiles.Count -ne 2 -or
-        $wheelCandidates.Count -ne 1 -or
-        $sdistCandidates.Count -ne 1
+        $releaseEntries.Count -ne $expectedReleaseNames.Count -or
+        $invalidEntries.Count -ne 0
     ) {
-        $found = ($artifactFiles.Name | Sort-Object) -join ", "
-        throw "Expected one wheel and one sdist for meters-tool $packageVersion; found: $found"
+        $found = ($releaseEntries.Name | Sort-Object) -join ", "
+        throw "Final release directory does not contain exactly the expected files: $found"
     }
-    $wheel = $wheelCandidates[0]
-    $sdist = $sdistCandidates[0]
+    foreach ($expectedName in $expectedReleaseNames) {
+        if (-not (Test-Path -LiteralPath (Join-Path $finalReleaseDir $expectedName) -PathType Leaf)) {
+            throw "Missing final release artifact: $expectedName"
+        }
+    }
 
-    $checksumLines = @()
-    foreach ($artifact in @($wheel, $sdist)) {
-        $artifactType = if ($artifact.Extension -eq ".whl") { "wheel" } else { "sdist" }
+    $cliExe = Get-Item -LiteralPath (Join-Path $finalReleaseDir $expectedArtifactNames[0])
+    $launcherExe = Get-Item -LiteralPath (Join-Path $finalReleaseDir $expectedArtifactNames[1])
+    $wheel = Get-Item -LiteralPath (Join-Path $finalReleaseDir $expectedArtifactNames[2])
+    $sdist = Get-Item -LiteralPath (Join-Path $finalReleaseDir $expectedArtifactNames[3])
+    $checksumsPath = Join-Path $finalReleaseDir "checksums.txt"
+
+    $script:currentStep = "validate_checksums"
+    $checksumValidation = "failed"
+    $checksumLines = @(Get-Content -LiteralPath $checksumsPath)
+    if ($checksumLines.Count -ne 4) {
+        throw "checksums.txt must contain exactly four artifact entries."
+    }
+    $checksumEntries = @{}
+    foreach ($line in $checksumLines) {
+        if ($line -notmatch '^([0-9A-Fa-f]{64})  (.+)$') {
+            throw "Malformed checksum entry: $line"
+        }
+        $filename = $Matches[2]
+        if ($checksumEntries.ContainsKey($filename)) {
+            throw "Duplicate checksum entry: $filename"
+        }
+        $checksumEntries[$filename] = $Matches[1].ToLowerInvariant()
+    }
+    foreach ($expectedName in $expectedArtifactNames) {
+        if (-not $checksumEntries.ContainsKey($expectedName)) {
+            throw "Missing checksum entry: $expectedName"
+        }
+    }
+    foreach ($filename in $checksumEntries.Keys) {
+        if ($filename -notin $expectedArtifactNames) {
+            throw "Unexpected checksum entry: $filename"
+        }
+    }
+
+    foreach ($artifact in @($cliExe, $launcherExe, $wheel, $sdist)) {
         $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $artifact.FullName).Hash.ToLowerInvariant()
+        if ($checksumEntries[$artifact.Name] -ne $hash) {
+            throw "SHA-256 mismatch for $($artifact.Name)"
+        }
+        $artifactType = if ($artifact.Name -eq $expectedArtifactNames[0]) {
+            "cli_exe"
+        } elseif ($artifact.Name -eq $expectedArtifactNames[1]) {
+            "webui_launcher_exe"
+        } elseif ($artifact.Name -eq $expectedArtifactNames[2]) {
+            "wheel"
+        } else {
+            "sdist"
+        }
         $relativePath = Get-RepoRelativePath -Path $artifact.FullName
         $artifacts.Add([pscustomobject][ordered]@{
             type = $artifactType
@@ -331,12 +393,75 @@ try {
             sha256 = $hash
             package_version = $packageVersion
         }) | Out-Null
-        $checksumLines += "$hash  $($artifact.Name)"
     }
-    Write-Utf8NoBomLines -LiteralPath $checksumsPath -Lines $checksumLines
+    $checksumValidation = "passed"
 
     Invoke-ArtifactSmoke -Label "wheel" -Artifact $wheel -UvPath $uvCommand.Source
     Invoke-ArtifactSmoke -Label "sdist" -Artifact $sdist -UvPath $uvCommand.Source
+
+    $standaloneCliSmoke = "failed"
+    $script:currentStep = "standalone_cli_version"
+    $standaloneVersionResult = Invoke-RecordedCommand `
+        -Name $script:currentStep `
+        -FilePath $cliExe.FullName `
+        -Arguments @("--version")
+    $standaloneVersionOutput = (Get-Content -Raw -LiteralPath $standaloneVersionResult.stdout).Trim()
+    if ($standaloneVersionOutput -ne "meters-tool $packageVersion") {
+        Set-RecordedCommandFailure `
+            -Result $standaloneVersionResult `
+            -Message "Standalone CLI version was '$standaloneVersionOutput'; expected 'meters-tool $packageVersion'."
+    }
+
+    $script:currentStep = "standalone_cli_help"
+    [void](Invoke-RecordedCommand `
+        -Name $script:currentStep `
+        -FilePath $cliExe.FullName `
+        -Arguments @("--help"))
+
+    $script:currentStep = "standalone_cli_simulator"
+    $standaloneCsv = Join-Path $runDir "standalone-cli.csv"
+    $standaloneResult = Invoke-RecordedCommand `
+        -Name $script:currentStep `
+        -FilePath $cliExe.FullName `
+        -Arguments @(
+            "start-trigger-record",
+            "--resource", $Resource,
+            "--model", $targetModel,
+            "--measurement", "current-dc",
+            "--trigger-mode", "immediate",
+            "--max-samples", "1",
+            "--simulate",
+            "--sw-trigger-port", "0",
+            "--csv", $standaloneCsv,
+            "--status-format", "jsonl"
+        )
+    $standaloneEvents = @(Read-JsonLines -Path $standaloneResult.stdout)
+    $summaryEvents = @($standaloneEvents | Where-Object { $_.event -eq "summary" })
+    if ($summaryEvents.Count -eq 0) {
+        Set-RecordedCommandFailure `
+            -Result $standaloneResult `
+            -Message "Standalone CLI simulator did not produce a summary event."
+    }
+    $standaloneSummary = $summaryEvents[-1]
+    if ([int]$standaloneSummary.captured -ne 1 -or [int]$standaloneSummary.errors -ne 0) {
+        Set-RecordedCommandFailure `
+            -Result $standaloneResult `
+            -Message "Standalone CLI simulator summary did not report captured=1 and errors=0."
+    }
+    if ((Test-CsvRowCount -Path $standaloneCsv) -lt 1) {
+        Set-RecordedCommandFailure `
+            -Result $standaloneResult `
+            -Message "Standalone CLI simulator CSV did not contain a data row."
+    }
+    $standaloneCliSmoke = "passed"
+
+    $launcherSelfTest = "failed"
+    $script:currentStep = "launcher_self_test"
+    [void](Invoke-RecordedCommand `
+        -Name $script:currentStep `
+        -FilePath $launcherExe.FullName `
+        -Arguments @("--self-test"))
+    $launcherSelfTest = "passed"
 
     $script:currentStep = "preflight_cli"
     [void](Invoke-RecordedCommand `
@@ -404,6 +529,11 @@ $status = if ($null -eq $failedStep) { "passed" } else { "failed" }
 $relativeReportPath = Get-RepoRelativePath -Path $reportPath
 $relativeSummaryPath = Get-RepoRelativePath -Path $summaryPath
 $relativeOutputDir = Get-RepoRelativePath -Path $runDir
+$relativeFinalReleaseDir = if ($null -ne $finalReleaseDir) {
+    Get-RepoRelativePath -Path $finalReleaseDir
+} else {
+    $null
+}
 
 $report = [ordered]@{
     schema_version = 1
@@ -420,18 +550,33 @@ $report = [ordered]@{
     generated_at = (Get-Date).ToUniversalTime().ToString("o")
     validation_mode = "release_acceptance_no_hardware"
     output_dir = $relativeOutputDir
+    final_release_dir = $relativeFinalReleaseDir
     artifact_paths = [ordered]@{
         output_dir = $relativeOutputDir
+        final_release_dir = $relativeFinalReleaseDir
         report = $relativeReportPath
         summary = $relativeSummaryPath
-        checksums = if (Test-Path -LiteralPath $checksumsPath) {
+        checksums = if ($null -ne $checksumsPath -and (Test-Path -LiteralPath $checksumsPath)) {
             Get-RepoRelativePath -Path $checksumsPath
+        } else {
+            $null
+        }
+        cli_exe = if ($null -ne $cliExe) {
+            Get-RepoRelativePath -Path $cliExe.FullName
+        } else {
+            $null
+        }
+        webui_launcher_exe = if ($null -ne $launcherExe) {
+            Get-RepoRelativePath -Path $launcherExe.FullName
         } else {
             $null
         }
         wheel = if ($null -ne $wheel) { Get-RepoRelativePath -Path $wheel.FullName } else { $null }
         sdist = if ($null -ne $sdist) { Get-RepoRelativePath -Path $sdist.FullName } else { $null }
     }
+    checksum_validation = $checksumValidation
+    standalone_cli_smoke = $standaloneCliSmoke
+    launcher_self_test = $launcherSelfTest
     artifacts = $artifactItems
     status = $status
     failed_step = $failedStep
@@ -452,6 +597,10 @@ $summaryLines = @(
     "- Status: $status",
     "- Validation mode: release_acceptance_no_hardware",
     "- Output directory: $relativeOutputDir",
+    "- Final release directory: $relativeFinalReleaseDir",
+    "- Checksum validation: $checksumValidation",
+    "- Standalone CLI smoke: $standaloneCliSmoke",
+    "- Launcher self-test: $launcherSelfTest",
     "- Report: $relativeReportPath"
 )
 if ($null -ne $failedStep) {
@@ -483,3 +632,4 @@ Write-Host "summary: $relativeSummaryPath"
 if ($status -ne "passed") {
     exit 1
 }
+Write-Host "GitHub Release upload directory: $relativeFinalReleaseDir"

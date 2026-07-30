@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from importlib import import_module
+from importlib.resources import files
 import json
 from queue import Empty, Queue
+import sys
 import threading
 import time
 import tkinter as tk
@@ -37,6 +40,30 @@ def parse_port(value: str) -> int:
     if port < 1 or port > 65535:
         raise ValueError("Port must be between 1 and 65535.")
     return port
+
+
+def run_self_test() -> int:
+    try:
+        for module_name in ("meters_tool_webui", "meters_tool_webui.web_ui"):
+            import_module(module_name)
+        static_root = files("meters_tool_webui").joinpath("static")
+        missing = [
+            name
+            for name in ("index.html", "styles.css", "app.js")
+            if not static_root.joinpath(name).is_file()
+        ]
+        if missing:
+            raise FileNotFoundError(f"Missing packaged WebUI static files: {missing}")
+    except Exception as exc:
+        if sys.stderr is not None:
+            print(
+                f"WebUI launcher self-test failed: {type(exc).__name__}: {exc}",
+                file=sys.stderr,
+            )
+        return 1
+    if sys.stdout is not None:
+        print("WebUI launcher self-test passed")
+    return 0
 
 
 class LauncherApp:
@@ -324,7 +351,10 @@ def _http_server_is_ready(url: str) -> bool:
         return False
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    args = sys.argv[1:] if argv is None else argv
+    if args == ["--self-test"]:
+        return run_self_test()
     root = tk.Tk()
     LauncherApp(root)
     root.mainloop()

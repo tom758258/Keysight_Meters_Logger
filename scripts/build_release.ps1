@@ -14,8 +14,11 @@ if (-not (Test-Path -LiteralPath $Python)) {
     throw "Python executable not found: $Python"
 }
 
+$packageVersion = Get-PackageVersion -Required
 if ([string]::IsNullOrWhiteSpace($Version)) {
-    $Version = Get-PackageVersion -Required
+    $Version = $packageVersion
+} elseif ($Version -ne $packageVersion) {
+    throw "Version $Version does not match package version $packageVersion"
 }
 
 if ([System.IO.Path]::IsPathRooted($ReleaseRoot)) {
@@ -32,26 +35,56 @@ if (-not (
     throw "ReleaseRoot must stay under the repository: $releaseRootFull"
 }
 
-$versionDir = Join-Path $releaseRootFull $Version
+$versionDir = [System.IO.Path]::GetFullPath((Join-Path $releaseRootFull $Version))
+Assert-PathUnderRoot `
+    -RootPath $releaseRootFull `
+    -Path $versionDir `
+    -Message "Version directory must stay under ReleaseRoot: {0}"
+if (Test-Path -LiteralPath $versionDir) {
+    Remove-Item -LiteralPath $versionDir -Recurse -Force
+}
 New-Item -ItemType Directory -Force -Path $versionDir | Out-Null
+$buildRoot = Join-Path $releaseRootFull ".build-$Version"
+Assert-PathUnderRoot `
+    -RootPath $releaseRootFull `
+    -Path $buildRoot `
+    -Message "Build directory must stay under ReleaseRoot: {0}"
+if (Test-Path -LiteralPath $buildRoot) {
+    Remove-Item -LiteralPath $buildRoot -Recurse -Force
+}
+$sourceRoot = Join-Path $buildRoot "source"
+New-Item -ItemType Directory -Force -Path $sourceRoot | Out-Null
+$trackedFiles = @(& git -C $RepoRoot -c core.quotepath=false ls-files)
+if ($LASTEXITCODE -ne 0) {
+    exit $LASTEXITCODE
+}
+foreach ($relativePath in $trackedFiles) {
+    $sourcePath = Join-Path $RepoRoot $relativePath
+    if (-not (Test-Path -LiteralPath $sourcePath -PathType Leaf)) {
+        continue
+    }
+    $destinationPath = Join-Path $sourceRoot $relativePath
+    $destinationParent = Split-Path -Parent $destinationPath
+    New-Item -ItemType Directory -Force -Path $destinationParent | Out-Null
+    Copy-Item -LiteralPath $sourcePath -Destination $destinationPath
+}
 
-& $Python -m build
+& $Python -m build $sourceRoot --outdir $versionDir
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-& powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "build_cli_exe.ps1") -DistPath $versionDir -Name "meters-tool-$Version"
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "build_cli_exe.ps1") -DistPath $versionDir -Name "meters-tool-$Version" -WorkRoot $buildRoot
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-& powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "build_webui_exe.ps1") -DistPath $versionDir -Name "meters-tool-webui-launcher-$Version"
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "build_webui_exe.ps1") -DistPath $versionDir -Name "meters-tool-webui-launcher-$Version" -WorkRoot $buildRoot
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-Copy-Item -LiteralPath (Join-Path $RepoRoot "dist\meters_tool-$Version-py3-none-any.whl") -Destination $versionDir -Force
-Copy-Item -LiteralPath (Join-Path $RepoRoot "dist\meters_tool-$Version.tar.gz") -Destination $versionDir -Force
+Remove-Item -LiteralPath $buildRoot -Recurse -Force
 
 $checksums = foreach (
     $artifact in Get-ChildItem -LiteralPath $versionDir -File |

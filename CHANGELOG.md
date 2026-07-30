@@ -21,6 +21,16 @@
 
 - The launcher now exits only after active-run cleanup completes and rejects
   new runs after shutdown begins.
+- Added a headless launcher self-test for required WebUI imports and packaged
+  static resources.
+
+### Packaging and release
+
+- Added PyInstaller to the Windows development dependency set.
+- Formal release acceptance now runs the complete no-hardware suite including
+  wrapper tests, invokes the release build once, and validates the final wheel,
+  sdist, standalone CLI and WebUI Launcher executables, and SHA-256 checksums.
+  A passing run produces a directory ready for direct GitHub Release upload.
 
 ## v2.0.0
 

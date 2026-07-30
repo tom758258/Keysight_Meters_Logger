@@ -10,7 +10,9 @@ from meters_tool_webui.launcher import (
     DEFAULT_PORT,
     LauncherApp,
     build_local_url,
+    main,
     parse_port,
+    run_self_test,
 )
 
 
@@ -27,6 +29,31 @@ class LauncherHelperTests(unittest.TestCase):
     def test_parse_port_accepts_valid_values(self):
         self.assertEqual(8767, parse_port("8767"))
         self.assertEqual(8080, parse_port(" 8080 "))
+
+    def test_self_test_succeeds_with_required_static_resources(self):
+        with (
+            patch("meters_tool_webui.launcher.import_module"),
+            patch("meters_tool_webui.launcher.files") as resource_files,
+        ):
+            static_root = resource_files.return_value.joinpath.return_value
+            static_root.joinpath.return_value.is_file.return_value = True
+
+            self.assertEqual(0, run_self_test())
+
+    def test_self_test_fails_when_static_resource_is_missing(self):
+        with (
+            patch("meters_tool_webui.launcher.import_module"),
+            patch("meters_tool_webui.launcher.files") as resource_files,
+        ):
+            static_root = resource_files.return_value.joinpath.return_value
+            static_root.joinpath.return_value.is_file.side_effect = [True, False, True]
+
+            self.assertEqual(1, run_self_test())
+
+    @patch("meters_tool_webui.launcher.tk.Tk")
+    def test_self_test_does_not_create_tk_root(self, tk_root):
+        self.assertEqual(0, main(["--self-test"]))
+        tk_root.assert_not_called()
 
     def test_script_entry_point_is_after_readiness_helper(self):
         source = (

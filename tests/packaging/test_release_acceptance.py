@@ -40,6 +40,7 @@ def test_release_acceptance_checks_tools_lock_and_clean_git_tree():
         'Get-Command -Name "git"',
         'Get-Command -Name "uv"',
         "Project Python executable not found",
+        '@("-m", "PyInstaller", "--version")',
         '@("lock", "--check")',
         '@("-C", $RepoRoot, "status", "--porcelain")',
         "Git working tree must be clean before release acceptance.",
@@ -47,19 +48,20 @@ def test_release_acceptance_checks_tools_lock_and_clean_git_tree():
         assert contract in script
 
 
-def test_release_acceptance_runs_fast_suite_without_wrapper_tests():
+def test_release_acceptance_runs_complete_no_hardware_suite():
     script = release_acceptance_text()
 
+    assert '$script:currentStep = "pytest_no_hardware"' in script
     assert '"-m", "pytest", "tests"' in script
-    assert '"--ignore=tests\\cli\\test_cli_wrappers.py"' in script
-    assert '"--basetemp", (Join-Path $runDir "pytest-fast")' in script
+    assert '"--ignore=tests\\cli\\test_cli_wrappers.py"' not in script
+    assert '"--basetemp", (Join-Path $runDir "pytest-no-hardware")' in script
     assert "pytest_metadata_docs" not in script
 
 
 def test_release_acceptance_isolates_python_process_environment():
     script = release_acceptance_text()
     isolation_start = script.index('$env:PYTHONNOUSERSITE = "1"')
-    pytest_start = script.index('$script:currentStep = "pytest_fast"')
+    pytest_start = script.index('$script:currentStep = "pytest_no_hardware"')
     isolation_block = script[isolation_start:pytest_start]
 
     assert "SetEnvironmentVariable(" in isolation_block
@@ -75,13 +77,26 @@ def test_release_acceptance_isolates_python_process_environment():
         assert f'"{variable}"' in isolation_block
 
 
-def test_release_acceptance_covers_artifacts_smokes_wrappers_and_checksums():
+def test_release_acceptance_builds_release_once_without_direct_distribution_build():
+    script = release_acceptance_text()
+
+    assert script.count("build_release.ps1") == 1
+    assert '@("-m", "build"' not in script
+
+
+def test_release_acceptance_validates_final_artifacts_and_checksums():
     script = release_acceptance_text()
 
     for contract in (
-        '@("-m", "build", "--outdir", $artifactDir)',
-        'StartsWith("meters_tool-$packageVersion-")',
-        'Name -eq "meters_tool-$packageVersion.tar.gz"',
+        '"meters-tool-$packageVersion.exe"',
+        '"meters-tool-webui-launcher-$packageVersion.exe"',
+        '"meters_tool-$packageVersion-py3-none-any.whl"',
+        '"meters_tool-$packageVersion.tar.gz"',
+        '"checksums.txt"',
+        "$releaseEntries.Count -ne $expectedReleaseNames.Count",
+        "$checksumLines.Count -ne 4",
+        "Get-FileHash -Algorithm SHA256",
+        "SHA-256 mismatch",
         'Invoke-ArtifactSmoke -Label "wheel"',
         'Invoke-ArtifactSmoke -Label "sdist"',
         "import meters_tool_core, meters_tool_cli, meters_tool_webui",
@@ -96,7 +111,26 @@ def test_release_acceptance_covers_artifacts_smokes_wrappers_and_checksums():
         "Scripts\\meters-tool-webui-launcher.exe",
         "Path(sys.argv[1]).is_file()",
         '${Label}_launcher_entry_point',
-        "Get-FileHash -Algorithm SHA256",
+    ):
+        assert contract in script
+
+
+def test_release_acceptance_runs_minimal_standalone_smokes_and_existing_preflight():
+    script = release_acceptance_text()
+
+    for contract in (
+        '$script:currentStep = "standalone_cli_version"',
+        '$script:currentStep = "standalone_cli_help"',
+        '$script:currentStep = "standalone_cli_simulator"',
+        '"--measurement", "current-dc"',
+        '"--trigger-mode", "immediate"',
+        '"--max-samples", "1"',
+        '"--simulate"',
+        '"--status-format", "jsonl"',
+        'Where-Object { $_.event -eq "summary" }',
+        "Test-CsvRowCount",
+        '$script:currentStep = "launcher_self_test"',
+        '@("--self-test")',
         ".\\scripts\\preflight-cli.ps1",
         ".\\scripts\\live-cli-check.ps1",
         '"-Suite"',
@@ -116,6 +150,12 @@ def test_release_acceptance_report_uses_project_release_semantics():
         'validation_mode = "release_acceptance_no_hardware"',
         "failed_step = $failedStep",
         "error = $failureMessage",
+        "final_release_dir = $relativeFinalReleaseDir",
+        "cli_exe = if ($null -ne $cliExe)",
+        "webui_launcher_exe = if ($null -ne $launcherExe)",
+        "checksum_validation = $checksumValidation",
+        "standalone_cli_smoke = $standaloneCliSmoke",
+        "launcher_self_test = $launcherSelfTest",
         "artifacts = $artifactItems",
         "commands = $commandItems",
     ):
@@ -143,16 +183,3 @@ def test_release_acceptance_rechecks_final_working_tree_hygiene():
     assert '@("-C", $RepoRoot, "status", "--porcelain")' in final_block
     assert script.count('@("-C", $RepoRoot, "status", "--porcelain")') == 2
     assert "Git working tree must remain clean after release acceptance." in final_block
-
-
-def test_release_acceptance_does_not_build_standalone_artifacts():
-    script = release_acceptance_text()
-
-    for forbidden in (
-        "pyinstaller",
-        "build_release.ps1",
-        "build_cli_exe.ps1",
-        "build_webui_exe.ps1",
-        "IncludeStandalone",
-    ):
-        assert forbidden.lower() not in script.lower()
