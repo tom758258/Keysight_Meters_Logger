@@ -228,9 +228,11 @@ function Invoke-CapturedCommand {
 
     $startedAt = Get-Date
     $process = [System.Diagnostics.Process]::Start($psi)
-    $stdout = $process.StandardOutput.ReadToEnd()
-    $stderr = $process.StandardError.ReadToEnd()
+    $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+    $stderrTask = $process.StandardError.ReadToEndAsync()
     $process.WaitForExit()
+    $stdout = $stdoutTask.GetAwaiter().GetResult()
+    $stderr = $stderrTask.GetAwaiter().GetResult()
     $finishedAt = Get-Date
 
     Write-Utf8NoBomText -LiteralPath $StdOutPath -Text $stdout

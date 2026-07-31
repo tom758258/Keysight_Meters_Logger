@@ -136,6 +136,10 @@ contracts remain unchanged.
   A passing run produces a directory ready for direct GitHub Release upload.
 - Formal release acceptance now verifies that Git HEAD remains unchanged, and
   builds all four release artifacts from the same tracked source snapshot.
+- Formal release acceptance now drains captured stdout and stderr concurrently
+  to avoid pipe deadlock, shows per-command start/pass/fail progress, and keeps
+  child-process output in run-directory artifacts. Its final live wrapper check
+  remains `minimal + PlanOnly` and does not open VISA resources.
 
 - Bumped the single `meters-tool` distribution version to `2.0.0` across
   package metadata, fallback version plumbing, lock metadata, version tests,

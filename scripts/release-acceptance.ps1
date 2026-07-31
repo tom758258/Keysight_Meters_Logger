@@ -109,19 +109,27 @@ function Invoke-RecordedCommand {
         [Parameter(Mandatory = $true)][string[]]$Arguments
     )
 
+    Write-Host "[start] $Name"
     $stdout = Join-Path $runDir "$Name.stdout.txt"
     $stderr = Join-Path $runDir "$Name.stderr.txt"
-    $result = [pscustomobject](Invoke-CapturedCommand `
-        -Name $Name `
-        -FilePath $FilePath `
-        -Arguments $Arguments `
-        -StdOutPath $stdout `
-        -StdErrPath $stderr)
+    try {
+        $result = [pscustomobject](Invoke-CapturedCommand `
+            -Name $Name `
+            -FilePath $FilePath `
+            -Arguments $Arguments `
+            -StdOutPath $stdout `
+            -StdErrPath $stderr)
+    } catch {
+        Write-Host "[failed] $Name"
+        throw
+    }
     $result | Add-Member -NotePropertyName error -NotePropertyValue $null
     $commands.Add($result) | Out-Null
     if (-not $result.success) {
+        Write-Host "[failed] $Name duration=$($result.duration_seconds)s"
         throw "Step '$Name' failed with exit code $($result.exit_code)."
     }
+    Write-Host "[passed] $Name duration=$($result.duration_seconds)s"
     return $result
 }
 
@@ -132,6 +140,7 @@ function Set-RecordedCommandFailure {
     )
     $Result.success = $false
     $Result.error = $Message
+    Write-Host "[failed] $($Result.name) duration=$($Result.duration_seconds)s"
     throw $Message
 }
 

@@ -202,6 +202,12 @@ release\<version>\checksums.txt
 WebUI Launcher 獨立 EXE 與 SHA-256 checksums；接著執行乾淨安裝套件 smoke
 test、最小獨立執行檔 smoke test、指定 target 的 preflight 與既有的
 PlanOnly 驗證。通過後會輸出可直接上傳至 GitHub Release 的版本化目錄。
+最後的 `live-cli-check.ps1` 呼叫是 `-Suite minimal -PlanOnly -SkipPreflight`；
+它只產生規劃，不會開啟 VISA 資源。每個 recorded command 會顯示
+`[start]` 以及含執行時間的 `[passed]` 或 `[failed]`，詳細的 child-process
+stdout/stderr 仍會保留在 acceptance run directory。完整 pytest 可能透過
+wrapper contract tests 建立 `.tmp_tests\cli_live\...`；看到該目錄不代表正在
+執行真實儀器測試。長時間的 PyInstaller build 不應被誤認為正在等待 external trigger。
 
 ## 測試
 

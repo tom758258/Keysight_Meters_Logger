@@ -61,6 +61,17 @@ def test_release_acceptance_runs_complete_no_hardware_suite():
     assert "pytest_metadata_docs" not in script
 
 
+def test_release_acceptance_reports_recorded_command_progress():
+    script = release_acceptance_text()
+
+    assert 'Write-Host "[start] $Name"' in script
+    assert 'Write-Host "[passed] $Name duration=$($result.duration_seconds)s"' in script
+    assert 'Write-Host "[failed] $Name duration=$($result.duration_seconds)s"' in script
+    assert 'Write-Host "[failed] $Name"' in script
+    for step in ("pytest_no_hardware", "build_release", "live_cli_plan_only"):
+        assert f'$script:currentStep = "{step}"' in script
+
+
 def test_release_acceptance_isolates_python_process_environment():
     script = release_acceptance_text()
     isolation_start = script.index('$env:PYTHONNOUSERSITE = "1"')

@@ -174,7 +174,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\release-accept
 
 驗收會驗證 lock 檔案與乾淨的 Git 狀態，執行包含 wrapper 測試的完整無硬體測試套件，呼叫一次 `build_release.ps1`，並驗證最終的 wheel、source distribution、CLI 獨立 EXE、WebUI Launcher 獨立 EXE 與 SHA-256 checksums。接著執行 clean-install 套件 smoke test、兩個獨立執行檔的最小 smoke check、指定 target 的 preflight，以及既有的 `live-cli-check.ps1 -PlanOnly` 驗證。
 
-它不會開啟 VISA 硬體資源。`build_release.ps1` 會建置獨立執行檔，而 release acceptance 會透過上述最小 smoke check 驗證它們。通過後會輸出可直接上傳至 GitHub Release 的版本化目錄。主要輸出位於 `.tmp_tests/release_acceptance/<target>/<timestamp>/`，包括 `report.json`、`summary.md`、`checksums.txt` 與建置出的 distribution 產物。這是正式發布門檻，不是一般本機套件建置或重新建置獨立 EXE 的必要步驟。
+最後的 live wrapper 呼叫是 `live-cli-check.ps1 -Suite minimal -PlanOnly -SkipPreflight`；它只產生 dry-run plans，不會開啟 VISA 資源。`build_release.ps1` 會建置獨立執行檔，而 release acceptance 會透過上述最小 smoke check 驗證它們。每個 recorded command 會顯示 `[start]` 以及含執行時間的 `[passed]` 或 `[failed]`。詳細的 child-process captured stdout/stderr 會保留在 acceptance run directory，不會即時串流到主控台。完整 pytest 可能透過 wrapper contract tests 建立 `.tmp_tests\cli_live\...`；看到該目錄不代表正在執行真實儀器測試。長時間的 PyInstaller build 不應被誤認為正在等待 external trigger。通過後會輸出可直接上傳至 GitHub Release 的版本化目錄。主要輸出位於 `.tmp_tests/release_acceptance/<target>/<timestamp>/`，包括 `report.json`、`summary.md`、`checksums.txt` 與建置出的 distribution 產物。這是正式發布門檻，不是一般本機套件建置或重新建置獨立 EXE 的必要步驟。
 
 ## 實體儀器驗證路徑
 

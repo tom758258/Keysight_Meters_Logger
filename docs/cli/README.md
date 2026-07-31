@@ -272,10 +272,18 @@ standalone WebUI Launcher EXE, and SHA-256 checksums. It then runs clean-install
 package smokes, minimal standalone executable smokes, selected-target preflight,
 and the existing `live-cli-check.ps1 -PlanOnly` validation.
 
-It does not open a VISA hardware resource. `build_release.ps1` builds the
-standalone executables; release acceptance validates those executables with
-the minimal smoke checks above. A passing run prints the versioned directory
-that can be uploaded directly to a GitHub Release. The main outputs are written under
+The final live wrapper call is `live-cli-check.ps1 -Suite minimal -PlanOnly
+-SkipPreflight`; it generates only dry-run plans and does not open a VISA
+resource. `build_release.ps1` builds the standalone executables; release
+acceptance validates those executables with the minimal smoke checks above.
+Each recorded command prints `[start]` and `[passed]` or `[failed]` with its
+duration. Detailed child-process captured stdout/stderr remains in the
+acceptance run directory rather than being streamed to the console. The
+complete pytest step may create `.tmp_tests\cli_live\...` through wrapper
+contract tests; that directory does not indicate real instrument testing. A
+long PyInstaller build should not be mistaken for waiting for an external
+trigger. A passing run prints the versioned directory that can be uploaded
+directly to a GitHub Release. The main outputs are written under
 `.tmp_tests/release_acceptance/<target>/<timestamp>/` and include
 `report.json`, `summary.md`, `checksums.txt`, and the built distribution
 artifacts. It is a formal release gate, not a prerequisite for ordinary local

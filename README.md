@@ -231,6 +231,13 @@ SHA-256 checksums. It then runs clean-install package smokes, minimal standalone
 smokes, selected-target preflight, and the existing PlanOnly validation. A
 passing run prints the versioned directory that can be uploaded directly to a
 GitHub Release.
+The final `live-cli-check.ps1` call is `-Suite minimal -PlanOnly -SkipPreflight`;
+it only generates plans and does not open a VISA resource. Each recorded command
+prints `[start]` and `[passed]` or `[failed]` with its duration, while detailed
+child-process stdout/stderr remains in the acceptance run directory. The complete
+pytest step may create `.tmp_tests\cli_live\...` through wrapper contract tests;
+seeing that directory does not mean that real instrument testing is running. A
+long PyInstaller build should not be mistaken for waiting for an external trigger.
 
 ## Test
 
