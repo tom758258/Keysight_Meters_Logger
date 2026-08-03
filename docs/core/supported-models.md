@@ -76,6 +76,11 @@ limits. Validation mode is restricted to validation tooling and does not
 change Product support metadata; see [Core Integration](integration.md#validation-flow)
 for that contract.
 
+Validation mode may execute only explicitly registered `transport_pending`
+connection scopes and `feature_pending` measurement or trigger-mode entries.
+These statuses remain non-Product-open and do not change Product support
+metadata.
+
 In live mode, CLI `--model` and WebUI `Expected model` are expected-model
 guards only. The runtime driver/profile is selected from the connected
 instrument `*IDN?`. A selected/detected mismatch fails before setup SCPI.

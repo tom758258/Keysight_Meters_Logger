@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Clarifies public support documentation to describe current support behavior while preserving machine-readable support policy contracts.
+
 ## v2.0.0
 
 This is the first public Meters Tool release after the breaking project

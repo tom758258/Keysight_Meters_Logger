@@ -359,6 +359,10 @@ and `backend_scope` fields and adds `features.measurement` and
 such as `voltage-dc-ratio`. Existing response fields are not removed or
 renamed.
 
+Registered non-Product-open scopes may retain the machine-readable
+`transport_pending` status. The browser treats those scopes as unavailable for
+normal Product starts; the status does not authorize execution.
+
 The browser uses this metadata to show model live support and to disable
 features that are not product-open for the current resource transport and the
 WebUI's fixed system-VISA backend. Before a resource is known, Auto-detect
