@@ -12,10 +12,10 @@ availability.
 
 Core currently provides these instrument profiles:
 
-| Model ID | Instrument | Reading memory | Current max | External trigger | Live validation |
+| Model ID | Instrument | Reading memory | Current max | External trigger | Live support |
 | --- | --- | ---: | ---: | --- | --- |
-| `keysight-34461a` | Keysight 34461A | 10000 | 10 A with 10A terminal | supported | `live_validated_full_suite` for currently implemented profile-supported suite coverage |
-| `keysight-34460a` | Keysight 34460A | 1000 | 3 A | base profile disabled; optional LAN/external trigger not assumed | `live_validated_full_suite` for USB/system-VISA suite-covered profile-supported workflows |
+| `keysight-34461a` | Keysight 34461A | 10000 | 10 A with 10A terminal | supported | Product-open for currently supported profile workflows |
+| `keysight-34460a` | Keysight 34460A | 1000 | 3 A | base profile disabled; optional LAN/external trigger not assumed | Product-open on USB/system-VISA for currently supported profile workflows |
 
 Core distinguishes stable profile identity from instrument and presentation
 text:
@@ -84,14 +84,14 @@ do not query live hardware.
 
 | Capability / workflow | 34461A | 34460A |
 | --- | --- | --- |
-| Immediate DC/AC voltage/current | Open | Open for USB/system-VISA suite-covered scope |
-| 2W/4W resistance | Open | Open for USB/system-VISA suite-covered scope |
-| Software trigger/timer | Open | Open for USB/system-VISA suite-covered scope |
+| Immediate DC/AC voltage/current | Open | Open on USB/system-VISA |
+| 2W/4W resistance | Open | Open on USB/system-VISA |
+| Software trigger/timer | Open | Open on USB/system-VISA |
 | Custom buffered workflows | Open | Open, limited by 1000-reading memory |
-| Frequency | Open | Open for USB/system-VISA suite-covered scope |
+| Frequency | Open | Open on USB/system-VISA |
 | Period | Open, no Period timeout SCPI | Open, no Period timeout SCPI |
 | External simple/custom | Open | Not open in base 34460A profile |
-| DCV Ratio | Open for validated 34461A scope | Open only on USB/system-VISA |
+| DCV Ratio | Open | Open only on USB/system-VISA |
 | 10 A / current-terminal | Open with operator-confirmed wiring | Not supported |
 | Buffer drain above profile memory | Up to 10000 readings | Not supported above 1000 |
 | LAN/TCPIP with system VISA | Open for 34461A | Not currently supported |
@@ -100,37 +100,31 @@ do not query live hardware.
 34461A live support:
 
 - Status: `live_validated_full_suite`.
-- Open for currently implemented 34461A profile-supported full-suite workflows,
-  including immediate, software, software timer, custom buffered, Frequency,
-  Period, external simple, and external custom workflows.
-- Validated transport/backend scopes are USB/system-VISA, LAN/TCPIP with the
+- Open for currently supported 34461A profile workflows, including immediate,
+  software, software timer, custom buffered, Frequency, Period, external
+  simple, and external custom workflows.
+- Supported transport/backend scopes are USB/system-VISA, LAN/TCPIP with the
   default system VISA runtime, and LAN/TCPIP with optional CLI-only pyvisa-py
   `@py`.
-- Documented validated manual option smokes, including DCV Ratio and the 10 A
-  current-terminal path, remain available where the profile supports them and
-  the operator confirms safe wiring.
+- DCV Ratio and the 10 A current-terminal path are available where supported by
+  the profile and the operator confirms safe wiring.
 
 34460A live support:
 
 - Status: `live_validated_full_suite` for USB/system-VISA scope.
-- Open for 34460A profile-supported workflows covered by the 2026-07-08 USB
-  full live CLI suite: immediate DC current, immediate DC voltage,
-  immediate AC current, immediate AC voltage, immediate 2-wire resistance,
-  immediate 4-wire resistance, software trigger, software timer, immediate
-  custom buffered workflow, software custom buffered workflow, Frequency, and
-  Period.
-- Hard limits remain blocked: no 10 A current path, no current-terminal
-  selection, 1000-reading memory limit, no buffer drain size above 1000, no
-  base-profile external simple trigger, and no base-profile external custom
-  trigger.
+- Open for currently supported 34460A profile workflows: immediate DC current,
+  immediate DC voltage, immediate AC current, immediate AC voltage, immediate
+  2-wire resistance, immediate 4-wire resistance, software trigger, software
+  timer, immediate custom buffered workflow, software custom buffered
+  workflow, Frequency, and Period.
+- Hard limits remain closed: no 10 A/current-terminal path, a 1000-reading
+  memory limit, no base-profile external or external-custom workflows, and
+  buffer drain capped at 1000 readings.
 - DCV Ratio is Product-open only on USB/system-VISA. It combines with the
   Product-open `immediate`, `software`, `immediate-custom`, and
   `software-custom` trigger modes in this exact scope.
 - LAN/TCPIP with system VISA and LAN/TCPIP with pyvisa-py `@py` are not
   currently supported for 34460A.
-- Hard limits remain closed: base-profile 34460A external and external-custom
-  workflows remain closed, the 10 A/current-terminal path remains unsupported,
-  and buffer drain size remains capped by the 1000-reading profile limit.
 
 Transport/backend scope status:
 
@@ -163,7 +157,7 @@ environment variable remains PyVISA-level behavior, but explicit CLI
 `--visa-library "@py"` is preferred for reproducible tests.
 
 LAN/TCPIP and pyvisa-py `@py` remain separate support scopes. USB/system-VISA
-support does not open those scopes. The current validated optional backend
+support does not open those scopes. The current supported optional backend
 scope is 34461A LAN/TCPIP with CLI-only pyvisa-py `@py`; pyvisa-py is not
 required for normal system VISA usage, and the WebUI does not expose a backend
 selector.
@@ -236,10 +230,10 @@ instrument's Period timeout state unchanged. Explicit Period timeout values are
 rejected before instrument I/O. Frequency samples use unit `Hz`; Period samples
 use unit `s`.
 
-This Period behavior was validated on a 34461A with firmware A.03.03. The
-[Keysight Truevolt Series DMM Operating and Service Guide](https://www.keysight.com/us/en/assets/9018-03876/service-manuals/9018-03876.pdf)
-contains ambiguous timeout syntax; the implementation follows observed
-instrument behavior and does not send the unsupported Period header.
+The [Keysight Truevolt Series DMM Operating and Service Guide](https://www.keysight.com/us/en/assets/9018-03876/service-manuals/9018-03876.pdf)
+contains ambiguous timeout syntax. The implementation does not send the
+unsupported Period header and leaves the instrument's Period timeout state
+unchanged.
 
 Current terminal selection is available only for the 34461A `current-dc` and
 `current-ac` profiles. Selecting the 10 A current range requires

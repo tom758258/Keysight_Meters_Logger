@@ -27,7 +27,7 @@ contracts remain unchanged.
   transport/backend connection scope, measurement feature, and trigger-mode
   feature. Missing, unknown, unsupported, or model-mismatched entries remain
   closed in normal product mode.
-- Opened the reviewed 34461A USB/system-VISA, LAN/system-VISA, and optional
+- Opened the 34461A USB/system-VISA, LAN/system-VISA, and optional
   CLI-only LAN/pyvisa-py scopes for their registered profile-supported
   workflows, including external trigger support where applicable.
 - Opened the 34460A USB/system-VISA scope for its profile-supported workflows,

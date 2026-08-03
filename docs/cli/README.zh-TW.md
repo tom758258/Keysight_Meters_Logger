@@ -997,7 +997,7 @@ DCV Input Z 快速功能健檢，固定 10 MOhm：
 
 ### DCV 比率 (Ratio) 快速功能健檢
 
-DCV 比率 (Ratio) 使用現有的 `VOLT:DC:RAT` 實作。它已對驗證過的 34461A scope 開放，且 34460A 僅在 USB/system-VISA 上為 `Product-open`。一般 CLI 與 WebUI 啟動不需要隱藏的驗證模式選擇器。34460A LAN/TCPIP system-VISA 與 LAN/TCPIP pyvisa-py `@py` 目前不支援（`transport_pending`），因此 Ratio 的支援不延伸至這些 scope。進行實機操作前，請依照儀器手冊連接信號和參考導線；錯誤連接的比率量測可能數值看起來合理，但量測的卻是錯誤的關係。
+DCV 比率 (Ratio) 使用現有的 `VOLT:DC:RAT` 實作。它已對驗證過的 34461A scope 開放，且 34460A 僅在 USB/system-VISA 上為 `Product-open`。一般 CLI 與 WebUI 啟動不需要隱藏的驗證模式選擇器。進行實機操作前，請依照儀器手冊連接信號和參考導線；錯誤連接的比率量測可能數值看起來合理，但量測的卻是錯誤的關係。
 
 Dry-run DCV Ratio 檢查：
 

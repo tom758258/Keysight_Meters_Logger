@@ -367,8 +367,8 @@ profile's declared product scope; it never opens a non-Product-open feature.
 For 34461A the metadata includes validated USB/system-VISA,
 LAN/system-VISA, and optional CLI-only LAN/pyvisa-py `@py` scopes. For 34460A,
 DCV Ratio is Product-open on USB/system-VISA, while LAN/TCPIP is not currently
-supported (`transport_pending`). Existing measurement, trigger, range, and
-limit fields remain the source of truth for control definitions.
+supported. Existing measurement, trigger, range, and limit fields remain the
+source of truth for control definitions.
 
 The Expected model check is optional. Core validates the connected instrument
 identity at Start. If an explicit expected model does not match the fresh IDN

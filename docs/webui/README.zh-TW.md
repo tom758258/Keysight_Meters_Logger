@@ -244,7 +244,7 @@ pending_keys
 
 `/api/capabilities` 也包含額外的支援 metadata。每個確切的實機連線範圍保留其現有的 `validation_status`、`transport_scope` 與 `backend_scope` 欄位，並新增 `features.measurement` 與 `features.trigger_mode` 對照表。功能項目公開其自身的 `validation_status`；量測鍵使用現有的配接器端名稱，例如 `voltage-dc-ratio`。現有的回應欄位不會被移除或重新命名。
 
-瀏覽器使用此 metadata 來顯示型號的實機支援，並停用對目前資源傳輸與 WebUI 固定系統-VISA 後端而言非產品開放的功能。在資源已知之前，Auto-detect 保持現有的備援功能檢視，且僅使用備援設定檔宣告的產品範圍；它絕不會開放非 Product-open 功能。對於 34461A，該 metadata 包含已支援的 USB/system-VISA、LAN/system-VISA 以及選用的 CLI 專用 LAN/pyvisa-py `@py` 範圍。對於 34460A，DCV Ratio 在 USB/system-VISA 上為 `Product-open`；LAN/TCPIP 目前不支援（`transport_pending`）。現有的量測、觸發、範圍與限制欄位仍是控制項定義的 source of truth。
+瀏覽器使用此 metadata 來顯示型號的實機支援，並停用對目前資源傳輸與 WebUI 固定系統-VISA 後端而言非產品開放的功能。在資源已知之前，Auto-detect 保持現有的備援功能檢視，且僅使用備援設定檔宣告的產品範圍；它絕不會開放非 Product-open 功能。對於 34461A，該 metadata 包含已支援的 USB/system-VISA、LAN/system-VISA 以及選用的 CLI 專用 LAN/pyvisa-py `@py` 範圍。對於 34460A，DCV Ratio 在 USB/system-VISA 上為 `Product-open`；LAN/TCPIP 目前不支援。現有的量測、觸發、範圍與限制欄位仍是控制項定義的 source of truth。
 
 Expected model 檢查是選用的。Core 會在 Start 時驗證連接儀器的識別資訊。若明確指定的預期型號與新的 IDN preflight 不符，WebUI 會回報選取的型號以及 IDN 中找到的支援型號。
 
