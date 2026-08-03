@@ -122,14 +122,13 @@ must never authorize a workflow or affect support policy. Raw
 machine values. Do not add a backend locale input or return locale-dependent
 support behavior.
 
-P2.6 owns the active browser locale control. Keep the permanent top-right
-globe-and-text button limited to `en` and `zh-TW`, with saved locale precedence,
-browser detection, English fallback, and the `meters-tool.webui.locale` key.
-Runtime switching must update presentation from cached browser state without a
-reload, API request, polling/SSE restart, form reset, or active-run reset.
-Preserve raw diagnostic text and all canonical form/runtime values. P2.7
-completes the final catalog-quality, terminology, documentation, and cross-Part
-integration review while retaining those boundaries.
+Keep the permanent top-right globe-and-text button limited to `en` and `zh-TW`,
+with saved locale precedence, browser detection, English fallback, and the
+`meters-tool.webui.locale` key. Runtime switching must update presentation from
+cached browser state without a reload, API request, polling/SSE restart, form
+reset, or active-run reset. Preserve raw diagnostic text and all canonical
+form/runtime values. Keep catalog terminology and browser presentation aligned
+with the localization contract while retaining those boundaries.
 
 ## API Contract To Preserve
 
@@ -316,10 +315,9 @@ The UI may look different, but these behaviors must remain true:
   for browser, WebUI backend, and direct API submissions.
 - Do not expose a PyVISA backend selector in the WebUI without a future
   explicit product decision. Backend selection remains CLI-only.
-- Do not promote LAN/TCPIP or pyvisa-py `@py` support from USB/system-VISA
-  validation alone. They require separate operator-approved validation
-  artifacts; the current promoted optional `@py` scope is 34461A LAN/TCPIP and
-  remains CLI-only.
+- Do not infer LAN/TCPIP or pyvisa-py `@py` support from USB/system-VISA
+  support. The current optional `@py` scope is 34461A LAN/TCPIP and remains
+  CLI-only.
 - Range choices are populated from the selected measurement definition.
 - NPLC choices are populated from the selected measurement definition.
 - NPLC is hidden/disabled when unsupported.

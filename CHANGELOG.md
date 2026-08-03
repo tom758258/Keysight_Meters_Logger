@@ -25,17 +25,15 @@ contracts remain unchanged.
   unlocking the selected profile's capabilities.
 - Added a fail-closed live support policy that evaluates the exact model,
   transport/backend connection scope, measurement feature, and trigger-mode
-  feature. Missing, unknown, pending, or model-unsupported entries remain
+  feature. Missing, unknown, unsupported, or model-mismatched entries remain
   closed in normal product mode.
 - Opened the reviewed 34461A USB/system-VISA, LAN/system-VISA, and optional
   CLI-only LAN/pyvisa-py scopes for their registered profile-supported
   workflows, including external trigger support where applicable.
-- Opened the reviewed 34460A USB/system-VISA scope for its suite-covered
-  profile-supported workflows, then explicitly promoted DCV Ratio in that exact
-  scope after maintainer review of separate bounded evidence. The existing
-  12-case wrapper full suite did not include Ratio. External triggers and
-  34461A-only limits remain unsupported, and the 34460A LAN/system-VISA and
-  LAN/pyvisa-py scopes remain pending future validation.
+- Opened the 34460A USB/system-VISA scope for its profile-supported workflows,
+  including DCV Ratio. External triggers and 34461A-only limits remain
+  unsupported, and 34460A LAN/system-VISA and LAN/pyvisa-py scopes are not
+  currently supported.
 - Consolidated live-start resolution on the detected profile and recomputed
   trigger routing afterward so support validation and execution use the same
   live identity.
@@ -74,52 +72,29 @@ contracts remain unchanged.
   `-Backend` while continuing to record the effective backend scope.
 - Added WebUI support-status UX driven by Core capabilities, including the
   auto-detect fallback view, expected-model guidance, exact support status,
-  open workflows, limits, and pending scopes. The WebUI continues to use the
+  open workflows, limits, and unsupported scopes. The WebUI continues to use the
   system VISA runtime and does not expose the optional CLI backend selector.
-- Added the dependency-free WebUI `en` / `zh-TW` locale runtime foundation
-  with English fallback and safe named interpolation. Browser prose remains
-  English and language switching is not active in P2.1; HTTP API, Core, and
-  acquisition behavior are unchanged.
-- Moved static WebUI browser prose into matching `en` / `zh-TW` catalogs and
-  explicit dependency-free DOM bindings. P2.2 still initializes in English
-  without a language selector, browser detection, or persistence; HTTP API,
-  Core, and acquisition behavior are unchanged.
-- Moved dynamic WebUI run-form, measurement, trigger, validation, summary,
-  subtitle, and rebuilt model-option presentation into matching English and
-  Traditional Chinese catalogs. P2.3 still does not activate language
-  switching; API, Core, support policy, SCPI, VISA, acquisition, schemas, and
-  cleanup behavior are unchanged.
-- Moved P2.4 WebUI app/resource, status/log, Live data, dynamic ARIA, and known
-  browser-error presentation into the matching English and Traditional Chinese
-  catalogs. Raw status identity, unknown Core/backend diagnostics, status JSON,
-  and sample metadata remain untranslated. Structured command-response
-  `message` values now reach exact browser-error translations, while unknown
-  `reason` values remain raw diagnostics and FastAPI `detail` remains first
-  priority. Language switching is still inactive, and API endpoints, status
-  codes, response schemas, Core, support policy, SCPI, VISA, trigger,
-  acquisition, CSV/JSON/JSONL schemas, and cleanup behavior are unchanged.
-- Added P2.5 support-summary semantic localization metadata while preserving
-  every existing English prose field as the browser fallback. The browser now
-  prefers recognized semantic keys and safely ignores missing, unknown, or
-  mismatched list keys. Language switching remains inactive; API behavior,
-  Core authority, support policy, instrument runtime, and schemas are
-  unchanged.
-- Activated P2.6 browser locale selection and English / Traditional Chinese
+- Added the dependency-free WebUI locale runtime with English fallback, safe
+  named interpolation, matching English and Traditional Chinese catalogs, and
+  localized static and dynamic browser presentation. The initial catalog-backed
+  presentation kept English as the startup locale; HTTP API, Core, and
+  acquisition behavior remained unchanged.
+- Added support-summary semantic localization metadata while preserving every
+  existing English prose field as the browser fallback. The browser prefers
+  recognized semantic keys and safely ignores missing, unknown, or mismatched
+  list keys.
+- Activated browser locale selection and English / Traditional Chinese
   switching through the permanent top-right globe button. Saved locale values
   take precedence over browser detection and use `meters-tool.webui.locale`;
   switching is immediate, state-preserving, and performs no page reload or
   runtime/API request. Unknown diagnostics remain raw, and Core, CLI, HTTP,
   SSE, instrument, and schema behavior remain unchanged.
-- Completed P2.7 final English / Traditional Chinese catalog quality,
-  terminology, browser-presentation coverage, cross-Part integration, and
-  operator-documentation review. The Traditional Chinese Auto range control
-  now shows `自動量程（Auto range）`, while compact summaries remain concise;
-  AC filter and Current terminal optional markers now use the shared inline
-  label layout. Runtime, API, support-policy, instrument, and schema contracts
-  remain unchanged.
-- Extended the no-hardware and live validation harnesses for both model
-  targets, explicit backend forwarding, plan-only gates, and validation-only
-  execution of registered pending scopes without promoting product support.
+- Completed English / Traditional Chinese catalog quality, terminology,
+  browser-presentation, and operator-documentation review. The Traditional
+  Chinese Auto range control now shows `自動量程（Auto range）`, while compact
+  summaries remain concise; AC filter and Current terminal optional markers
+  now use the shared inline label layout. Runtime, API, support-policy,
+  instrument, and schema contracts remain unchanged.
 - Split and streamlined CLI parser/client helpers, WebUI payload helpers, and
   shared PowerShell validation helpers while preserving public CLI, HTTP, and
   report contracts.

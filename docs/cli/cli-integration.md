@@ -68,10 +68,9 @@ contracts, model validation, or the support policy gate.
 
 pyvisa-py `@py` remains optional; do not make it a required dependency from
 CLI documentation or tests. The current validated optional backend scope is
-34461A LAN/TCPIP with `@py`. USB/system-VISA full-suite validation does not
-validate other LAN/TCPIP or pyvisa-py scopes. 34460A LAN/TCPIP and 34460A
-LAN/`@py` remain pending/not open until a LAN/LXI-enabled 34460A TCPIP
-resource and operator-approved validation artifact exist.
+34461A LAN/TCPIP with `@py`. USB/system-VISA support does not open other
+LAN/TCPIP or pyvisa-py scopes. 34460A LAN/TCPIP and 34460A LAN/`@py` are not
+currently supported.
 
 The WebUI intentionally does not expose backend selection. Keep backend
 diagnostics in the CLI unless a future explicit product decision changes that
@@ -83,7 +82,8 @@ boundary.
 usage interface. It may pass the hidden
 `--validation-allow-pending-live-support` flag to `start-trigger-record` so
 Core can execute explicitly registered `transport_pending` connection scopes
-and `feature_pending` measurement or trigger-mode entries and collect evidence.
+and `feature_pending` measurement or trigger-mode entries and record validation
+results.
 The flag is intentionally hidden from normal CLI help and must not be
 documented as a general `--force` option. Missing connection/feature metadata
 is not pending and remains rejected.
@@ -95,26 +95,21 @@ system VISA and records `visa_library`/`backend` as `system_visa`. If wrapper
 output says `VISA library/backend: system_visa`, that run is not an `@py`
 validation artifact.
 
-Normal CLI starts remain in product support-policy mode. Pending scopes such as
-34460A LAN/TCPIP system-VISA and 34460A LAN/TCPIP pyvisa-py `@py` continue to
-reject when users call `meters-tool start-trigger-record` directly. 34460A DCV
-Ratio is Product-open only on USB/system-VISA and does not require the hidden
-validation selector there.
+Normal CLI starts remain in product support-policy mode. Non-Product-open
+scopes continue to reject when users call `meters-tool start-trigger-record`
+directly. 34460A DCV Ratio is Product-open only on USB/system-VISA and does not
+require the hidden validation selector there.
 
-For 34460A, LAN/TCPIP validation remains a future path for a LAN/LXI-capable
-unit or contributor-provided reviewed artifact. The currently validated 34460A
-product scope remains USB/system-VISA. Do not treat 34460A LAN/TCPIP pending
-scopes as current maintainer validation debt when the available 34460A unit
-does not support LAN/LXI.
+For 34460A, the current Product-open live scope remains USB/system-VISA;
+LAN/TCPIP is not currently supported.
 
 Validation mode is still bounded by Core model/profile limits. It must not
 enable 34460A external or external-custom workflows, 10 A or current-terminal
 paths, buffer drain sizes above the selected profile reading memory, unknown
 profiles, missing registrations, or invalid requests. The USB/system-VISA DCV
-Ratio promotion followed maintainer review of separate bounded evidence and an
-explicit exact-scope metadata/docs update; the existing 12-case wrapper full
-suite did not include Ratio. Promotion from pending to
-`live_validated_full_suite` is never automatic.
+Ratio scope is Product-open; this does not open the 34460A LAN scopes.
+Changing a pending entry to `live_validated_full_suite` is an explicit support
+metadata and documentation change, not an automatic result of validation mode.
 
 ## Dry-Run Formatting
 
@@ -162,4 +157,3 @@ documented in root `docs/contracts/meters-cli-jsonl-contract.md` and
 Keep these commands adapter-shaped: validate client inputs, format text/JSON,
 and avoid changing acquisition or VISA behavior as part of client command
 maintenance.
-

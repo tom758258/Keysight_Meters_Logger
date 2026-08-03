@@ -51,7 +51,7 @@ Python 整合應從 `meters_tool_core` 或 `meters_tool_core.*` 匯入共享的 
 - 當 Start 必須要求 34460A IDN 相符時，請選擇 `--model 34460A`。在實機模式下，這僅作為預期型號防護 (expected-model guard)，並不會覆寫由 IDN 決定的設定檔。在 dry-run 或模擬模式下，它會選擇 34460A 的設定檔限制：無 10 A 電流範圍或電流端子選擇、1000 筆讀值的記憶體，且無基礎設定檔外接觸發模式。
 - 當 Start 必須要求 34461A IDN 相符時，請選擇 `--model 34461A`。明確的實機不符會在 setup SCPI 之前失敗。型號名稱由 Core 設定檔邏輯進行標準化與驗證；未知的型號驗證會失敗，並列出支援的型號。
 - 實機產品支援具備功能感知 (feature-aware) 且範圍精確 (exact-scope)：對於偵測到的型號與確切的傳輸/VISA 後端，連線、量測與實際的觸發模式必須均為 `live_validated_full_suite`。缺少的功能 metadata 會以預設關閉 (fail-closed) 處理，而非繼承其他範圍的支援。
-- 34460A DCV Ratio 僅在 USB/system-VISA 上開放產品使用。一般 CLI 啟動不需要隱藏的貢獻者驗證選擇器。此支援不延伸至 34460A LAN 或 pyvisa-py 範圍。
+- 34460A DCV Ratio 僅在 USB/system-VISA 上開放產品使用。一般 CLI 啟動不需要隱藏的驗證選擇器。此支援不延伸至 34460A LAN 或 pyvisa-py 範圍。
 - 34460A 的最大讀值速率低於 34461A，但 CLI 在此版本中不會主動控制高速讀值速率。
 - AC、頻率與週期模式透過 `--ac-bandwidth-hz` 公開 34461A 的 `3`、`20` 和 `200` Hz 頻寬/濾波器設定。在實際投入生產使用前，請使用操作人員提供的 VISA 資源執行低風險的實機資源快速功能健檢 (smoke test)，並將 CLI 記錄列與 34461A 前面板讀值進行對比。
 - `--nplc` 和 `--auto-zero` 是 DC/電阻控制項。AC 電流、AC 電壓、頻率與週期僅接受中性預設值 `--nplc 1.0`；任何其他 NPLC 值都將被拒絕，因為這些模式不會寫入 NPLC SCPI。它們也不會寫入 Auto Zero SCPI 指令。
@@ -71,7 +71,7 @@ Python 整合應從 `meters_tool_core` 或 `meters_tool_core.*` 匯入共享的 
 uv pip install pyvisa-py pyserial psutil zeroconf
 ```
 
-目前已驗證的選用 pyvisa-py 擷取範圍是 34461A 經由 LAN/TCPIP。除非未來驗證具備 LAN/LXI 能力的 34460A，否則 34460A LAN/TCPIP 與 34460A LAN/`@py` 對目前可用的儀器仍未開放。
+目前已驗證的選用 pyvisa-py 擷取範圍是 34461A 經由 LAN/TCPIP。34460A LAN/TCPIP 與 34460A LAN/`@py` 目前不支援。
 
 ## 開發
 
@@ -178,7 +178,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\release-accept
 
 ## 實體儀器驗證路徑
 
-當搬移到新電腦、新的 VISA 執行階段或不同的已連接支援型號時，請使用本段落。先從無硬體驗證開始，然後探測作用中的資源，接著在允許包裝器接觸儀器前，執行僅限規劃的實機驗證包裝器。一般產品執行（包括一般 CLI 啟動、WebUI 與直接的 Core 實機呼叫）必須使用連接型號的 Product-open 確切傳輸/後端範圍。下方的維護者 `live-cli-check.ps1` 驗證 harness 則可針對明確註冊的待定範圍執行有界限的證據收集；型號專屬安全限制與 Core 驗證仍會強制套用。驗證證據不會自動提升支援狀態。
+當搬移到新電腦、新的 VISA 執行階段或不同的已連接支援型號時，請使用本段落。先從無硬體驗證開始，然後探測作用中的資源，接著在允許包裝器接觸儀器前，執行僅限規劃的實機驗證包裝器。一般產品執行（包括一般 CLI 啟動、WebUI 與直接的 Core 實機呼叫）必須使用連接型號的 Product-open 確切傳輸/後端範圍。下方的維護者 `live-cli-check.ps1` validation harness 則可針對明確註冊的非 Product-open 範圍執行有界限的驗證；型號專屬安全限制與 Core 驗證仍會強制套用。通過驗證不會自動改變 Product 支援 metadata。
 
 1. 執行上方的無硬體配方。
 2. 探測目前有回應 `*IDN?` 的資源：
@@ -195,7 +195,7 @@ $env:METER_RESOURCE = "USB0::...::INSTR"
 
 此值可以是探測傳回的任何作用中 VISA 資源，包括 USB 或 TCPIP/LAN 資源。
 
-實機驗證包裝器是驗證 harness，而非產品使用介面。它可以針對明確由操作人員提供的資源，執行明確註冊的 `transport_pending` 連線範圍以及 `feature_pending` 量測/觸發模式項目，以便收集產物 (artifacts)。通過的 `report.json` 或 `summary.md` 本身不會提升公開支援狀態；仍需要經審核的產物以及相應的支援 metadata 與說明文件。
+實機驗證包裝器是驗證 harness，而非產品使用介面。它可以針對明確由操作人員提供的資源，執行明確註冊的 `transport_pending` 連線範圍以及 `feature_pending` 量測/觸發模式項目，以便記錄驗證結果。通過的 `report.json` 或 `summary.md` 本身不會改變 Product 支援 metadata。
 
 任何已建立執行目錄的呼叫（包括 `-PlanOnly`、需要確認、preflight 失敗、通過及失敗的執行）都會自動使用以下產物配置：
 
@@ -213,7 +213,7 @@ $env:METER_RESOURCE = "USB0::...::INSTR"
 
 最後的 `summary:` 主控台列會指向 repository 相對路徑的 `shareable/summary.md`。`private/` 是完整的本機除錯證據，絕不可提交、附加或發佈。只有 `shareable/` 適合 Pull Request；請壓縮並附加整個 shareable 目錄，以保留其相對參照。兩份報告都使用 artifact schema `1.1`。private 報告保留原始資源與本機路徑；shareable 報告與樹狀結構會遮罩資源、完整 IDN 與序號、私有位址、操作人員 metadata，以及個人或絕對路徑。
 
-完整擷取 CSV 僅保留在 `private/`。每個含有 CSV 的實機案例都會產生 shareable `csv-evidence.json`，記錄安全的 schema 與資料列事實，不包含量測值或觸發 metadata。JSON 與 JSONL 會在遮罩前解析；遺失或格式錯誤的輸入會產生安全的佔位內容，而不是複製原始文字。未知的二進位格式仍保留在 private。若無法產生 shareable 證據，包裝器會 fail closed，不會將原始證據當作備援。通過或失敗的產物僅是候選證據，永遠不會自動提升產品支援。
+完整擷取 CSV 僅保留在 `private/`。每個含有 CSV 的實機案例都會產生 shareable `csv-evidence.json`，記錄安全的 schema 與資料列事實，不包含量測值或觸發 metadata。JSON 與 JSONL 會在遮罩前解析；遺失或格式錯誤的輸入會產生安全的佔位內容，而不是複製原始文字。未知的二進位格式仍保留在 private。若無法產生 shareable 證據，包裝器會 fail closed，不會將原始證據當作備援。通過或失敗的產物會記錄驗證結果，不會自動改變產品支援。
 
 CLI `--model` 接受 canonical model token，例如 `34461A`，或已註冊的穩定型號 ID，例如 `keysight-34461a`。在 live 模式下它是預期型號防護；在 dry-run 或 simulator 模式下它會選擇規劃設定檔。
 
@@ -260,10 +260,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\live-cli-check
 
 如果 stdin 被重新導向且未設定 `-PlanOnly`，`live-cli-check.ps1` 將拒絕實機擷取並寫入 `confirmation_required` 報告。這是預期行為：實機儀器執行需要互動式確認。
 
-若要驗證選用的 PyVISA 後端，請向包裝器傳遞 `-VisaLibrary "@py"`。`-Backend "@py"` 可作為別名接受，而 `-visa-library "@py"` 則作為與 CLI 選項名稱相符的便利別名接受。包裝器會將此轉寄給 CLI `--visa-library` 並將後端記錄在產物中。省略時，包裝器使用系統 VISA，並將 `visa_library`/`backend` 記錄為 `system_visa`。若包裝器輸出顯示 `VISA library/backend: system_visa`，則該執行不是 `@py` 驗證產物。待定的 34460A LAN/TCPIP 驗證僅為證據收集，並不會使一般的 34460A LAN/TCPIP 產品啟動開啟。
+若要驗證選用的 PyVISA 後端，請向包裝器傳遞 `-VisaLibrary "@py"`。`-Backend "@py"` 可作為別名接受，而 `-visa-library "@py"` 則作為與 CLI 選項名稱相符的便利別名接受。包裝器會將此轉寄給 CLI `--visa-library` 並將後端記錄在產物中。省略時，包裝器使用系統 VISA，並將 `visa_library`/`backend` 記錄為 `system_visa`。若包裝器輸出顯示 `VISA library/backend: system_visa`，則該執行不是 `@py` 驗證產物。34460A LAN/TCPIP 目前不支援；驗證不會使一般的 34460A LAN/TCPIP 產品啟動開啟。
 
-待定支援意指尚未開放供產品使用，但非無法驗證。包裝器使用隱藏的 `--validation-allow-pending-live-support` Core 原則選擇器。它僅允許明確註冊的 `transport_pending` 和 `feature_pending` 項目；它不是一般的強制選項。缺少範圍/功能 metadata、未知型號、不支援的設定檔能力、無效請求以及硬性安全限制仍會被拒絕。34460A 基礎設定檔仍保持 external/external-custom 關閉，拒絕 10 A/電流端子請求，並保留 1000 筆讀值的緩衝區限制。其 USB/system-VISA DCV Ratio 項目為 `Product-open`，不需要此隱藏選擇器；LAN/TCPIP system-VISA 與 LAN/TCPIP pyvisa-py `@py` 仍為 `transport_pending`，且不會覆寫硬性限制或繼承 Ratio 的提升。
-對於 34460A，LAN/TCPIP system-VISA 與 LAN/TCPIP pyvisa-py `@py` 是未來針對具備 LAN/LXI 能力之單元或貢獻者提供之經審核產物的驗證路徑。它們不是目前維護者針對現有 USB-only 34460A 單元的驗證債務，且非發佈阻擋因素。
+非 Product-open scope 尚未開放供一般產品使用。包裝器使用隱藏的 `--validation-allow-pending-live-support` Core 原則選擇器。它僅允許明確註冊的 `transport_pending` 和 `feature_pending` 項目；它不是一般的強制選項。缺少範圍/功能 metadata、未知型號、不支援的設定檔能力、無效請求以及硬性安全限制仍會被拒絕。34460A 基礎設定檔仍保持 external/external-custom 關閉，拒絕 10 A/電流端子請求，並保留 1000 筆讀值的緩衝區限制。其 USB/system-VISA DCV Ratio 項目為 `Product-open`，不需要此隱藏選擇器；34460A LAN/TCPIP system-VISA 與 LAN/TCPIP pyvisa-py `@py` 目前不支援，且不會覆寫硬性限制或開放這些範圍。
 
 ## 建置與驗證指令腳本
 
@@ -283,7 +282,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\live-cli-check
 | `scripts\live-cli-check.ps1` | 實機硬體（除非設定了 `-PlanOnly`） | 執行依 target 的實機 wrapper 規劃，並在互動確認後，針對明確的 `-Resource` 與確切連線/後端範圍執行有界限的實機驗證案例。 |
 | `scripts\release-acceptance.ps1` | 無硬體 | 執行包含 wrapper 測試的完整無硬體套件，呼叫一次 `build_release.ps1`，驗證 wheel/sdist、兩個獨立執行檔與 SHA-256 checksums，接著執行 clean-install 套件 smoke test、兩個獨立執行檔的最小 smoke check、指定 target 的 preflight 與 `live-cli-check.ps1 -PlanOnly`。 |
 
-從 `transport_pending` 或 `feature_pending` 提升為 `live_validated_full_suite` 需要經審核的產物以及明確的精確範圍支援 metadata/說明文件更新。除非已經提供並核准了經審核的產物，否則請勿在僅啟用驗證模式執行的同一次變更中，將待定的範圍或功能標記為公開實機支援。
+將 `transport_pending` 或 `feature_pending` 改為 `live_validated_full_suite` 需要明確的精確範圍支援 metadata 與說明文件更新。僅啟用驗證模式執行不會開放 Product 支援。
 
 ## 基本工作流程
 
@@ -998,7 +997,7 @@ DCV Input Z 快速功能健檢，固定 10 MOhm：
 
 ### DCV 比率 (Ratio) 快速功能健檢
 
-DCV 比率 (Ratio) 使用現有的 `VOLT:DC:RAT` 實作。它已對驗證過的 34461A scope 開放，且 34460A 僅在 USB/system-VISA 上為 `Product-open`。一般 CLI 與 WebUI 啟動不需要隱藏的驗證模式選擇器。34460A LAN/TCPIP system-VISA 與 LAN/TCPIP pyvisa-py `@py` 仍為 `transport_pending`，因此 Ratio 的支援不延伸至這些 scope。進行實機操作前，請依照儀器手冊連接信號和參考導線；錯誤連接的比率量測可能數值看起來合理，但量測的卻是錯誤的關係。
+DCV 比率 (Ratio) 使用現有的 `VOLT:DC:RAT` 實作。它已對驗證過的 34461A scope 開放，且 34460A 僅在 USB/system-VISA 上為 `Product-open`。一般 CLI 與 WebUI 啟動不需要隱藏的驗證模式選擇器。34460A LAN/TCPIP system-VISA 與 LAN/TCPIP pyvisa-py `@py` 目前不支援（`transport_pending`），因此 Ratio 的支援不延伸至這些 scope。進行實機操作前，請依照儀器手冊連接信號和參考導線；錯誤連接的比率量測可能數值看起來合理，但量測的卻是錯誤的關係。
 
 Dry-run DCV Ratio 檢查：
 

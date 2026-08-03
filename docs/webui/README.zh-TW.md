@@ -4,7 +4,7 @@
 
 關於版本發佈說明，請參閱套件變更日誌 (changelog)。關於 Core API 和擁有權規則，請參閱 Core 整合指南。請將本指南專注於長期的公開 WebUI 行為與維護者邊界。
 
-[WebUI 本地化合約](localization-contract.md) 定義瀏覽器呈現的 v2 本地化。P2.1 提供不依賴套件的瀏覽器 i18n 基礎；P2.2 至 P2.5 涵蓋靜態與動態表單、app/resource、status/log、Live data、ARIA、瀏覽器錯誤與支援摘要呈現。P2.6 透過右上角永久顯示的地球與文字按鈕啟用英文／繁體中文選擇。有效的已儲存語系優先於瀏覽器偵測與 English fallback；手動選擇使用 `meters-tool.webui.locale` 儲存鍵。切換會立即更新頁面，不重新載入或呼叫 runtime/API，並從快取狀態重新轉譯，同時保留表單值、作用中的作業、面板、狀態日誌、Live 取樣、圖表設定、資源 metadata 與支援摘要。未知的 Core/backend/status 診斷、原始 status JSON、取樣 metadata 與 schema 保持原始內容。Core、HTTP API 端點與狀態碼、現有回應欄位、表單值、支援政策、儀器執行階段，以及 CSV/JSON/JSONL schema 都不變。P2.7 完成最終的語系目錄品質與術語審查、跨 Part 整合驗證、操作人員文件，以及不改變上述邊界的重點標籤修整。
+[WebUI 本地化合約](localization-contract.md) 定義瀏覽器呈現的本地化。WebUI 使用不依賴套件的語系 runtime、English fallback、English／繁體中文語系目錄、靜態與動態瀏覽器呈現，以及安全的命名插值。右上角永久顯示的地球與文字按鈕可切換 English 與繁體中文。有效的已儲存語系優先於瀏覽器偵測與 English fallback；手動選擇使用 `meters-tool.webui.locale` 儲存鍵。切換會立即更新頁面，不重新載入或呼叫 runtime/API，並從快取狀態重新轉譯，同時保留表單值、作用中的作業、面板、狀態日誌、Live 取樣、圖表設定、資源 metadata 與支援摘要。未知的 Core/backend/status 診斷、原始 status JSON、取樣 metadata 與 schema 保持原始內容。Core、HTTP API 端點與狀態碼、現有回應欄位、表單值、支援政策、儀器執行階段，以及 CSV/JSON/JSONL schema 都不變。繁體中文語系目錄術語與瀏覽器呈現使用共用的欄位標題配置。
 
 ## 目的
 
@@ -162,7 +162,7 @@ http://127.0.0.1:8767/
 
 右上角永久顯示的地球與文字按鈕可在 English 與繁體中文之間切換。在 English 中，目的地標籤為 `繁體中文`；在繁體中文中，目的地標籤為 `English`。首次載入時，WebUI 依序使用有效的已儲存語系、瀏覽器語言偵測，最後才使用 English。手動選擇會儲存在 `meters-tool.webui.locale`；偵測到的語系不會自動寫入。切換會改變 `<html lang>`，但不重新載入或呼叫 runtime endpoint，並保留目前的表單、作用中的作業、面板、狀態、Live data、圖表、資源與支援摘要狀態。未知的診斷文字保持原始內容。
 
-P2.7 完成 English／繁體中文呈現審查。繁體中文的 Measurement options 控制項顯示 `自動量程（Auto range）`；精簡摘要繼續使用 `自動量程`。選用標記與欄位標題保持同一行，包括 AC filter 與 Current terminal，僅在 viewport 太窄時自然換行。
+English／繁體中文呈現使用以下術語規則。繁體中文的 Measurement options 控制項顯示 `自動量程（Auto range）`；精簡摘要繼續使用 `自動量程`。選用標記與欄位標題保持同一行，包括 AC filter 與 Current terminal，僅在 viewport 太窄時自然換行。
 
 此 UI 刻意不設計前端建置步驟、Node 套件管理器、外部 CDN 或框架執行階段。靜態資產皆為純 HTML、CSS 和原生的 JavaScript 模組。
 
@@ -199,7 +199,7 @@ GET /api/resources?verify=true&live_only=true
 
 WebUI 使用 Core 預設的系統 VISA 執行階段。瀏覽器中不提供 PyVISA backend 選擇器。34461A LAN/TCPIP 已透過此預設系統 VISA 路徑進行驗證。只有在需要可選的 pyvisa-py 診斷時，才使用 CLI 專用的 `--visa-library` 進階選項；已驗證的選用 `@py` 擷取範圍是 34461A LAN/TCPIP。
 
-WebUI 不公開驗證模式。待定的傳輸/後端範圍以及待定的量測或觸發模式功能將在瀏覽器啟動時被封鎖，直到經審核的產物透過精確範圍的 Core 支援 metadata 與說明文件提升為公開支援。瀏覽器會停用產品不可用的功能選項，但該狀態僅為 UX；Core 驗證、支援原則關卡以及 `run_start_session()` 最終關卡仍是安全邊界。34460A LAN/TCPIP 待定範圍僅為未來驗證路徑，在 WebUI 中保持關閉。
+WebUI 不公開驗證模式。未對產品開放的傳輸/後端範圍以及量測或觸發模式功能，會在瀏覽器啟動時被封鎖。瀏覽器會停用產品不可用的功能選項，但該狀態僅為 UX；Core 驗證、支援原則關卡以及 `run_start_session()` 最終關卡仍是安全邊界。34460A LAN/TCPIP 目前不支援 WebUI。
 
 ## 量測模式
 
@@ -238,13 +238,13 @@ limit_keys
 pending_keys
 ```
 
-純量鍵分別對應 `status_text` 與 `runtime_driver_note`；鍵列表則依位置對應 `open_workflows`、`limits` 與 `pending`。瀏覽器在可用時使用已識別的鍵。遺失、格式錯誤、未知、較短或較長的鍵列表都不能移除、重新排序或增加文字項目：既有的文字列表仍是權威的顯示項目與備援內容。這些鍵只是呈現 metadata，不會影響支援原則的執行。原始的 `validation_status`、傳輸、後端、型號與設定檔身份值仍是機器值。最新的原始摘要可從記憶體重新轉譯，不需再次要求 capability。P2.6 在語系切換時使用此快取，且不會將瀏覽器語系傳給 API。P2.7 完成此行為的最終翻譯品質與跨 Part 整合驗證。
+純量鍵分別對應 `status_text` 與 `runtime_driver_note`；鍵列表則依位置對應 `open_workflows`、`limits` 與 `pending`。瀏覽器在可用時使用已識別的鍵。遺失、格式錯誤、未知、較短或較長的鍵列表都不能移除、重新排序或增加文字項目：既有的文字列表仍是權威的顯示項目與備援內容。這些鍵只是呈現 metadata，不會影響支援原則的執行。原始的 `validation_status`、傳輸、後端、型號與設定檔身份值仍是機器值。最新的原始摘要可從記憶體重新轉譯，不需再次要求 capability。語系切換使用此快取，且不會將瀏覽器語系傳給 API。
 
 標準型號名稱仍可供一般使用，穩定的型號 ID 也可作為設定檔查詢輸入。選定的型號仍是預期型號防護；從 live `*IDN?` 偵測到的設定檔仍是執行階段驅動程式。型號 ID 不代表支援狀態或生命週期狀態。
 
 `/api/capabilities` 也包含額外的支援 metadata。每個確切的實機連線範圍保留其現有的 `validation_status`、`transport_scope` 與 `backend_scope` 欄位，並新增 `features.measurement` 與 `features.trigger_mode` 對照表。功能項目公開其自身的 `validation_status`；量測鍵使用現有的配接器端名稱，例如 `voltage-dc-ratio`。現有的回應欄位不會被移除或重新命名。
 
-瀏覽器使用此 metadata 來顯示型號的實機支援，並停用對目前資源傳輸與 WebUI 固定系統-VISA 後端而言非產品開放的功能。它能區分待定實機驗證、型號不支援以及確切範圍不可用。在資源已知之前，Auto-detect 保持現有的備援功能檢視，且僅使用備援設定檔宣告的產品範圍；它絕不會推廣待定功能。對於 34461A，該 metadata 包含驗證過的 USB/system-VISA、LAN/system-VISA 以及選用的 CLI 專用 LAN/pyvisa-py `@py` 範圍。對於 34460A，DCV Ratio 在 USB/system-VISA 上為 `Product-open`；34460A LAN/TCPIP system-VISA 與 LAN/TCPIP pyvisa-py `@py` 仍為 `transport_pending`。Ratio promotion 是在維護者審查獨立、有界限的實機證據後明確完成；既有的 12-case wrapper full suite 不包含 Ratio，且不延伸至 LAN 或 pyvisa-py scope。現有的量測、觸發、範圍與限制欄位仍是控制項定義的 source of truth。
+瀏覽器使用此 metadata 來顯示型號的實機支援，並停用對目前資源傳輸與 WebUI 固定系統-VISA 後端而言非產品開放的功能。在資源已知之前，Auto-detect 保持現有的備援功能檢視，且僅使用備援設定檔宣告的產品範圍；它絕不會開放非 Product-open 功能。對於 34461A，該 metadata 包含已支援的 USB/system-VISA、LAN/system-VISA 以及選用的 CLI 專用 LAN/pyvisa-py `@py` 範圍。對於 34460A，DCV Ratio 在 USB/system-VISA 上為 `Product-open`；LAN/TCPIP 目前不支援（`transport_pending`）。現有的量測、觸發、範圍與限制欄位仍是控制項定義的 source of truth。
 
 Expected model 檢查是選用的。Core 會在 Start 時驗證連接儀器的識別資訊。若明確指定的預期型號與新的 IDN preflight 不符，WebUI 會回報選取的型號以及 IDN 中找到的支援型號。
 

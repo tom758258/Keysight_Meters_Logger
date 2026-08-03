@@ -89,7 +89,7 @@ Important limitations:
   backend. Missing feature metadata fails closed rather than inheriting
   support from another scope.
 - 34460A DCV Ratio is Product-open only on USB/system-VISA. Normal CLI starts
-  do not need the hidden contributor validation selector. This support does not
+  do not need the hidden validation selector. This support does not
   extend to 34460A LAN or pyvisa-py scopes.
 - The 34460A has a lower maximum reading rate than the 34461A, but the CLI does
   not actively control high-speed reading rate in this release.
@@ -129,8 +129,7 @@ uv pip install pyvisa-py pyserial psutil zeroconf
 ```
 
 The validated optional pyvisa-py acquisition scope is 34461A over LAN/TCPIP.
-34460A LAN/TCPIP and 34460A LAN/`@py` remain not open for the currently
-available unit unless a future LAN/LXI-enabled 34460A is validated.
+34460A LAN/TCPIP and 34460A LAN/`@py` are not currently supported.
 
 ## Development
 
@@ -298,9 +297,9 @@ touch the instrument. Normal product execution, including normal CLI starts,
 the WebUI, and direct Core live calls, must use the connected model's Product-
 open exact transport/backend scope. The maintainer `live-cli-check.ps1`
 validation harness described below may also execute explicitly registered
-pending scopes for bounded evidence collection; model-specific safety limits
-and Core validation remain enforced. Passing validation evidence does not
-automatically promote support.
+non-Product-open scopes for bounded validation; model-specific safety limits
+and Core validation remain enforced. Passing validation does not automatically
+change Product support metadata.
 
 1. Run the no-hardware recipe above.
 2. Discover resources that currently answer `*IDN?`:
@@ -323,10 +322,9 @@ or TCPIP/LAN resources.
 The live wrapper is a validation harness, not a product usage interface. It may
 execute explicitly registered `transport_pending` connection scopes and
 `feature_pending` measurement/trigger-mode entries with the exact operator-
-provided resource so artifacts can be collected. A passing
-`report.json` or `summary.md` does not by itself promote public support;
-reviewed artifacts and corresponding support metadata plus documentation are
-still required.
+provided resource so validation results can be recorded. A passing
+`report.json` or `summary.md` does not by itself change Product support
+metadata.
 
 Every invocation that reaches run-directory creation, including `-PlanOnly`,
 confirmation-required, preflight-failed, passed, and failed runs, automatically
@@ -359,8 +357,8 @@ facts without measurement values or trigger metadata. JSON and JSONL are
 parsed before redaction; malformed or missing inputs produce safe placeholders
 instead of copying raw text. Unknown binary formats remain private. A failure
 to generate shareable evidence makes the wrapper fail closed and does not turn
-raw evidence into a fallback. Passed or failed artifacts are candidate evidence
-only and never promote product support automatically.
+raw evidence into a fallback. Passed or failed artifacts record validation
+results and do not change Product support automatically.
 
 CLI `--model` accepts a canonical model token such as `34461A` or a registered
 stable model ID such as `keysight-34461a`. In live mode it is an expected-model
@@ -428,11 +426,11 @@ is accepted as a convenience alias matching the CLI option name. The wrapper
 forwards this to CLI `--visa-library` and records the backend in the artifacts.
 When omitted, the wrapper uses system VISA and records `visa_library`/`backend`
 as `system_visa`. If wrapper output says `VISA library/backend: system_visa`,
-the run is not an `@py` validation artifact. Pending 34460A LAN/TCPIP
-validation remains evidence collection only; it does not make normal 34460A
-LAN/TCPIP product starts open.
+the run is not an `@py` validation artifact. 34460A LAN/TCPIP is not currently
+supported; validation does not make normal 34460A LAN/TCPIP product starts
+open.
 
-Pending support means not open for product use yet, not impossible to validate.
+Scopes that are not Product-open are not available for normal product use.
 The wrapper uses the hidden
 `--validation-allow-pending-live-support` Core policy selector. It permits only
 explicitly registered `transport_pending` and `feature_pending` entries; it is
@@ -441,12 +439,8 @@ unsupported profile capabilities, invalid requests, and hard safety limits
 remain rejected. The 34460A base profile still keeps external/external-custom
 closed, rejects 10 A/current-terminal requests, and preserves the 1000-reading
 buffer limits. Its USB/system-VISA DCV Ratio entry is Product-open and does not
-need this hidden selector; LAN/TCPIP or pyvisa-py validation remains pending and
-does not override hard limits or inherit the Ratio promotion.
-For 34460A, LAN/TCPIP system-VISA and LAN/TCPIP pyvisa-py `@py` are future
-validation paths for a LAN/LXI-capable unit or contributor-provided reviewed
-artifact. They are not current maintainer validation debt for the available
-USB-only 34460A unit and are not release blockers.
+need this hidden selector; LAN/TCPIP or pyvisa-py entries remain non-Product-open
+and do not override hard limits or open the unsupported 34460A LAN scopes.
 
 Preview the Frequency/Period live suite without opening VISA:
 
@@ -500,11 +494,10 @@ Validation and release scripts:
 | `scripts\live-cli-check.ps1` | Live hardware unless `-PlanOnly` is set | Runs target-aware live-wrapper plans and, with interactive confirmation, bounded live validation cases against the explicit `-Resource` and exact connection/backend scope. |
 | `scripts\release-acceptance.ps1` | No hardware | Runs the complete no-hardware suite including wrapper tests, invokes `build_release.ps1` once, validates wheel/sdist, both standalone executables, and SHA-256 checksums, then runs clean-install package smokes, minimal standalone executable smokes, selected-target preflight, and `live-cli-check.ps1 -PlanOnly`. |
 
-Promotion from `transport_pending` or `feature_pending` to
-`live_validated_full_suite` requires reviewed artifacts and an explicit exact-
-scope support metadata/docs update. Do not mark a pending scope or feature as
-public live support in the same change that merely enables validation-mode
-execution unless a reviewed artifact is already provided and approved.
+Changing `transport_pending` or `feature_pending` to
+`live_validated_full_suite` requires an explicit exact-scope support metadata
+and documentation update. Enabling validation-mode execution alone does not
+open Product support.
 
 ## Basic Workflow
 

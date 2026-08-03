@@ -101,8 +101,8 @@ Live evaluation is based on all of the following:
 3. the normalized measurement feature;
 4. the effective trigger-mode feature.
 
-Evidence for one connection scope does not open another scope. For example,
-USB/system-VISA evidence does not automatically open LAN/system-VISA or
+Support for one connection scope does not open another scope. For example,
+USB/system-VISA support does not automatically open LAN/system-VISA or
 LAN/pyvisa-py.
 
 Current connection scope is:
@@ -110,18 +110,17 @@ Current connection scope is:
 - 34461A: validated USB/system VISA and LAN/system VISA, plus CLI-only
   LAN/TCPIP with pyvisa-py `@py`;
 - 34460A: USB/system VISA is Product-open for the currently approved workflows,
-  including the explicitly promoted DCV Ratio scope; LAN/TCPIP scopes remain
-  pending.
+  including DCV Ratio; LAN/TCPIP scopes are not currently supported.
 
-Maintainer-only Validation mode may execute only explicitly registered pending
-transport or feature scopes for bounded evidence collection. Validation mode
-does not mutate Product metadata, and passing validation artifacts does not
-automatically promote public support.
-
-Missing entries, unknown statuses, unsupported scopes, and pending scopes used
-from Product mode fail closed. The simulator validates deterministic contracts
-and workflows only; it is not evidence of live measurement accuracy or hardware
+Maintainer-only Validation mode may execute only explicitly registered
+non-Product-open transport or feature scopes. Validation mode does not mutate
+Product metadata, and passing validation does not automatically change Product
 support.
+
+Missing entries, unknown statuses, and unsupported or non-Product-open scopes
+used from Product mode fail closed. The simulator validates deterministic
+contracts and workflows only; it is not evidence of live measurement accuracy
+or hardware support.
 
 See [Supported Models](supported-models.md) for the user-facing support matrix
 and [Core Integration](integration.md#validation-flow) for the enforcing flow.

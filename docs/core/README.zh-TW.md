@@ -63,16 +63,16 @@ Canonical 型號與穩定型號 ID 彼此相關，但用途不同。像 `Keysigh
 3. 正規化後的 measurement feature；
 4. 有效的 trigger-mode feature。
 
-某個連線 scope 的證據不會自動開放另一個 scope。例如，USB/system-VISA 的證據不會自動開放 LAN/system-VISA 或 LAN/pyvisa-py。
+某個連線 scope 的支援不會自動開放另一個 scope。例如，USB/system-VISA 的支援不會自動開放 LAN/system-VISA 或 LAN/pyvisa-py。
 
 目前連線範圍如下：
 
 - 34461A：已驗證 USB/system VISA、LAN/system VISA，以及僅限 CLI、使用 pyvisa-py `@py` 的 LAN/TCPIP；
-- 34460A：目前已核准工作流程中的 USB/system VISA 已對產品開放，包括明確提升的 DCV Ratio scope；LAN/TCPIP scope 仍待驗證。
+- 34460A：目前核准工作流程中的 USB/system VISA 已對產品開放，包括 DCV Ratio；LAN/TCPIP scope 目前不支援。
 
-僅限維護者使用的 Validation mode 只能執行明確註冊、尚待驗證的 transport 或 feature scope，以收集有界限的證據。Validation mode 不會改寫 Product metadata，通過驗證的 artifact 也不會自動提升公開支援。
+僅限維護者使用的 Validation mode 只能執行明確註冊、尚未對產品開放的 transport 或 feature scope。Validation mode 不會改寫 Product metadata，通過驗證也不會自動改變 Product 支援。
 
-缺少的項目、未知狀態、不受支援的 scope，以及在 Product mode 中使用的 pending scope 都必須 fail closed。Simulator 只驗證確定性的合約與工作流程，不代表實機量測準確度或硬體支援證據。
+缺少的項目、未知狀態，以及在 Product mode 中使用的不支援或非 Product-open scope 都必須 fail closed。Simulator 只驗證確定性的合約與工作流程，不代表實機量測準確度或硬體支援證據。
 
 使用者可閱讀的支援矩陣請參閱 [支援的型號](supported-models.md)，實際執行閘門流程請參閱 [Core 整合](integration.md#validation-flow)。
 

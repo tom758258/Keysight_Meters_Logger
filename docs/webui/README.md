@@ -8,23 +8,21 @@ For release notes, use the package changelog. For Core API and ownership rules,
 use the Core integration guide. Keep this guide focused on durable public
 WebUI behavior and maintainer boundaries.
 
-The [WebUI Localization Contract](localization-contract.md) defines the v2
-localization of browser presentation. P2.1 provides the dependency-free browser
-i18n foundation; P2.2 through P2.5 cover static and dynamic form, app/resource,
-status/log, Live data, ARIA, browser-error, and support-summary presentation.
-P2.6 activates English / Traditional Chinese selection through the permanent
-top-right globe-and-text button. A valid saved locale takes precedence over
-browser detection and English fallback; manual choices use the
-`meters-tool.webui.locale` storage key. Switching updates the page immediately
-without reload or runtime/API requests and re-renders from cached state while
-preserving form values, active runs, panels, status logs, Live samples, chart
-settings, resource metadata, and support summaries. Unknown Core/backend/status
-diagnostics, raw status JSON, sample metadata, and schemas remain raw. Core,
-HTTP API endpoints and status codes, existing response fields, form values,
-support policy, instrument runtime, and CSV/JSON/JSONL schemas remain
-unchanged. P2.7 completes the final catalog-quality and terminology review,
-cross-Part integration validation, operator documentation, and focused label
-polish without changing those boundaries.
+The [WebUI Localization Contract](localization-contract.md) defines the
+localization of browser presentation. The WebUI uses a dependency-free locale
+runtime with English fallback, English / Traditional Chinese catalogs, static
+and dynamic browser presentation, and safe named interpolation. The permanent
+top-right globe-and-text button switches between English and Traditional
+Chinese. A valid saved locale takes precedence over browser detection and
+English fallback; manual choices use the `meters-tool.webui.locale` storage key.
+Switching updates the page immediately without reload or runtime/API requests
+and re-renders from cached state while preserving form values, active runs,
+panels, status logs, Live samples, chart settings, resource metadata, and
+support summaries. Unknown Core/backend/status diagnostics, raw status JSON,
+sample metadata, and schemas remain raw. Core, HTTP API endpoints and status
+codes, existing response fields, form values, support policy, instrument
+runtime, and CSV/JSON/JSONL schemas remain unchanged. Traditional Chinese
+catalog terminology and browser presentation use the shared label layout.
 
 ## Purpose
 
@@ -212,8 +210,8 @@ runtime endpoint, and preserves the current form, active run, panel, status,
 Live data, chart, resource, and support-summary state. Unknown diagnostics stay
 raw.
 
-P2.7 completes the English / Traditional Chinese presentation review. The
-Traditional Chinese Measurement options control shows
+The English / Traditional Chinese presentation uses the following terminology.
+The Traditional Chinese Measurement options control shows
 `自動量程（Auto range）`; compact summaries continue to use `自動量程`. Optional
 markers share the inline field-title layout, including AC filter and Current
 terminal, and may wrap naturally only when the viewport is too narrow.
@@ -276,15 +274,12 @@ this default system VISA path. Use the CLI-only `--visa-library` advanced
 option when optional pyvisa-py backend diagnostics are required; the validated
 optional `@py` acquisition scope is 34461A LAN/TCPIP.
 
-The WebUI does not expose validation mode. Pending transport/backend scopes and
-pending measurement or trigger-mode features remain blocked for browser starts
-until reviewed artifacts promote public support through exact-scope Core
-support metadata and documentation. The browser disables product-unavailable
-feature options, but that state is UX only; Core validation, the support policy
-gate, and the `run_start_session()` final gate remain the safety boundary for
-forged or stale requests.
-34460A LAN/TCPIP pending scopes are future validation paths only and remain
-product-closed in the WebUI.
+The WebUI does not expose validation mode. Transport/backend scopes and
+measurement or trigger-mode features that are not Product-open remain blocked
+for browser starts. The browser disables product-unavailable feature options,
+but that state is UX only; Core validation, the support policy gate, and the
+`run_start_session()` final gate remain the safety boundary for forged or stale
+requests. 34460A LAN/TCPIP is not currently supported in the WebUI.
 
 ## Measurement Modes
 
@@ -348,10 +343,8 @@ existing prose list remains the authoritative display inventory and fallback.
 These keys are presentation metadata only and do not affect support-policy
 enforcement. Raw `validation_status`, transport, backend, model, and profile
 identity values remain machine values. The latest raw summary can be
-re-rendered from memory without another capability request. P2.6 uses that
-cache during locale switching and does not send the browser locale to the API.
-P2.7 completes the final translation-quality and cross-Part integration
-validation for this behavior.
+re-rendered from memory without another capability request. The locale switch
+uses that cache and does not send the browser locale to the API.
 
 Canonical model names remain valid for normal use, and stable model IDs are
 also accepted profile lookup inputs. A selected model remains an expected-model
@@ -368,17 +361,14 @@ renamed.
 
 The browser uses this metadata to show model live support and to disable
 features that are not product-open for the current resource transport and the
-WebUI's fixed system-VISA backend. It distinguishes pending live validation,
-not supported by model, and unavailable exact scope. Before a resource is
-known, Auto-detect keeps the existing fallback capability view and uses only
-the fallback profile's declared product scope; it never promotes a pending
-feature. For 34461A the metadata includes validated USB/system-VISA,
+WebUI's fixed system-VISA backend. Before a resource is known, Auto-detect
+keeps the existing fallback capability view and uses only the fallback
+profile's declared product scope; it never opens a non-Product-open feature.
+For 34461A the metadata includes validated USB/system-VISA,
 LAN/system-VISA, and optional CLI-only LAN/pyvisa-py `@py` scopes. For 34460A,
-DCV Ratio is Product-open on USB/system-VISA, while LAN/TCPIP scopes remain
-`transport_pending`. The Ratio promotion followed maintainer review of separate
-bounded evidence; the existing 12-case wrapper full suite did not include
-Ratio. Existing measurement, trigger, range, and limit fields remain the source
-of truth for control definitions.
+DCV Ratio is Product-open on USB/system-VISA, while LAN/TCPIP is not currently
+supported (`transport_pending`). Existing measurement, trigger, range, and
+limit fields remain the source of truth for control definitions.
 
 The Expected model check is optional. Core validates the connected instrument
 identity at Start. If an explicit expected model does not match the fresh IDN

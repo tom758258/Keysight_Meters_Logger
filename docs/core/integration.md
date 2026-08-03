@@ -165,7 +165,7 @@ Requested-model normalization deliberately continues to return `34461A` or
 `34460A`, not a model ID, so existing expected-model and adapter contracts do
 not change. A selected live identity remains an expected-model guard only; the
 detected `*IDN?` profile remains authoritative at runtime. A stable model ID is
-identity metadata, not live-support authorization or promotion.
+identity metadata, not live-support authorization.
 
 Downstream adapters should use public Core profile lookup and normalization
 APIs instead of maintaining a competing model-ID mapping. Maintained validation
@@ -245,7 +245,7 @@ remain enforced by `validate_start_request(...)`.
 Live policy evaluation has three required layers: the exact transport/backend
 connection scope, the normalized measurement feature, and the effective
 trigger-mode feature. Feature entries belong to one exact connection scope;
-USB/system-VISA evidence does not open TCPIP/system-VISA or TCPIP/pyvisa-py.
+USB/system-VISA support does not open TCPIP/system-VISA or TCPIP/pyvisa-py.
 Product mode requires `live_validated_full_suite` at all three layers.
 Validation mode additionally permits an explicitly registered
 `transport_pending` connection and explicitly registered `feature_pending`
@@ -268,7 +268,7 @@ check.
 Meters intentionally applies live support policy at the workflow level rather
 than maintaining a policy entry for every internal SCPI or runtime operation.
 
-The current independently promotable live workflow is
+The current independently supported live workflow is
 `start-trigger-record`. Its exact support key is:
 
 ```text
@@ -283,33 +283,30 @@ requirements, acquisition flow, and cleanup behavior.
 Internal phases such as identity preflight, measurement setup, trigger setup,
 initiate, wait, fetch or read, buffer drain, stop, cleanup, release, and
 low-level SCPI operations are implementation details of the complete
-acquisition workflow. They are not independently promotable Product
-capabilities.
+acquisition workflow. They are not independently exposed Product capabilities.
 
 This granularity is deliberate. Splitting internal phases into separate support
 entries would expose implementation details, create misleading partial-support
 states, and still require a final workflow-level decision before acquisition
 could run.
 
-This policy follows the same fail-closed and evidence-backed promotion
-principles as command-centric instrument projects while using a scope that
-matches the Meters runtime model. Product mode requires the exact connection
-scope and all requested workflow features to be validated. Validation mode
-allows only explicitly registered pending scopes and features. Passing
-validation evidence never promotes Product support automatically.
+This policy follows fail-closed, exact-scope support principles while using a
+scope that matches the Meters runtime model. Product mode requires the exact
+connection scope and all requested workflow features to be Product-open.
+Validation mode allows only explicitly registered pending scopes and features.
+Validation mode does not modify Product support metadata.
 
 If another independently callable live workflow is added in the future, define
 a separate workflow policy with its own exact connection scopes and stable
 categorical feature dimensions. Do not turn internal setup, query, fetch, stop,
 cleanup, or release operations into separate Product capabilities unless they
 become independently callable public workflows with their own stable contract
-and evidence boundary.
+and contract boundary.
 
-Current validated 34461A live scopes include USB/system-VISA, LAN/TCPIP with
-system VISA, and LAN/TCPIP with optional CLI-only pyvisa-py `@py`. Current
-34460A USB/system-VISA support includes the explicitly promoted DCV Ratio
-measurement, while 34460A LAN/TCPIP scopes remain `transport_pending`; their
-profile-supported features are explicitly `feature_pending`. WebUI
+Current 34461A live scopes include USB/system-VISA, LAN/TCPIP with system VISA,
+and LAN/TCPIP with optional CLI-only pyvisa-py `@py`. Current 34460A
+USB/system-VISA support includes DCV Ratio, while 34460A LAN/TCPIP scopes are
+not currently supported. WebUI
 `/api/capabilities` exposes these facts along with display-oriented model
 support summaries so the browser can show connection and feature status without
 changing the Core runtime gate.
@@ -327,16 +324,15 @@ starts remain gated to scopes marked `live_validated_full_suite`.
 `SUPPORT_POLICY_MODE_VALIDATION` exists only for validation tooling such as
 `scripts/live-cli-check.ps1`. It allows known `transport_pending` connection
 scopes and `feature_pending` measurement/trigger-mode entries to execute so an
-operator can collect artifacts with an exact operator-provided VISA resource.
-It does not promote public support, treat missing metadata as pending, or
-bypass unsupported-by-model workflows and hard profile limits. The 34460A base
-profile still rejects external/external-custom workflows, the 10 A/current-
+operator can record validation results with an exact operator-provided VISA
+resource. It does not alter Product support metadata, treat missing metadata as
+pending, or bypass unsupported-by-model workflows and hard profile limits. The
+34460A base profile still rejects external/external-custom workflows, the 10 A/current-
 terminal path, and buffer drain sizes above the profile reading-memory limit.
-34460A DCV Ratio is Product-open on USB/system-VISA after maintainer review and
-explicit promotion of separate bounded evidence. The existing 12-case wrapper
-full suite did not include Ratio. Its measurement status combines with the
-Product-open immediate, software, immediate-custom, and software-custom trigger
-modes; this does not open either 34460A LAN scope.
+Validation mode does not alter the Product-open 34460A DCV Ratio
+USB/system-VISA scope or open either 34460A LAN scope. The Product-open
+measurement combines with the immediate, software, immediate-custom, and
+software-custom trigger modes in that exact scope.
 
 The runner has the same final gate:
 
@@ -351,14 +347,9 @@ result = run_start_session(
 )
 ```
 
-Use that mode only from reviewed validation harnesses. Public support promotion
-requires reviewed artifacts plus an explicit support metadata and documentation
-update.
-
-Validation mode does not imply maintainers must validate every pending scope
-immediately. Pending 34460A LAN/TCPIP scopes are future evidence-collection
-paths for matching LAN/LXI hardware or contributors. Without matching hardware,
-they remain pending and product-closed.
+Use that mode only from validation harnesses. Product support remains controlled
+by the explicit support metadata for the exact scope; validation mode does not
+change that metadata.
 
 Adapters that need stable warning codes can use the structured helper:
 
@@ -462,4 +453,3 @@ Do not introduce adapter behavior that changes SCPI commands, VISA timeout
 strategy, trigger wait strategy, `TRIG:DEL`, NPLC, Auto Zero, Auto Range,
 VM Comp, stop/release/local behavior, or repeated `*OPC?` polling without an
 explicit project decision and hardware validation plan.
-

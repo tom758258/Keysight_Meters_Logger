@@ -290,7 +290,7 @@
             <li>當 Start 必須要求 34460A IDN 相符時，請選擇 <code>--model 34460A</code>。在實機模式下，這僅作為預期型號防護 (expected-model guard)，並不會覆寫由 IDN 決定的設定檔。在 dry-run 或模擬模式下，它會選擇 34460A 的設定檔限制：無 10 A 電流範圍或電流端子選擇、1000 筆讀值的記憶體，且無基礎設定檔外接觸發模式。</li>
             <li>當 Start 必須要求 34461A IDN 相符時，請選擇 <code>--model 34461A</code>。明確的實機不符會在 setup SCPI 之前失敗。型號名稱由 Core 設定檔邏輯進行標準化與驗證；未知的型號驗證會失敗，並列出支援的型號。</li>
             <li>實機產品支援具備功能感知 (feature-aware) 且範圍精確 (exact-scope)：對於偵測到的型號與確切的傳輸/VISA 後端，連線、量測與實際的觸發模式必須均為 <code>live_validated_full_suite</code>。缺少的功能 metadata 會以預設關閉 (fail-closed) 處理，而非繼承其他範圍的支援。</li>
-            <li>34460A DCV Ratio 僅在 USB/system-VISA 上開放產品使用。一般 CLI 啟動不需要隱藏的貢獻者驗證選擇器。此支援不延伸至 34460A LAN 或 pyvisa-py 範圍。</li>
+            <li>34460A DCV Ratio 僅在 USB/system-VISA 上開放產品使用。一般 CLI 啟動不需要隱藏的驗證選擇器。此支援不延伸至 34460A LAN 或 pyvisa-py 範圍。</li>
             <li>34460A 的最大讀值速率低於 34461A，但 CLI 在此版本中不會主動控制高速讀值速率。</li>
             <li>AC、頻率與週期模式透過 <code>--ac-bandwidth-hz</code> 公開 34461A 的 <code>3</code>、<code>20</code> 和 <code>200</code> Hz 頻寬/濾波器設定。在實際投入生產使用前，請使用操作人員提供的 VISA 資源執行低風險的實機資源快速功能健檢 (smoke test)，並將 CLI 記錄列與 34461A 前面板讀值進行對比。</li>
             <li><code>--nplc</code> 和 <code>--auto-zero</code> 是 DC/電阻控制項。AC 電流、AC 電壓、頻率與週期僅接受中性預設值 <code>--nplc 1.0</code>；任何其他 NPLC 值都將被拒絕，因為這些模式不會寫入 NPLC SCPI。它們也不會寫入 Auto Zero SCPI 指令。</li>
@@ -307,7 +307,7 @@
         </ul>
         <p>可透過 CLI 引數支援選用的 pyvisa-py 測試，但 pyvisa-py 並非必要相依套件。僅在需要時安裝選用的後端套件：</p>
         <div class="code-wrapper"><pre><code>uv pip install pyvisa-py pyserial psutil zeroconf</code></pre></div>
-        <p>目前已驗證的選用 pyvisa-py 擷取範圍是 34461A 經由 LAN/TCPIP。除非未來驗證具備 LAN/LXI 能力的 34460A，否則 34460A LAN/TCPIP 與 34460A LAN/<code>@py</code> 對目前可用的儀器仍未開放。</p>
+        <p>目前已驗證的選用 pyvisa-py 擷取範圍是 34461A 經由 LAN/TCPIP。34460A LAN/TCPIP 與 34460A LAN/<code>@py</code> 目前不支援。</p>
 
         <h2>開發</h2>
         <p>在 PowerShell 中，切換到專案目錄，建立或重複使用本機虛擬環境，並依照根目錄 <a href="../../README.zh-TW.md#安裝">README 安裝</a> 章節同步 all-extras 開發環境：</p>
@@ -358,7 +358,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\preflight-cli.
         <p>最後的 live wrapper 呼叫是 <code>live-cli-check.ps1 -Suite minimal -PlanOnly -SkipPreflight</code>；它只產生 dry-run plans，不會開啟 VISA 資源。<code>build_release.ps1</code> 會建置獨立執行檔，而 release acceptance 會透過上述最小 smoke check 驗證它們。每個 recorded command 會顯示 <code>[start]</code> 以及含執行時間的 <code>[passed]</code> 或 <code>[failed]</code>。詳細的 child-process captured stdout/stderr 會保留在 acceptance run directory，不會即時串流到主控台。完整 pytest 可能透過 wrapper contract tests 建立 <code>.tmp_tests\cli_live\...</code>；看到該目錄不代表正在執行真實儀器測試。長時間的 PyInstaller build 不應被誤認為正在等待 external trigger。通過後會輸出可直接上傳至 GitHub Release 的版本化目錄。主要輸出位於 <code>.tmp_tests/release_acceptance/&lt;target&gt;/&lt;timestamp&gt;/</code>，包括 <code>report.json</code>、<code>summary.md</code>、<code>checksums.txt</code> 與建置出的 distribution 產物。這是正式發布門檻，不是一般本機套件建置或重新建置獨立 EXE 的必要步驟。</p>
 
         <h2>實體儀器驗證路徑</h2>
-        <p>當搬移到新電腦、新的 VISA 執行階段或不同的已連接支援型號時，請使用本段落。先從無硬體驗證開始，然後探測作用中的資源，接著在允許包裝器接觸儀器前，執行僅限規劃的實機驗證包裝器。一般產品執行（包括一般 CLI 啟動、WebUI 與直接的 Core 實機呼叫）必須使用連接型號的 Product-open 確切傳輸/後端範圍。下方的維護者 <code>live-cli-check.ps1</code> 驗證 harness 則可針對明確註冊的待定範圍執行有界限的證據收集；型號專屬安全限制與 Core 驗證仍會強制套用。驗證證據不會自動提升支援狀態。</p>
+        <p>當搬移到新電腦、新的 VISA 執行階段或不同的已連接支援型號時，請使用本段落。先從無硬體驗證開始，然後探測作用中的資源，接著在允許包裝器接觸儀器前，執行僅限規劃的實機驗證包裝器。一般產品執行（包括一般 CLI 啟動、WebUI 與直接的 Core 實機呼叫）必須使用連接型號的 Product-open 確切傳輸/後端範圍。下方的維護者 <code>live-cli-check.ps1</code> validation harness 則可針對明確註冊的非 Product-open 範圍執行有界限的驗證；型號專屬安全限制與 Core 驗證仍會強制套用。通過驗證不會自動改變 Product 支援 metadata。</p>
         <ol>
             <li>執行上方的無硬體配方。</li>
             <li>探測目前有回應 <code>*IDN?</code> 的資源：</li>
@@ -369,7 +369,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\preflight-cli.
         </ol>
         <div class="code-wrapper"><pre><code>$env:METER_RESOURCE = "USB0::...::INSTR"</code></pre></div>
         <p>此值可以是探測傳回的任何作用中 VISA 資源，包括 USB 或 TCPIP/LAN 資源。</p>
-        <p>實機驗證包裝器是驗證 harness，而非產品使用介面。它可以針對明確由操作人員提供的資源，執行明確註冊的 <code>transport_pending</code> 連線範圍以及 <code>feature_pending</code> 量測/觸發模式項目，以便收集產物 (artifacts)。通過的 <code>report.json</code> 或 <code>summary.md</code> 本身不會提升公開支援狀態；仍需要經審核的產物以及相應的支援 metadata 與說明文件。</p>
+        <p>實機驗證包裝器是驗證 harness，而非產品使用介面。它可以針對明確由操作人員提供的資源，執行明確註冊的 <code>transport_pending</code> 連線範圍以及 <code>feature_pending</code> 量測/觸發模式項目，以便記錄驗證結果。通過的 <code>report.json</code> 或 <code>summary.md</code> 本身不會改變 Product 支援 metadata。</p>
         <p>任何已建立執行目錄的呼叫（包括 <code>-PlanOnly</code>、需要確認、preflight 失敗、通過及失敗的執行）都會自動使用以下產物配置：</p>
         <div class="code-wrapper"><pre><code class="language-text">.tmp_tests/cli_live/&lt;model-id&gt;/&lt;connection&gt;/&lt;suite&gt;/&lt;timestamp&gt;/
 |- private/
@@ -381,7 +381,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\preflight-cli.
    |- summary.md
    `- ... 已遮罩的命令、診斷、JSONL、stderr 與 CSV 證據</code></pre></div>
         <p>最後的 <code>summary:</code> 主控台列會指向 repository 相對路徑的 <code>shareable/summary.md</code>。<code>private/</code> 是完整的本機除錯證據，絕不可提交、附加或發佈。只有 <code>shareable/</code> 適合 Pull Request；請壓縮並附加整個 shareable 目錄，以保留其相對參照。兩份報告都使用 artifact schema <code>1.1</code>。private 報告保留原始資源與本機路徑；shareable 報告與樹狀結構會遮罩資源、完整 IDN 與序號、私有位址、操作人員 metadata，以及個人或絕對路徑。</p>
-        <p>完整擷取 CSV 僅保留在 <code>private/</code>。每個含有 CSV 的實機案例都會產生 shareable <code>csv-evidence.json</code>，記錄安全的 schema 與資料列事實，不包含量測值或觸發 metadata。JSON 與 JSONL 會在遮罩前解析；遺失或格式錯誤的輸入會產生安全的佔位內容，而不是複製原始文字。未知的二進位格式仍保留在 private。若無法產生 shareable 證據，包裝器會 fail closed，不會將原始證據當作備援。通過或失敗的產物僅是候選證據，永遠不會自動提升產品支援。</p>
+        <p>完整擷取 CSV 僅保留在 <code>private/</code>。每個含有 CSV 的實機案例都會產生 shareable <code>csv-evidence.json</code>，記錄安全的 schema 與資料列事實，不包含量測值或觸發 metadata。JSON 與 JSONL 會在遮罩前解析；遺失或格式錯誤的輸入會產生安全的佔位內容，而不是複製原始文字。未知的二進位格式仍保留在 private。若無法產生 shareable 證據，包裝器會 fail closed，不會將原始證據當作備援。通過或失敗的產物會記錄驗證結果，不會自動改變產品支援。</p>
         <p>CLI <code>--model</code> 接受 canonical model token，例如 <code>34461A</code>，或已註冊的穩定型號 ID，例如 <code>keysight-34461a</code>。在 live 模式下它是預期型號防護；在 dry-run 或 simulator 模式下它會選擇規劃設定檔。</p>
         <p>PowerShell wrapper 的 <code>-Target</code> 值是穩定的 Core 型號 ID。目前維護的值為 <code>keysight-34461a</code> 與 <code>keysight-34460a</code>，分別對應實體 CLI 型號 token <code>34461A</code> 與 <code>34460A</code>。wrapper target 仍是實機驗證的預期型號防護，而偵測到的 <code>*IDN?</code> 會選擇執行階段設定檔。型號 ID 不代表產品開放支援、生命週期、傳輸/後端、量測、觸發模式或驗證狀態；Meters 支援政策仍以工作流程為中心。</p>
         <ol start="4">
@@ -412,8 +412,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\preflight-cli.
   -PlanOnly</code></pre></div>
         <p>在檢閱規劃後，移除 <code>-PlanOnly</code> 以執行這兩個有界限的實機案例。此套件使用 Auto Range（自動量程）、<code>20</code> Hz AC 濾波器、<code>0.1</code> 秒閘門時間（gate time）、自動頻率逾時（automatic Frequency timeout）、無週期逾時指令，以及每個量測各一個樣本。<br>在每個正式的 CLI 案例之前，一個診斷工作階段會根據選定的 target model 驗證識別資訊，傳送規劃的 SCPI 指令，並在每個指令後及 <code>READ?</code> 後檢查 <code>SYST:ERR?</code>。private 報告包含完整 IDN 與原始診斷路徑；shareable 報告保留安全的製造商/型號、韌體、命令、回應與錯誤結果欄位，同時遮罩完整 IDN、序號、資源與 private 路徑。探測錯誤會使該案例失敗並跳過其重複的正式執行，同時允許診斷另一個量測。請將報告的數值和 CSV 資料列與選定的儀器前面板進行對比。在韌體版本為 A.03.03 的 34461A 上，兩個探測皆在沒有 SCPI 錯誤的情況下完成，且在省略週期逾時指令後，每個正式案例都產生一個樣本和 CSV 資料列。<a href="https://www.keysight.com/us/en/assets/9018-03876/service-manuals/9018-03876.pdf">Keysight Truevolt Series DMM Operating and Service Guide</a>，第 10 版，2024 年 5 月，包含模糊的逾時語法；對於不支援的 Period 標頭，應以觀察到的儀器行為為準。</p>
         <p>如果 stdin 被重新導向且未設定 <code>-PlanOnly</code>，<code>live-cli-check.ps1</code> 將拒絕實機擷取並寫入 <code>confirmation_required</code> 報告。這是預期行為：實機儀器執行需要互動式確認。</p>
-        <p>若要驗證選用的 PyVISA 後端，請向包裝器傳遞 <code>-VisaLibrary "@py"</code>。<code>-Backend "@py"</code> 可作為別名接受，而 <code>-visa-library "@py"</code> 則作為與 CLI 選項名稱相符的便利別名接受。包裝器會將此轉寄給 CLI <code>--visa-library</code> 並將後端記錄在產物中。省略時，包裝器使用系統 VISA，並將 <code>visa_library</code>/<code>backend</code> 記錄為 <code>system_visa</code>。若包裝器輸出顯示 <code>VISA library/backend: system_visa</code>，則該執行不是 <code>@py</code> 驗證產物。待定的 34460A LAN/TCPIP 驗證僅為證據收集，並不會使一般的 34460A LAN/TCPIP 產品啟動開啟。</p>
-        <p>待定支援意指尚未開放供產品使用，但非無法驗證。包裝器使用隱藏的 <code>--validation-allow-pending-live-support</code> Core 原則選擇器。它僅允許明確註冊的 <code>transport_pending</code> 和 <code>feature_pending</code> 項目；它不是一般的強制選項。缺少範圍/功能 metadata、未知型號、不支援的設定檔能力、無效請求以及硬性安全限制仍會被拒絕。34460A 基礎設定檔仍保持 external/external-custom 關閉，拒絕 10 A/電流端子請求，並保留 1000 筆讀值的緩衝區限制。其 USB/system-VISA DCV Ratio 項目為 <code>Product-open</code>，不需要此隱藏選擇器；LAN/TCPIP system-VISA 與 LAN/TCPIP pyvisa-py <code>@py</code> 仍為 <code>transport_pending</code>，且不會覆寫硬性限制或繼承 Ratio 的提升。<br>對於 34460A，LAN/TCPIP system-VISA 與 LAN/TCPIP pyvisa-py <code>@py</code> 是未來針對具備 LAN/LXI 能力之單元或貢獻者提供之經審核產物的驗證路徑。它們不是目前維護者針對現有 USB-only 34460A 單元的驗證債務，且非發佈阻擋因素。</p>
+        <p>若要驗證選用的 PyVISA 後端，請向包裝器傳遞 <code>-VisaLibrary "@py"</code>。<code>-Backend "@py"</code> 可作為別名接受，而 <code>-visa-library "@py"</code> 則作為與 CLI 選項名稱相符的便利別名接受。包裝器會將此轉寄給 CLI <code>--visa-library</code> 並將後端記錄在產物中。省略時，包裝器使用系統 VISA，並將 <code>visa_library</code>/<code>backend</code> 記錄為 <code>system_visa</code>。若包裝器輸出顯示 <code>VISA library/backend: system_visa</code>，則該執行不是 <code>@py</code> 驗證產物。34460A LAN/TCPIP 目前不支援；驗證不會使一般的 34460A LAN/TCPIP 產品啟動開啟。</p>
+        <p>非 Product-open scope 尚未開放供一般產品使用。包裝器使用隱藏的 <code>--validation-allow-pending-live-support</code> Core 原則選擇器。它僅允許明確註冊的 <code>transport_pending</code> 和 <code>feature_pending</code> 項目；它不是一般的強制選項。缺少範圍/功能 metadata、未知型號、不支援的設定檔能力、無效請求以及硬性安全限制仍會被拒絕。34460A 基礎設定檔仍保持 external/external-custom 關閉，拒絕 10 A/電流端子請求，並保留 1000 筆讀值的緩衝區限制。其 USB/system-VISA DCV Ratio 項目為 <code>Product-open</code>，不需要此隱藏選擇器；34460A LAN/TCPIP system-VISA 與 LAN/TCPIP pyvisa-py <code>@py</code> 目前不支援（<code>transport_pending</code>），且不會覆寫硬性限制或開放這些範圍。<br>34460A LAN/TCPIP system-VISA 與 LAN/TCPIP pyvisa-py <code>@py</code> 目前不支援；驗證不會使一般產品啟動開啟。</p>
 
         <h2>建置與驗證指令腳本</h2>
         <p>建置腳本：</p>
@@ -466,7 +466,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\preflight-cli.
                 </tr>
             </tbody>
         </table>
-        <p>從 <code>transport_pending</code> 或 <code>feature_pending</code> 提升為 <code>live_validated_full_suite</code> 需要經審核的產物以及明確的精確範圍支援 metadata/說明文件更新。除非已經提供並核准了經審核的產物，否則請勿在僅啟用驗證模式執行的同一次變更中，將待定的範圍或功能標記為公開實機支援。</p>
+        <p>將 <code>transport_pending</code> 或 <code>feature_pending</code> 改為 <code>live_validated_full_suite</code> 需要明確的精確範圍支援 metadata 與說明文件更新。僅啟用驗證模式執行不會開放 Product 支援。</p>
 
         <h2>基本工作流程</h2>
         <p>對於包含常見設定說明的引導式操作人員路徑，請參閱 <a href="USER_GUIDE.zh-TW.html">CLI 使用者指南</a>。簡要參考流程如下：</p>
@@ -1549,7 +1549,7 @@ TCPIP0::...::hislip0::INSTR</code></pre></div>
         <p>對於這些檢查，請確認前面板 Input Z 狀態是否符合預期變更：<code>auto</code> 應選擇自動並可能在較低的 DC 電壓範圍顯示 HighZ，而 <code>10m</code> 應選擇固定的 10 MOhm。</p>
 
         <h3>DCV 比率 (Ratio) 快速功能健檢</h3>
-        <p>DCV 比率 (Ratio) 使用現有的 <code>VOLT:DC:RAT</code> 實作。它已對驗證過的 34461A scope 開放，且 34460A 僅在 USB/system-VISA 上為 <code>Product-open</code>。一般 CLI 與 WebUI 啟動不需要隱藏的驗證模式選擇器。34460A LAN/TCPIP system-VISA 與 LAN/TCPIP pyvisa-py <code>@py</code> 仍為 <code>transport_pending</code>，因此 Ratio 的支援不延伸至這些 scope。進行實機操作前，請依照儀器手冊連接信號和參考導線；錯誤連接的比率量測可能數值看起來合理，但量測的卻是錯誤的關係。</p>
+        <p>DCV 比率 (Ratio) 使用現有的 <code>VOLT:DC:RAT</code> 實作。它已對驗證過的 34461A scope 開放，且 34460A 僅在 USB/system-VISA 上為 <code>Product-open</code>。一般 CLI 與 WebUI 啟動不需要隱藏的驗證模式選擇器。34460A LAN/TCPIP system-VISA 與 LAN/TCPIP pyvisa-py <code>@py</code> 目前不支援（<code>transport_pending</code>），因此 Ratio 的支援不延伸至這些 scope。進行實機操作前，請依照儀器手冊連接信號和參考導線；錯誤連接的比率量測可能數值看起來合理，但量測的卻是錯誤的關係。</p>
         <p>Dry-run DCV Ratio 檢查：</p>
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool.exe start-trigger-record `
   --resource "$env:METER_RESOURCE" `
