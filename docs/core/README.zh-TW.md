@@ -67,7 +67,7 @@ Canonical 型號與穩定型號 ID 彼此相關，但用途不同。像 `Keysigh
 
 目前連線範圍如下：
 
-- 34461A：已驗證 USB/system VISA、LAN/system VISA，以及僅限 CLI、使用 pyvisa-py `@py` 的 LAN/TCPIP；
+- 34461A：USB/system VISA、LAN/TCPIP with system VISA，以及選用且僅限 CLI 的 LAN/TCPIP with pyvisa-py `@py` scope 均已 Product-open；
 - 34460A：目前核准工作流程中的 USB/system VISA 已對產品開放，包括 DCV Ratio；LAN/TCPIP scope 目前不支援。
 
 僅限維護者使用的 Validation mode 只能執行明確註冊、尚未對產品開放的 transport 或 feature scope。Validation mode 不會改寫 Product metadata，通過驗證也不會自動改變 Product 支援。

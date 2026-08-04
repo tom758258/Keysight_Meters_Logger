@@ -107,8 +107,8 @@ LAN/pyvisa-py.
 
 Current connection scope is:
 
-- 34461A: validated USB/system VISA and LAN/system VISA, plus CLI-only
-  LAN/TCPIP with pyvisa-py `@py`;
+- 34461A is Product-open on USB/system VISA, LAN/TCPIP with system VISA,
+  and the optional CLI-only LAN/TCPIP with pyvisa-py `@py` scope;
 - 34460A: USB/system VISA is Product-open for the currently approved workflows,
   including DCV Ratio; LAN/TCPIP scopes are not currently supported.
 
