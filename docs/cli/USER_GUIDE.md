@@ -98,11 +98,11 @@ For the exact model, transport/backend, measurement, and trigger support scope,
 see [Supported Models](../core/supported-models.md).
 
 By default, the CLI uses the computer's system VISA runtime, such as Keysight
-IO Libraries Suite or NI-VISA. For advanced pyvisa-py LAN diagnostics, an
-operator may install optional backend packages and add `--visa-library "@py"`
-to `list-resources` or `start-trigger-record`. The alias `--backend "@py"` is
-also accepted. The validated optional `@py` acquisition scope is 34461A over
-LAN/TCPIP; 34460A LAN/`@py` is not open for the currently available unit.
+IO Libraries Suite or NI-VISA. For pyvisa-py LAN acquisition, an operator may
+install the optional backend packages and add `--visa-library "@py"` to
+`list-resources` or `start-trigger-record`. The alias `--backend "@py"` is
+also accepted. The Product-open optional `@py` acquisition scope is 34461A
+over LAN/TCPIP; 34460A LAN/`@py` is not supported.
 Normal WebUI runs use the default system VISA runtime.
 
 ## Choosing A Measurement
@@ -156,9 +156,8 @@ PowerShell examples, set `$env:METER_RESOURCE` once and pass
 the selected instrument.
 
 `--visa-library` is an advanced CLI-only PyVISA backend selector. Omit it for
-normal use. Use `--visa-library "@py"` only when intentionally testing with an
-optional pyvisa-py backend; the current validated `@py` path is 34461A
-LAN/TCPIP.
+normal use. Use `--visa-library "@py"` for the Product-open optional pyvisa-py
+acquisition scope: 34461A LAN/TCPIP.
 
 `list-resources --verify` opens discovered VISA resources and queries `*IDN?`.
 `list-resources --live-only` implies verification and hides stale entries.

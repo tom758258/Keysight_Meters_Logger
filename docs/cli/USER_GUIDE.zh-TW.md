@@ -60,11 +60,11 @@ live 啟動省略 `--model` 時，連接儀器的 `*IDN?` 決定 runtime profile
 某個 VISA resource 能回應 `*IDN?` 或出現在 `list-resources` 中，本身不代表所有型號與 transport/backend 組合都已 Product-open。首次實機執行前，請記住以下操作限制：
 
 - `34461A`：USB/system VISA 與 LAN/TCPIP with system VISA 已 Product-open。LAN/TCPIP with pyvisa-py `@py` 已 Product-open，但僅適用於 CLI。
-- `34460A`：目前 Product-open 的實機 connection scope 是 USB/system VISA。LAN/TCPIP with system VISA 與 LAN/TCPIP with pyvisa-py `@py` 尚未 Product-open。DCV Ratio 只在 USB/system VISA scope 開放。base profile 不支援 `external` 或 `external-custom` trigger、不支援 10 A/current-terminal 選擇，且 reading memory 上限為 1000。
+- `34460A`：目前 Product-open 的實機 connection scope 是 USB/system VISA。LAN/TCPIP with system VISA 尚未 Product-open；LAN/TCPIP with pyvisa-py `@py` 目前不支援。DCV Ratio 只在 USB/system VISA scope 開放。base profile 不支援 `external` 或 `external-custom` trigger、不支援 10 A/current-terminal 選擇，且 reading memory 上限為 1000。
 
 精確的型號、transport/backend、量測與觸發支援範圍，請參閱 [支援型號](../core/supported-models.md)。
 
-CLI 預設使用電腦的系統 VISA 執行階段，例如 Keysight IO Libraries Suite 或 NI-VISA。進階的 pyvisa-py LAN 診斷可以安裝可選的 backend 套件，並在 `list-resources` 或 `start-trigger-record` 中加入 `--visa-library "@py"`；`--backend "@py"` 也接受作為別名。已驗證的選用 `@py` 擷取範圍是 LAN/TCPIP 上的 34461A；目前可用的儀器尚未開放 34460A LAN/`@py`。一般的 WebUI 執行則使用預設的系統 VISA 執行階段。
+CLI 預設使用電腦的系統 VISA 執行階段，例如 Keysight IO Libraries Suite 或 NI-VISA。如要使用 pyvisa-py LAN 擷取，可以安裝可選的 backend 套件，並在 `list-resources` 或 `start-trigger-record` 中加入 `--visa-library "@py"`；`--backend "@py"` 也接受作為別名。產品已開放的選用 `@py` 擷取範圍是 LAN/TCPIP 上的 34461A；34460A LAN/`@py` 目前不支援。一般的 WebUI 執行則使用預設的系統 VISA 執行階段。
 
 ## 選擇量測類型
 
@@ -101,7 +101,7 @@ CLI 預設使用電腦的系統 VISA 執行階段，例如 Keysight IO Libraries
 
 `--resource` 是儀器的 VISA 位址。請使用 `list-resources --live-only` 回傳的值，或由操作人員提供的已知資源。在 PowerShell 範例中，設定一次 `$env:METER_RESOURCE` 並傳遞 `--resource "$env:METER_RESOURCE"`，以便複製的命令能繼續使用選定的儀器。
 
-`--visa-library` 是進階 CLI 專用的 PyVISA backend 選擇器。一般情況下請省略它。只有在刻意使用可選的 pyvisa-py backend 測試時，才使用 `--visa-library "@py"`；目前驗證的 `@py` 路徑是 34461A LAN/TCPIP。
+`--visa-library` 是進階 CLI 專用的 PyVISA backend 選擇器。一般情況下請省略它。若要使用產品已開放的選用 pyvisa-py 擷取範圍，請在 34461A LAN/TCPIP 上使用 `--visa-library "@py"`。
 
 `list-resources --verify` 會開啟偵測到的 VISA 資源並查詢 `*IDN?`。`list-resources --live-only` 暗示了驗證並隱藏過期的項目。ASRL/RS-232 驗證使用短暫的有界限逾時，因此過期的序列埠項目不會阻擋後續的 USB 或 TCPIP 資源。序列埠結束字元選項 `--serial-read-termination` 與 `--serial-write-termination` 是僅用於 ASRL 驗證的 CLI 偵測相容性設定；它們不是擷取設定。
 
