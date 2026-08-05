@@ -303,13 +303,10 @@ cleanup, or release operations into separate Product capabilities unless they
 become independently callable public workflows with their own stable contract
 and contract boundary.
 
-Current 34461A live scopes include USB/system-VISA, LAN/TCPIP with system VISA,
-and LAN/TCPIP with optional CLI-only pyvisa-py `@py`. Current 34460A
-USB/system-VISA support includes DCV Ratio, while 34460A LAN/TCPIP scopes are
-not currently supported. WebUI
-`/api/capabilities` exposes these facts along with display-oriented model
-support summaries so the browser can show connection and feature status without
-changing the Core runtime gate.
+The current Product-open model, transport/backend, measurement, and trigger
+combinations are documented in [Supported Models](supported-models.md). This
+document defines the exact-scope policy that evaluates and enforces those
+combinations; adapter presentation does not change the Core runtime gate.
 
 `ValueError` from validation is a normal adapter-facing input error. Buffer
 warnings are warnings, not errors, unless an adapter requires explicit user
@@ -350,6 +347,10 @@ result = run_start_session(
 Use that mode only from validation harnesses. Product support remains controlled
 by the explicit support metadata for the exact scope; validation mode does not
 change that metadata.
+
+Validation-mode execution and passing evidence do not change Product support
+metadata or promote a scope automatically. See [Contributing](../CONTRIBUTING.md)
+for evidence review and promotion requirements.
 
 Adapters that need stable warning codes can use the structured helper:
 

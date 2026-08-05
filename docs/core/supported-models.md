@@ -1,18 +1,19 @@
 # Supported Models
 
 This file is the Core profile and model capability reference. Update it when
-Core profile data, supported measurements, validation bounds, or live
-validation expectations change.
+Core profile data, supported measurements, model limits, or current Product
+support scope change.
 
-This public document summarizes stable user-facing support behavior. Core
-support metadata and exact-scope policy are the source of truth for live
-availability.
+This document describes current Product-open support for normal users and
+integrators. The support-policy tokens and enforcing contract are documented in
+[Core Integration](integration.md), and contributor validation and promotion
+are documented in [Contributing](../CONTRIBUTING.md).
 
 ## Model Profiles
 
 Core currently provides these instrument profiles:
 
-| Model ID | Instrument | Reading memory | Current max | External trigger | Live support |
+| Model ID | Instrument | Reading memory | Current max | External trigger | Product support |
 | --- | --- | ---: | ---: | --- | --- |
 | `keysight-34461a` | Keysight 34461A | 10000 | 10 A with 10A terminal | supported | Product-open for currently supported profile workflows |
 | `keysight-34460a` | Keysight 34460A | 1000 | 3 A | base profile disabled; optional LAN/external trigger not assumed | Product-open on USB/system-VISA for currently supported profile workflows |
@@ -27,7 +28,6 @@ text:
 | selected/requested model | `34461A` or another accepted profile identity | Offline profile selector or live expected-model guard |
 | detected model | `34461A` | Model resolved from live `*IDN?` |
 | display model | `Keysight 34461A` | Presentation text only |
-| wrapper target | `keysight-34461a` | Maintained validation/release target equal to the Core model ID |
 
 Every maintained `InstrumentProfile` explicitly owns both `model` and
 `model_id`. Profile lookup accepts the canonical model, stable model ID, and
@@ -53,33 +53,25 @@ Core capabilities expose `model_id` alongside the existing `model`, including
 in each available-profile entry. The stable ID is additive identity metadata;
 it does not by itself indicate live support or open a transport/backend or
 feature scope. The 34460A and 34461A profile limits above remain independent
-of model identity metadata. Exact-scope workflow support metadata remains the
-source of truth for live availability.
+of model identity metadata. The current Product-open workflow scope is
+documented below.
 
-Live validation must use the explicit VISA resource supplied by the operator.
-Core component validation must not scan, guess, or auto-select a resource. A
-selected model in live mode is never a feature unlock; Core support policy and
+A selected model in live mode is never a feature unlock; Core support policy and
 the `run_start_session()` final gate use the detected `*IDN?` profile.
 
 ## Exact-Scope Live Support
 
-Live support is exact-scope based. A workflow is live-open only when the model,
-workflow, exact transport/backend connection scope, measurement feature, and
-trigger-mode feature are all Product-open. Support does not transfer between
-USB/system-VISA, TCPIP/system-VISA, and TCPIP/pyvisa-py. Product mode requires
-every required layer to be `live_validated_full_suite`, and does not override
-hard model/profile limits.
+Live Product support is exact-scope based. Meters currently exposes one
+independently supported Product workflow, `start-trigger-record`. A live run is
+Product-open only when the detected model, workflow, exact transport/backend
+connection scope, measurement, and trigger mode are supported together. Support
+does not transfer between USB/system-VISA, TCPIP/system-VISA, and
+TCPIP/pyvisa-py. Hard model/profile limits remain enforced.
 
-Missing connection or feature metadata fails closed, as do unknown status
-values, unsupported profile capabilities, invalid requests, and hard safety
-limits. Validation mode is restricted to validation tooling and does not
-change Product support metadata; see [Core Integration](integration.md#validation-flow)
-for that contract.
-
-Validation mode may execute only explicitly registered `transport_pending`
-connection scopes and `feature_pending` measurement or trigger-mode entries.
-These statuses remain non-Product-open and do not change Product support
-metadata.
+Requests outside the current Product-open matrix, including unknown models,
+unsupported connections or feature combinations, and hard safety limits, fail
+closed. See [Core Integration](integration.md#validation-flow) for the
+support-policy enforcement contract.
 
 In live mode, CLI `--model` and WebUI `Expected model` are expected-model
 guards only. The runtime driver/profile is selected from the connected
@@ -102,11 +94,10 @@ do not query live hardware.
 | LAN/TCPIP with system VISA | Open for 34461A | Not currently supported |
 | LAN/TCPIP with pyvisa-py `@py` | Open for optional CLI-only 34461A scope | Not currently supported |
 
-34461A live support:
+34461A Product support:
 
-- Status: `live_validated_full_suite`.
-- Open for currently supported 34461A profile workflows, including immediate,
-  software, software timer, custom buffered, Frequency, Period, external
+- Product-open for currently supported 34461A profile workflows, including
+  immediate, software, software timer, custom buffered, Frequency, Period, external
   simple, and external custom workflows.
 - Supported transport/backend scopes are USB/system-VISA, LAN/TCPIP with the
   default system VISA runtime, and LAN/TCPIP with optional CLI-only pyvisa-py
@@ -114,10 +105,10 @@ do not query live hardware.
 - DCV Ratio and the 10 A current-terminal path are available where supported by
   the profile and the operator confirms safe wiring.
 
-34460A live support:
+34460A Product support:
 
-- Status: `live_validated_full_suite` for USB/system-VISA scope.
-- Open for currently supported 34460A profile workflows: immediate DC current,
+- Product-open for the USB/system-VISA scope and currently supported 34460A
+  profile workflows: immediate DC current,
   immediate DC voltage, immediate AC current, immediate AC voltage, immediate
   2-wire resistance, immediate 4-wire resistance, software trigger, software
   timer, immediate custom buffered workflow, software custom buffered
@@ -131,7 +122,7 @@ do not query live hardware.
 - LAN/TCPIP with system VISA and LAN/TCPIP with pyvisa-py `@py` are not
   currently supported for 34460A.
 
-Transport/backend scope status:
+Transport/backend Product scope:
 
 - USB/system-VISA support does not open LAN/TCPIP or pyvisa-py `@py`.
 - 34461A LAN/TCPIP with system VISA is open for the currently supported
@@ -140,10 +131,8 @@ Transport/backend scope status:
   currently supported 34461A workflows.
 - 34460A LAN/TCPIP and 34460A LAN/`@py` are not currently supported.
   USB/system-VISA is the current 34460A product scope.
-- Every exact live connection scope explicitly enumerates all profile-supported
-  measurements and trigger modes. Adding a profile feature without matching
-  policy metadata therefore fails closed instead of becoming product-open by
-  omission.
+- Only the exact combinations listed above are Product-open; an unsupported
+  connection, measurement, trigger mode, or model combination is not available.
 
 ## VISA Backend Selection
 
@@ -277,9 +266,9 @@ reads use `FETC?` after the hardware trigger adapter arms and completes the
 measurement. Custom and buffered modes use the existing buffered acquisition
 path.
 
-The 34460A base profile does not enable external trigger modes because
-LAN/LXI/external trigger capability is optional on that model. Add a separate
-profile only after the option is confirmed and validated on hardware.
+The 34460A base profile does not offer external trigger modes because
+LAN/LXI/external trigger capability is optional on that model. External trigger
+is not currently supported for the base profile.
 
 ## Reading Memory
 
@@ -291,9 +280,8 @@ profile's `reading_memory_limit`.
 - `--buffer-drain-size` remains capped at the profile reading memory and is not
   relaxed by `--allow-buffer-overflow-risk`.
 
-## Future Models
+## Unsupported Scope
 
-Add new models by adding or extending Core profiles first. Add SCPI dialect
-behavior only when a real model proves the shared command set is wrong for that
-model. Keep model validation changes paired with focused Core tests and an
-operator-approved hardware validation plan.
+Models not listed in this document are not currently supported in Product mode.
+A connection, measurement, trigger mode, or workflow combination not listed as
+Product-open is also unsupported.

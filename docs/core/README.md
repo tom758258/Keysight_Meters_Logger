@@ -93,8 +93,8 @@ contract.
 ## Live Support Policy
 
 Normal CLI, WebUI, and direct Core starts use Product mode. Product mode
-requires the exact connection scope and requested features to be Product-open.
-Live evaluation is based on all of the following:
+requires the exact detected model, connection scope, and requested features to
+be Product-open together. Live evaluation is based on all of the following:
 
 1. the detected model profile;
 2. the exact transport and VISA backend scope;
@@ -105,25 +105,17 @@ Support for one connection scope does not open another scope. For example,
 USB/system-VISA support does not automatically open LAN/system-VISA or
 LAN/pyvisa-py.
 
-Current connection scope is:
-
-- 34461A is Product-open on USB/system VISA, LAN/TCPIP with system VISA,
-  and the optional CLI-only LAN/TCPIP with pyvisa-py `@py` scope;
-- 34460A: USB/system VISA is Product-open for the currently approved workflows,
-  including DCV Ratio; LAN/TCPIP scopes are not currently supported.
-
-Maintainer-only Validation mode may execute only explicitly registered
-non-Product-open transport or feature scopes. Validation mode does not mutate
-Product metadata, and passing validation does not automatically change Product
-support.
-
-Missing entries, unknown statuses, and unsupported or non-Product-open scopes
-used from Product mode fail closed. The simulator validates deterministic
-contracts and workflows only; it is not evidence of live measurement accuracy
-or hardware support.
+Core is the final support and safety gate for adapters and direct callers.
+`run_start_session()` repeats the final request-validation and support-policy
+check before backend connection and instrument setup. Unsupported or
+non-Product-open scope requests fail closed. The simulator validates
+deterministic no-hardware contracts and workflows only; it is not evidence of
+live measurement accuracy or hardware support.
 
 See [Supported Models](supported-models.md) for the user-facing support matrix
-and [Core Integration](integration.md#validation-flow) for the enforcing flow.
+and [Core Integration](integration.md) for the support-policy machine contract
+and policy modes. See [Contributing](../CONTRIBUTING.md) for contributor
+validation and promotion.
 
 ## Public Package Surface
 
