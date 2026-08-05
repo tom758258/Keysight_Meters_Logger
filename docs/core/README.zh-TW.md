@@ -56,7 +56,7 @@ Canonical 型號與穩定型號 ID 彼此相關，但用途不同。像 `Keysigh
 
 ## 實機支援政策
 
-一般 CLI、WebUI 與直接 Core 啟動使用 Product mode。Product mode 要求確切的連線 scope 與請求功能都已對產品開放。實機政策評估必須包含：
+一般 CLI、WebUI 與直接 Core 啟動使用 Product mode。Product mode 要求確切偵測到的型號、連線 scope 與請求功能必須一起 Product-open。實機政策評估包含：
 
 1. 偵測到的型號設定檔；
 2. 確切的 transport 與 VISA backend scope；
@@ -65,16 +65,9 @@ Canonical 型號與穩定型號 ID 彼此相關，但用途不同。像 `Keysigh
 
 某個連線 scope 的支援不會自動開放另一個 scope。例如，USB/system-VISA 的支援不會自動開放 LAN/system-VISA 或 LAN/pyvisa-py。
 
-目前連線範圍如下：
+Core 是配接器與直接呼叫端的最終支援與安全閘門。`run_start_session()` 會在連接 backend 與設定儀器前，再次執行最終請求驗證與支援政策檢查。不受支援或非 Product-open 的確切 scope 必須 fail closed。Simulator 只驗證確定性的無硬體合約與工作流程，不代表實機量測準確度或硬體支援。
 
-- 34461A：USB/system VISA、LAN/TCPIP with system VISA，以及選用且僅限 CLI 的 LAN/TCPIP with pyvisa-py `@py` scope 均已 Product-open；
-- 34460A：目前核准工作流程中的 USB/system VISA 已對產品開放，包括 DCV Ratio；LAN/TCPIP scope 目前不支援。
-
-僅限維護者使用的 Validation mode 只能執行明確註冊、尚未對產品開放的 transport 或 feature scope。Validation mode 不會改寫 Product metadata，通過驗證也不會自動改變 Product 支援。
-
-缺少的項目、未知狀態，以及在 Product mode 中使用的不支援或非 Product-open scope 都必須 fail closed。Simulator 只驗證確定性的合約與工作流程，不代表實機量測準確度或硬體支援證據。
-
-使用者可閱讀的支援矩陣請參閱 [支援的型號](supported-models.md)，實際執行閘門流程請參閱 [Core 整合](integration.md#validation-flow)。
+使用者可閱讀的支援矩陣請參閱 [支援的型號](supported-models.md)；支援政策的 machine contract 與 policy mode 請參閱 [Core 整合](integration.md)；contributor validation 與 promotion 請參閱 [貢獻指南](../CONTRIBUTING.md)。
 
 ## 公開套件介面
 

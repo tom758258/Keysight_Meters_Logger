@@ -56,7 +56,7 @@ http://127.0.0.1:8767/
 The actual port may be higher; use the URL shown in the launcher window.
 
 Developers or source-checkout users should use the [WebUI README](README.md)
-for terminal commands, validation, and build details.
+for terminal commands, API behavior, and build details.
 
 ## Screen Overview
 
@@ -359,6 +359,6 @@ timeout behavior.
 
 ## More WebUI Documentation
 
-- [WebUI README](README.md): engineering setup, WebUI API behavior, validation,
-  build notes, and maintainer boundaries.
+- [WebUI README](README.md): engineering setup, WebUI API behavior, build notes,
+  and integration boundaries.
 - [Changelog](../../CHANGELOG.md): project release notes.

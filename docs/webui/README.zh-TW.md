@@ -1,8 +1,8 @@
 # Meters Tool WebUI 說明文件
 
-本文件是 WebUI 元件的 WebUI 行為、API、驗證與維護者指南。對於一般的操作人員工作流程與欄位說明，請參閱 [WebUI 使用者指南](USER_GUIDE.zh-TW.md)。
+本文件是 WebUI 元件的 WebUI 行為與 API 指南。對於一般的操作人員工作流程與欄位說明，請參閱 [WebUI 使用者指南](USER_GUIDE.zh-TW.md)。
 
-關於版本發佈說明，請參閱套件變更日誌 (changelog)。關於 Core API 和擁有權規則，請參閱 Core 整合指南。請將本指南專注於長期的公開 WebUI 行為與維護者邊界。
+關於版本發佈說明，請參閱套件變更日誌 (changelog)。關於 Core API 和擁有權規則，請參閱 Core 整合指南。請將本指南專注於長期的公開 WebUI 行為與整合邊界。
 
 [WebUI 本地化合約](localization-contract.md) 定義瀏覽器呈現的本地化。WebUI 使用不依賴套件的語系 runtime、English fallback、English／繁體中文語系目錄、靜態與動態瀏覽器呈現，以及安全的命名插值。右上角永久顯示的地球與文字按鈕可切換 English 與繁體中文。有效的已儲存語系優先於瀏覽器偵測與 English fallback；手動選擇使用 `meters-tool.webui.locale` 儲存鍵。切換會立即更新頁面，不重新載入或呼叫 runtime/API，並從快取狀態重新轉譯，同時保留表單值、作用中的作業、面板、狀態日誌、Live 取樣、圖表設定、資源 metadata 與支援摘要。未知的 Core/backend/status 診斷、原始 status JSON、取樣 metadata 與 schema 保持原始內容。Core、HTTP API 端點與狀態碼、現有回應欄位、表單值、支援政策、儀器執行階段，以及 CSV/JSON/JSONL schema 都不變。繁體中文語系目錄術語與瀏覽器呈現使用共用的欄位標題配置。
 
@@ -34,7 +34,7 @@ Core 擁有以下內容的擁有權：
 
 WebUI 必須使用 Core 的公開 API，不可依賴 CLI 配接器程式碼或直接存取擷取引擎內部運作。
 
-Core 會驗證量測請求並保護儀器端的限制。WebUI 使用者指南以 UI 術語說明各個欄位；本 README 則將 WebUI 行為、API、驗證與維護者邊界集中整理於一處。
+Core 會驗證量測請求並保護儀器端的限制。WebUI 使用者指南以 UI 術語說明各個欄位；本 README 則將 WebUI 行為、API 與整合邊界集中整理於一處。
 
 ## 套件與進入點 (Entry Point)
 
@@ -197,7 +197,7 @@ GET /api/resources?verify=true&live_only=true
 
 使用者仍然可以手動輸入資源，並在掃描後於 `Device options` 中要求特定的 `Expected model`。
 
-WebUI 使用 Core 預設的系統 VISA 執行階段。瀏覽器中不提供 PyVISA backend 選擇器。34461A LAN/TCPIP 已透過此預設系統 VISA 路徑進行驗證。只有在需要可選的 pyvisa-py 診斷時，才使用 CLI 專用的 `--visa-library` 進階選項；已驗證的選用 `@py` 擷取範圍是 34461A LAN/TCPIP。
+WebUI 使用 Core 預設的系統 VISA 執行階段。瀏覽器中不提供 PyVISA backend 選擇器。34461A LAN/TCPIP 已透過此預設系統 VISA 路徑支援。只有在需要可選的 pyvisa-py 診斷時，才使用 CLI 專用的 `--visa-library` 進階選項；支援的選用 `@py` 擷取範圍是 34461A LAN/TCPIP。
 
 WebUI 不公開驗證模式。未對產品開放的傳輸/後端範圍以及量測或觸發模式功能，會在瀏覽器啟動時被封鎖。瀏覽器會停用產品不可用的功能選項，但該狀態僅為 UX；Core 驗證、支援原則關卡以及 `run_start_session()` 最終關卡仍是安全邊界。34460A LAN/TCPIP 目前不支援 WebUI。
 
@@ -252,7 +252,7 @@ pending_keys
 
 Expected model 檢查是選用的。Core 會在 Start 時驗證連接儀器的識別資訊。若明確指定的預期型號與新的 IDN preflight 不符，WebUI 會回報選取的型號以及 IDN 中找到的支援型號。
 
-選取的 WebUI 型號不得被視為功能解鎖。停用或隱藏的控制項僅為 UX；Core 支援原則與 `run_start_session()` 最終關卡仍是 WebUI 後端提交的安全邊界。WebUI 不應將 pyvisa-py 後端選擇器作為驗證工具的一部分加入；後端診斷保持 CLI 專用，除非未來的產品決策變更該邊界。
+選取的 WebUI 型號不得被視為功能解鎖。停用或隱藏的控制項僅為 UX；Core 支援原則與 `run_start_session()` 最終關卡仍是 WebUI 後端提交的安全邊界。WebUI 不應加入 pyvisa-py 後端選擇器；後端診斷保持 CLI 專用。
 
 目前呈現的量測模式包括：
 
@@ -557,77 +557,7 @@ WebUI 傳送的重要欄位包括：
 - `src/meters_tool_webui/web_ui.py`
 - `src/meters_tool_webui/launcher.py`
 
-測試：
-
-- `tests/webui/test_webui_api.py`
-- `tests/webui/test_webui_static.py`
-- `tests/webui/test_launcher.py`
-- 下方驗證指令中列出的 Core 合約與套件邊界測試。
-
 未經使用者明確核准，請勿變更 `pyproject.toml` 中的根套件 metadata。套件名稱、版本、相依套件、主控台指令、建置系統、pytest/ruff/mypy 設定以及 Core/CLI/WebUI 的擁有權皆為產品邊界決策。
-
-## 驗證
-
-優先執行窄範圍的相關檢查。
-
-編輯前端模組後的 JavaScript 語法檢查：
-
-```powershell
-Get-ChildItem src\meters_tool_webui\static\*.js |
-  ForEach-Object { node --check $_.FullName }
-```
-
-針對 WebUI/Core 的無硬體驗證：
-
-```powershell
-.\.venv\Scripts\python.exe -m pytest tests/webui/test_webui_package_metadata.py tests/webui/test_webui_api.py tests/webui/test_webui_static.py tests/webui/test_launcher.py -q -p no:cacheprovider
-```
-
-在已安裝 `meters-tool` 的環境中，使用 PyInstaller 建置選用的本機啟動器 exe。PyInstaller 已包含在根 README 所述的 all-extras 開發環境中；完成該設定後，可直接執行既有的建置腳本：
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_webui_exe.ps1
-```
-
-可行時執行更廣泛的無硬體驗證：
-
-```powershell
-uv run pytest tests -q -p no:cacheprovider
-```
-
-實機驗證需要操作人員提供 VISA 資源。在進行觸發模式或更長期的擷取前，先從低風險的立即模式快速功能健檢、啟用自動量程且 `max_samples=1` 開始。
-
-完整的測試執行可能會遇到本機 Windows 暫存或 pytest 快取權限警告。請清楚報告這些警告，並在更廣泛的測試套件被環境權限阻擋時，依賴針對性測試與實機硬體驗證。
-
-## 手動 UI 快速健檢清單
-
-無硬體 UI 快速健檢：
-
-- 頁面可在 `http://127.0.0.1:8767/` 載入。
-- 首次載入時沒有出現瀏覽器主控台錯誤。
-- `Scan Device` 乾淨地更新實機資源選擇器或回報沒有實機資源。
-- 量測變更會更新範圍單位、範圍選擇與 NPLC 可見度。
-- `voltage-dc` 與 `voltage-dc-ratio` 顯示 DCV Input Z；其他量測會隱藏它。
-- AC 量測在支援處顯示 AC 濾波器並隱藏 NPLC。
-- 頻率與週期顯示 AC 濾波器與閘門時間。頻率也顯示逾時；週期與其他量測會隱藏並停用它。
-- 電流量測在支援處顯示電流端子。
-- 觸發模式變更僅顯示與隱藏相關欄位。
-- 觸發按鈕僅在手動軟體觸發模式下出現。
-- Status log 附加具體訊息，而不洗版重複的輪詢狀態。
-- `Show Details` 可切換致命錯誤、清除狀態與原始狀態。
-- 在擷取到模擬或實機取樣後，即時資料會轉譯最新值、圖表、統計、表格與選定取樣的 metadata。
-- 行動裝置寬度（約 390 像素）沒有文字或控制項重疊。
-- 桌面寬度（約 1280 像素）保持密集但易讀。
-
-對於實機硬體快速健檢，除非操作人員明確要求，否則請勿執行高風險的觸發實驗。從立即模式、啟用自動量程且 `max_samples=1` 開始。
-
-頻率與週期實機硬體檢查：
-
-- 連接 34461A 前面板可量測的穩定訊號。
-- 選擇頻率，確認自動量程、`20 Hz` AC 濾波器、`0.1 s` 閘門時間與 `Auto` 逾時，然後擷取一個立即取樣。
-- 確認即時資料值使用原始 `Hz` 並與前面板對比。
-- 重複週期步驟，確認原始單位為 `s`。
-- 在變更量測類型前停止執行，並在每次量測後檢查產生的 CSV 列。
 
 ## 疑難排解
 
@@ -673,6 +603,6 @@ Open CSV 按鈕被停用：
 ## 說明文件地圖
 
 - [WebUI 使用者指南](USER_GUIDE.zh-TW.md)：面向操作人員的 WebUI 使用指南。
-- [WebUI README](README.zh-TW.md)：本 WebUI 行為、API、驗證與維護者指南。
+- [WebUI README](README.zh-TW.md)：本 WebUI 行為、API 與整合指南。
 - [WebUI 變更規則](web-ui-change-rules.md)：維護者與面向 Agent 的 UI 變更規則。
 - [WebUI 變更日誌](../../CHANGELOG.md)：專案版本發佈說明。

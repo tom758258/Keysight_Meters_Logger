@@ -1,12 +1,11 @@
 # Meters Tool WebUI README
 
-This document is the WebUI behavior, API, validation, and maintainer guide for
-the WebUI component. For normal operator workflows and field explanations, use
-the [WebUI User Guide](USER_GUIDE.md).
+This document is the WebUI behavior and API guide for the WebUI component. For
+normal operator workflows and field explanations, use the [WebUI User Guide](USER_GUIDE.md).
 
 For release notes, use the package changelog. For Core API and ownership rules,
 use the Core integration guide. Keep this guide focused on durable public
-WebUI behavior and maintainer boundaries.
+WebUI behavior and integration boundaries.
 
 The [WebUI Localization Contract](localization-contract.md) defines the
 localization of browser presentation. The WebUI uses a dependency-free locale
@@ -56,7 +55,7 @@ directly reaching into acquisition engine internals.
 
 Core validates measurement requests and protects instrument-facing limits. The
 WebUI user guide explains fields in UI terms; this README keeps WebUI behavior,
-API, validation, and maintainer boundaries in one place.
+API, and integration boundaries in one place.
 
 ## Package And Entry Point
 
@@ -269,9 +268,9 @@ The user can still type a resource manually and can require a specific Expected
 model from `Device options` after scanning.
 
 The WebUI uses the default system VISA runtime through Core. It does not expose
-a PyVISA backend selector in the browser. 34461A LAN/TCPIP is validated through
+a PyVISA backend selector in the browser. 34461A LAN/TCPIP is supported through
 this default system VISA path. Use the CLI-only `--visa-library` advanced
-option when optional pyvisa-py backend diagnostics are required; the validated
+option when optional pyvisa-py backend diagnostics are required; the supported
 optional `@py` acquisition scope is 34461A LAN/TCPIP.
 
 The WebUI does not expose validation mode. Transport/backend scopes and
@@ -368,7 +367,7 @@ features that are not product-open for the current resource transport and the
 WebUI's fixed system-VISA backend. Before a resource is known, Auto-detect
 keeps the existing fallback capability view and uses only the fallback
 profile's declared product scope; it never opens a non-Product-open feature.
-For 34461A the metadata includes validated USB/system-VISA,
+For 34461A the metadata includes Product-open USB/system-VISA,
 LAN/system-VISA, and optional CLI-only LAN/pyvisa-py `@py` scopes. For 34460A,
 DCV Ratio is Product-open on USB/system-VISA, while LAN/TCPIP is not currently
 supported. Existing measurement, trigger, range, and limit fields remain the
@@ -382,9 +381,8 @@ was found in the IDN.
 The selected WebUI model must not be treated as a feature unlock. Disabled or
 hidden controls are UX only; the Core support policy and `run_start_session()`
 runner final gate remain the safety boundary for WebUI backend submissions.
-The WebUI should not add a pyvisa-py backend selector as part of validation
-tooling work; backend diagnostics remain CLI-only unless a later product
-decision changes that boundary.
+The WebUI should not add a pyvisa-py backend selector; backend diagnostics
+remain CLI-only.
 
 Currently surfaced measurement modes include:
 
@@ -753,95 +751,10 @@ Backend adapter file:
 - `src/meters_tool_webui/web_ui.py`
 - `src/meters_tool_webui/launcher.py`
 
-Tests:
-
-- `tests/webui/test_webui_api.py`
-- `tests/webui/test_webui_static.py`
-- `tests/webui/test_launcher.py`
-- Core contract and package boundary tests listed in the validation commands
-  below.
-
 Do not change root package metadata in `pyproject.toml` without explicit user
 approval. Package name, version, dependencies, console scripts, build system,
 pytest/ruff/mypy configuration, and Core/CLI/WebUI ownership are product
 boundary decisions.
-
-## Validation
-
-Run the narrowest relevant checks first.
-
-For JavaScript syntax after editing frontend modules:
-
-```powershell
-Get-ChildItem src\meters_tool_webui\static\*.js |
-  ForEach-Object { node --check $_.FullName }
-```
-
-Focused WebUI/Core no-hardware validation:
-
-```powershell
-.\.venv\Scripts\python.exe -m pytest tests/webui/test_webui_package_metadata.py tests/webui/test_webui_api.py tests/webui/test_webui_static.py tests/webui/test_launcher.py -q -p no:cacheprovider
-```
-
-Build the optional local launcher exe with PyInstaller from an environment that
-already has `meters-tool` installed. PyInstaller is included in the all-extras
-development environment described in the root README; after following that
-setup, run the existing build script directly:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_webui_exe.ps1
-```
-
-Broader no-hardware validation when practical:
-
-```powershell
-uv run pytest tests -q -p no:cacheprovider
-```
-
-Live validation requires an operator-provided VISA resource. Start with a
-low-risk immediate-mode smoke test, Auto Range on, and `max_samples=1` before
-using trigger modes or longer acquisitions.
-
-Full test runs may hit local Windows temp or pytest cache permission warnings.
-Report those clearly and rely on focused tests plus real instrument validation
-when the broader suite is blocked by environment permissions.
-
-## Manual UI Smoke Checklist
-
-For no-hardware UI smoke:
-
-- The page loads at `http://127.0.0.1:8767/`.
-- No browser console errors appear on first load.
-- `Scan Device` updates the live resource selector or reports no live
-  resources cleanly.
-- Measurement changes update range unit, range choices, and NPLC visibility.
-- `voltage-dc` shows DCV Input Z; other measurements hide it.
-- AC measurements show AC filter where supported and hide NPLC.
-- Frequency and Period show AC Filter and Gate Time. Frequency also shows
-  Timeout; Period and other measurements hide and disable it.
-- Current measurements show current terminal where supported.
-- Trigger mode changes show and hide only relevant fields.
-- Trigger button appears only for manual software-triggered modes.
-- Status log appends meaningful messages without spamming repeated poll states.
-- `Show Details` toggles fatal error, cleanup status, and raw status.
-- Live data renders latest value, chart, statistics, table, and selected-sample
-  metadata after simulated or real samples are captured.
-- Mobile width around 390 px has no text or control overlap.
-- Desktop width around 1280 px remains dense but scannable.
-
-For real-instrument smoke, do not run high-risk trigger experiments unless the
-operator explicitly asks. Start with immediate mode, Auto Range on, and
-`max_samples=1`.
-
-For Frequency and Period real-instrument inspection:
-
-- Connect a stable signal that the 34461A front panel can measure.
-- Select Frequency, confirm Auto Range, `20 Hz` AC Filter, `0.1 s` Gate Time,
-  and `Auto` Timeout, then capture one immediate sample.
-- Confirm the Live data value uses raw `Hz` and compare it with the front panel.
-- Repeat with Period and confirm the raw unit is `s`.
-- Stop the run before changing measurement type, and inspect the generated CSV
-  row after each sample.
 
 ## Troubleshooting
 
@@ -895,8 +808,7 @@ Live panel has no samples:
 ## Documentation Map
 
 - [WebUI User Guide](USER_GUIDE.md): operator-facing WebUI usage guide.
-- [WebUI README](README.md): this WebUI behavior, API, validation, and
-  maintainer guide.
+- [WebUI README](README.md): this WebUI behavior, API, and integration guide.
 - [WebUI Change Rules](web-ui-change-rules.md): maintainer and agent-facing
   rules for UI changes.
 - [Changelog](../../CHANGELOG.md): project release notes.

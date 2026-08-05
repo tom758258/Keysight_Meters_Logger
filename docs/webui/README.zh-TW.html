@@ -240,8 +240,8 @@
 
     <main>
         <h1>Meters Tool WebUI 說明文件</h1>
-        <p>本文件是 WebUI 元件的 WebUI 行為、API、驗證與維護者指南。對於一般的操作人員工作流程與欄位說明，請參閱 <a href="USER_GUIDE.zh-TW.html">WebUI 使用者指南</a>。</p>
-        <p>關於版本發佈說明，請參閱套件變更日誌 (changelog)。關於 Core API 和擁有權規則，請參閱 Core 整合指南。請將本指南專注於長期的公開 WebUI 行為與維護者邊界。</p>
+        <p>本文件是 WebUI 元件的 WebUI 行為與 API 指南。對於一般的操作人員工作流程與欄位說明，請參閱 <a href="USER_GUIDE.zh-TW.html">WebUI 使用者指南</a>。</p>
+        <p>關於版本發佈說明，請參閱套件變更日誌 (changelog)。關於 Core API 和擁有權規則，請參閱 Core 整合指南。請將本指南專注於長期的公開 WebUI 行為與整合邊界。</p>
         <p><a href="localization-contract.md">WebUI 本地化合約</a> 定義瀏覽器呈現的本地化。WebUI 使用不依賴套件的 locale runtime、English fallback，以及 English／繁體中文語系目錄；靜態與動態表單、app/resource、status/log、Live data、ARIA、瀏覽器錯誤與支援摘要都使用相同的語意鍵與安全插值規則。右上角永久顯示的地球與文字按鈕可啟用 English／繁體中文選擇。有效的已儲存語系優先於瀏覽器偵測與 English fallback；手動選擇使用 <code>meters-tool.webui.locale</code> 儲存鍵。切換會立即更新頁面，不重新載入或呼叫 runtime/API，並從快取狀態重新轉譯，同時保留表單值、作用中的作業、面板、狀態日誌、Live 取樣、圖表設定、資源 metadata 與支援摘要。未知的 Core/backend/status 診斷、原始 status JSON、取樣 metadata 與 schema 保持原始內容。Core、HTTP API 端點與狀態碼、現有回應欄位、表單值、支援政策、儀器執行階段，以及 CSV/JSON/JSONL schema 都不變。翻譯品質、術語、瀏覽器呈現與操作人員文件使用同一套長期合約。</p>
 
         <h2>目的</h2>
@@ -269,7 +269,7 @@
             <li>釋放回本機控制 (release-to-local)、關閉、清理釋放 (cleanup release) 以及控制面 (control-plane) 關閉順序。</li>
         </ul>
         <p>WebUI 必須使用 Core 的公開 API，不可依賴 CLI 配接器程式碼或直接存取擷取引擎內部運作。</p>
-        <p>Core 會驗證量測請求並保護儀器端的限制。WebUI 使用者指南以 UI 術語說明各個欄位；本 README 則將 WebUI 行為、API、驗證與維護者邊界集中整理於一處。</p>
+        <p>Core 會驗證量測請求並保護儀器端的限制。WebUI 使用者指南以 UI 術語說明各個欄位；本 README 則將 WebUI 行為、API 與整合邊界集中整理於一處。</p>
 
         <h2>套件與進入點 (Entry Point)</h2>
         <p>WebUI 隨附於單一發行套件 (distribution) 中：</p>
@@ -349,7 +349,7 @@
         <p>驗證的掃描結果在傳回的 IDN 與支援的 Core 設定檔匹配時，包含可為空的型號 metadata。34460A IDN 傳回 <code>instrument_model: "34460A"</code> 與 <code>instrument_model_id: "keysight-34460a"</code>；34461A IDN 則傳回對應的 <code>34461A</code> 與 <code>keysight-34461a</code> 值。巢狀的 <code>matched_profile</code> 包含 <code>vendor</code>、<code>model</code> 與 <code>model_id</code>。未知或空白的實機 IDN 仍保留在資源列表中，並將 <code>instrument_model</code>、<code>instrument_model_id</code> 與 <code>matched_profile</code> 設為 null，因此後端不會從備援功能設定檔猜測偵測到的身份。</p>
         <p>選擇實機資源會將其複製到 <code>VISA resource</code> 輸入欄位中。當掃描推斷出支援的型號且 <code>Expected model</code> 仍為 Auto-detect 時，瀏覽器可能會載入 <code>/api/capabilities?model=&lt;model&gt;</code> 以顯示選項，但仍會將 <code>Expected model</code> 保持在 Auto-detect。Start 一律會先執行新的後端 IDN preflight。</p>
         <p>使用者仍然可以手動輸入資源，並在掃描後於 <code>Device options</code> 中要求特定的 <code>Expected model</code>。</p>
-        <p>WebUI 使用 Core 預設的系統 VISA 執行階段。瀏覽器中不提供 PyVISA backend 選擇器。34461A LAN/TCPIP 已透過此預設系統 VISA 路徑進行驗證。只有在需要可選的 pyvisa-py 診斷時，才使用 CLI 專用的 <code>--visa-library</code> 進階選項；已驗證的選用 <code>@py</code> 擷取範圍是 34461A LAN/TCPIP。</p>
+        <p>WebUI 使用 Core 預設的系統 VISA 執行階段。瀏覽器中不提供 PyVISA backend 選擇器。34461A LAN/TCPIP 已透過此預設系統 VISA 路徑支援。只有在需要可選的 pyvisa-py 診斷時，才使用 CLI 專用的 <code>--visa-library</code> 進階選項；支援的選用 <code>@py</code> 擷取範圍是 34461A LAN/TCPIP。</p>
         <p>WebUI 不公開驗證模式。非 Product-open 的傳輸/後端範圍以及非 Product-open 的量測或觸發模式功能，會在瀏覽器啟動時被封鎖。瀏覽器會停用產品不可用的功能選項，但該狀態僅為 UX；Core 驗證、支援原則關卡以及 <code>run_start_session()</code> 最終關卡仍是安全邊界。34460A LAN/TCPIP 目前不支援。</p>
 
         <h2>量測模式</h2>
@@ -423,7 +423,7 @@ pending_keys</code></pre></div>
         <p><code>/api/capabilities</code> 也包含額外的支援 metadata。每個確切的實機連線範圍保留其現有的 <code>validation_status</code>、<code>transport_scope</code> 與 <code>backend_scope</code> 欄位，並新增 <code>features.measurement</code> 與 <code>features.trigger_mode</code> 對照表。功能項目公開其自身的 <code>validation_status</code>；量測鍵使用現有的配接器端名稱，例如 <code>voltage-dc-ratio</code>。現有的回應欄位不會被移除或重新命名。已註冊但尚未對產品開放的 scope，可能仍保留 machine-readable <code>transport_pending</code> 狀態。瀏覽器會將這些 scope 視為一般 Product 啟動不可用；此狀態不代表執行授權。</p>
         <p>瀏覽器使用此 metadata 來顯示型號的實機支援，並停用對目前資源傳輸與 WebUI 固定系統-VISA 後端而言非產品開放的功能。在資源已知之前，Auto-detect 保持現有的備援功能檢視，且僅使用備援設定檔宣告的產品範圍。對於 34461A，該 metadata 包含 USB/system-VISA、LAN/system-VISA 以及選用的 CLI 專用 LAN/pyvisa-py <code>@py</code> 範圍。對於 34460A，DCV Ratio 在 USB/system-VISA 上為 <code>Product-open</code>；34460A LAN/TCPIP system-VISA 與 LAN/TCPIP pyvisa-py <code>@py</code> 目前不支援。現有的量測、觸發、範圍與限制欄位仍是控制項定義的 source of truth。</p>
         <p>Expected model 檢查是選用的。Core 會在 Start 時驗證連接儀器的識別資訊。若明確指定的預期型號與新的 IDN preflight 不符，WebUI 會回報選取的型號以及 IDN 中找到的支援型號。</p>
-        <p>選取的 WebUI 型號不得被視為功能解鎖。停用或隱藏的控制項僅為 UX；Core 支援原則與 <code>run_start_session()</code> 最終關卡仍是 WebUI 後端提交的安全邊界。WebUI 不應將 pyvisa-py 後端選擇器作為驗證工具的一部分加入；後端診斷保持 CLI 專用，除非未來的產品決策變更該邊界。</p>
+        <p>選取的 WebUI 型號不得被視為功能解鎖。停用或隱藏的控制項僅為 UX；Core 支援原則與 <code>run_start_session()</code> 最終關卡仍是 WebUI 後端提交的安全邊界。WebUI 不應加入 pyvisa-py 後端選擇器；後端診斷保持 CLI 專用。</p>
         
         <p>目前呈現的量測模式包括：</p>
         <ul>
@@ -669,57 +669,7 @@ pending_keys</code></pre></div>
             <li><code>src/meters_tool_webui/web_ui.py</code></li>
             <li><code>src/meters_tool_webui/launcher.py</code></li>
         </ul>
-        <p>測試：</p>
-        <ul>
-            <li><code>tests/webui/test_webui_api.py</code></li>
-            <li><code>tests/webui/test_webui_static.py</code></li>
-            <li><code>tests/webui/test_launcher.py</code></li>
-            <li>下方驗證指令中列出的 Core 合約與套件邊界測試。</li>
-        </ul>
         <p>未經使用者明確核准，請勿變更 <code>pyproject.toml</code> 中的根套件 metadata。套件名稱、版本、相依套件、主控台指令、建置系統、pytest/ruff/mypy 設定以及 Core/CLI/WebUI 的擁有權皆為產品邊界決策。</p>
-
-        <h2>驗證</h2>
-        <p>優先執行窄範圍的相關檢查。</p>
-        <p>編輯前端模組後的 JavaScript 語法檢查：</p>
-        <div class="code-wrapper"><pre><code class="language-powershell">Get-ChildItem src\meters_tool_webui\static\*.js |
-  ForEach-Object { node --check $_.FullName }</code></pre></div>
-        <p>針對 WebUI/Core 的無硬體驗證：</p>
-        <div class="code-wrapper"><pre><code class="language-powershell">.\.venv\Scripts\python.exe -m pytest tests/webui/test_webui_package_metadata.py tests/webui/test_webui_api.py tests/webui/test_webui_static.py tests/webui/test_launcher.py -q -p no:cacheprovider</code></pre></div>
-        <p>在已安裝 <code>meters-tool</code> 的環境中，使用 PyInstaller 建置選用的本機啟動器 exe。PyInstaller 已包含在根 README 所述的 all-extras 開發環境中；完成該設定後，可直接執行既有的建置腳本：</p>
-        <div class="code-wrapper"><pre><code class="language-powershell">powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_webui_exe.ps1</code></pre></div>
-        <p>可行時執行更廣泛的無硬體驗證：</p>
-        <div class="code-wrapper"><pre><code class="language-powershell">uv run pytest tests -q -p no:cacheprovider</code></pre></div>
-        <p>實機驗證需要操作人員提供 VISA 資源。在進行觸發模式或更長期的擷取前，先從低風險的立即模式快速功能健檢、啟用自動量程且 <code>max_samples=1</code> 開始。</p>
-        <p>完整的測試執行可能會遇到本機 Windows 暫存或 pytest 快取權限警告。請清楚報告這些警告，並在更廣泛的測試套件被環境權限阻擋時，依賴針對性測試與實機硬體驗證。</p>
-
-        <h2>手動 UI 快速健檢清單</h2>
-        <p>無硬體 UI 快速健檢：</p>
-        <ul>
-            <li>頁面可在 <code>http://127.0.0.1:8767/</code> 載入。</li>
-            <li>首次載入時沒有出現瀏覽器主控台錯誤。</li>
-            <li><code>Scan Device</code> 乾淨地更新實機資源選擇器或回報沒有實機資源。</li>
-            <li>量測變更會更新範圍單位、範圍選擇與 NPLC 可見度。</li>
-            <li><code>voltage-dc</code> 與 <code>voltage-dc-ratio</code> 顯示 DCV Input Z；其他量測會隱藏它。</li>
-            <li>AC 量測在支援處顯示 AC 濾波器並隱藏 NPLC。</li>
-            <li>頻率與週期顯示 AC 濾波器與閘門時間。頻率也顯示逾時；週期與其他量測會隱藏並停用它。</li>
-            <li>電流量測在支援處顯示電流端子。</li>
-            <li>觸發模式變更僅顯示與隱藏相關欄位。</li>
-            <li>觸發按鈕僅在手動軟體觸發模式下出現。</li>
-            <li>Status log 附加具體訊息，而不洗版重複的輪詢狀態。</li>
-            <li><code>Show Details</code> 可切換致命錯誤、清除狀態與原始狀態。</li>
-            <li>在擷取到模擬或實機取樣後，即時資料會轉譯最新值、圖表、統計、表格與選定取樣的 metadata。</li>
-            <li>行動裝置寬度（約 390 像素）沒有文字或控制項重疊。</li>
-            <li>桌面寬度（約 1280 像素）保持密集但易讀。</li>
-        </ul>
-        <p>對於實機硬體快速健檢，除非操作人員明確要求，否則請勿執行高風險的觸發實驗。從立即模式、啟用自動量程且 <code>max_samples=1</code> 開始。</p>
-        <p>頻率與週期實機硬體檢查：</p>
-        <ul>
-            <li>連接 34461A 前面板可量測的穩定訊號。</li>
-            <li>選擇頻率，確認自動量程、<code>20 Hz</code> AC 濾波器、<code>0.1 s</code> 閘門時間與 <code>Auto</code> 逾時，然後擷取一個立即取樣。</li>
-            <li>確認即時資料值使用原始 <code>Hz</code> 並與前面板對比。</li>
-            <li>重複週期步驟，確認原始單位為 <code>s</code>。</li>
-            <li>在變更量測類型前停止執行，並在每次量測後檢查產生的 CSV 列。</li>
-        </ul>
 
         <h2>疑難排解</h2>
         <p>包裝器遺失：</p>
@@ -771,7 +721,7 @@ pending_keys</code></pre></div>
         <h2>說明文件地圖</h2>
         <ul>
             <li><a href="USER_GUIDE.zh-TW.html">WebUI 使用者指南</a>：面向操作人員的 WebUI 使用指南。</li>
-            <li><a href="README.zh-TW.html">WebUI README</a>：本 WebUI 行為、API、驗證與維護者指南。</li>
+            <li><a href="README.zh-TW.html">WebUI README</a>：本 WebUI 行為、API 與整合指南。</li>
             <li><a href="web-ui-change-rules.md">WebUI 變更規則</a>：維護者與面向 Agent 的 UI 變更規則。</li>
             <li><a href="../../CHANGELOG.md">WebUI 變更日誌</a>：專案版本發佈說明。</li>
         </ul>

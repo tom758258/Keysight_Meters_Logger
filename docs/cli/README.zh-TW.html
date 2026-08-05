@@ -244,7 +244,7 @@
         <h2>文件集</h2>
         <ul>
             <li><a href="USER_GUIDE.zh-TW.html">CLI 使用者指南</a> - 操作人員工作流程與常見設定指引。</li>
-            <li><a href="README.zh-TW.html">CLI README</a> - 詳細的 CLI 參考、驗證與自動化指南。</li>
+            <li><a href="README.zh-TW.html">CLI README</a> - 詳細的 CLI 參考與自動化指南。</li>
             <li><a href="../core/supported-models.md">支援型號</a> - 目前型號與確切範圍的支援狀態。</li>
             <li><a href="../../CHANGELOG.md">變更日誌</a> - 版本發佈說明與歷史紀錄。</li>
             <li><a href="cli-integration.md">CLI 整合</a> - CLI 配接器維護邊界。</li>
@@ -257,10 +257,10 @@
         <p>適用於支援的數位萬用電表的 CLI 優先 Python 記錄器，支援透過 VISA 進行 DC/AC 電流、DC/AC 電壓、DCV 比率、頻率、週期以及 2 線式或 4 線式電阻量測。<br>
         它為每個擷取的樣本記錄一列 CSV，並支援軟體、外接硬體、立即與自訂/緩衝觸發工作流程。透過 <code>--timer-interval-s</code> 可在軟體模式中啟用軟體計時器擷取。</p>
         
-        <p>對於標準操作人員的工作流程，請從 <a href="USER_GUIDE.zh-TW.html">CLI 使用者指南</a> 開始。本 README 則將詳細的指令參考、驗證路徑、JSON/JSONL 合約、範例及維護人員導向的 CLI 行為彙整於一處。</p>
+        <p>對於標準操作人員的工作流程，請從 <a href="USER_GUIDE.zh-TW.html">CLI 使用者指南</a> 開始。本 README 則將詳細的指令參考、JSON/JSONL 合約、範例及 CLI 特有的行為彙整於一處。</p>
         
         <p><code>meters-tool</code> 是目前的單一 distribution 基準。其套件版本是 root <code>pyproject.toml</code> 內的 <code>[project].version</code>。CLI 保留其匯入套件、主控台指令、JSON/JSONL 合約、包裝器腳本和測試，同時與 Core 和 WebUI 共享同一個版本號。它繼續透過 CLI 公開 Core 量測欄位：<br>
-        <code>voltage-dc-ratio</code>、<code>frequency</code>、<code>period</code>、<code>--auto-zero once</code>、<code>--ac-bandwidth-hz</code>、<code>--gate-time-s</code>、<code>--freq-period-timeout</code> 和 <code>--current-terminal</code>。Core 的啟動驗證、dry-run 規劃、執行階段協調、公開整合匯出以及量測命名，仍與僅限配接器的 CLI 事務保持分離。此基準也保留了舊版根目錄層級匯入清除、CLI 合約診斷、無硬體發佈驗證、包裝器報告 metadata 以及 Core/CLI 邊界防護。</p>
+        <code>voltage-dc-ratio</code>、<code>frequency</code>、<code>period</code>、<code>--auto-zero once</code>、<code>--ac-bandwidth-hz</code>、<code>--gate-time-s</code>、<code>--freq-period-timeout</code> 和 <code>--current-terminal</code>。Core 的啟動驗證、dry-run 規劃、執行階段協調、公開整合匯出以及量測命名，仍與僅限配接器的 CLI 事務保持分離。</p>
         
         <p>Python 整合應從 <code>meters_tool_core</code> 或 <code>meters_tool_core.*</code> 匯入共享的 API。不再支援舊的根層級 Core 模組匯入，例如 <code>meters_tool.measurement</code> 和 <code>meters_tool.instrument</code>。</p>
 
@@ -289,8 +289,8 @@
             <li>本專案目前支援 Keysight 34460A 與 34461A Truevolt DMM 記錄。若省略 <code>--model</code>，實機啟動將從已連接之儀器的 IDN 自動偵測型號。</li>
             <li>當 Start 必須要求 34460A IDN 相符時，請選擇 <code>--model 34460A</code>。在實機模式下，這僅作為預期型號防護 (expected-model guard)，並不會覆寫由 IDN 決定的設定檔。在 dry-run 或模擬模式下，它會選擇 34460A 的設定檔限制：無 10 A 電流範圍或電流端子選擇、1000 筆讀值的記憶體，且無基礎設定檔外接觸發模式。</li>
             <li>當 Start 必須要求 34461A IDN 相符時，請選擇 <code>--model 34461A</code>。明確的實機不符會在 setup SCPI 之前失敗。型號名稱由 Core 設定檔邏輯進行標準化與驗證；未知的型號驗證會失敗，並列出支援的型號。</li>
-            <li>實機產品支援具備功能感知 (feature-aware) 且範圍精確 (exact-scope)：對於偵測到的型號與確切的傳輸/VISA 後端，連線、量測與實際的觸發模式必須均為 <code>live_validated_full_suite</code>。缺少的功能 metadata 會以預設關閉 (fail-closed) 處理，而非繼承其他範圍的支援。</li>
-            <li>34460A DCV Ratio 僅在 USB/system-VISA 上開放產品使用。一般 CLI 啟動不需要隱藏的驗證選擇器。此支援不延伸至 34460A LAN 或 pyvisa-py 範圍。</li>
+            <li>實機產品支援具備功能感知 (feature-aware) 且範圍精確 (exact-scope)：對於偵測到的型號與確切的傳輸/VISA 後端，連線、量測與實際的觸發模式必須均為 Product-open。缺少的功能 metadata 會以預設關閉 (fail-closed) 處理，而非繼承其他範圍的支援。</li>
+            <li>34460A DCV Ratio 僅在 USB/system-VISA 上開放產品使用。此支援不延伸至 34460A LAN 或 pyvisa-py 範圍。</li>
             <li>34460A 的最大讀值速率低於 34461A，但 CLI 在此版本中不會主動控制高速讀值速率。</li>
             <li>AC、頻率與週期模式透過 <code>--ac-bandwidth-hz</code> 公開 34461A 的 <code>3</code>、<code>20</code> 和 <code>200</code> Hz 頻寬/濾波器設定。在實際投入生產使用前，請使用操作人員提供的 VISA 資源執行低風險的實機資源快速功能健檢 (smoke test)，並將 CLI 記錄列與 34461A 前面板讀值進行對比。</li>
             <li><code>--nplc</code> 和 <code>--auto-zero</code> 是 DC/電阻控制項。AC 電流、AC 電壓、頻率與週期僅接受中性預設值 <code>--nplc 1.0</code>；任何其他 NPLC 值都將被拒絕，因為這些模式不會寫入 NPLC SCPI。它們也不會寫入 Auto Zero SCPI 指令。</li>
@@ -303,11 +303,11 @@
         <ul>
             <li>Python 3.10 或更新版本。</li>
             <li>VISA 執行階段，例如 Keysight IO Libraries Suite 或 NI-VISA。</li>
-            <li>透過 VISA 可見的支援數位萬用電表；目前已驗證的型號與連線範圍請參閱支援型號文件。34460A 基礎設定檔不假設具備選用的 LAN/LXI 或外接觸發支援。</li>
+            <li>透過 VISA 可見的支援數位萬用電表；目前支援的型號與連線範圍請參閱支援型號文件。34460A 基礎設定檔不假設具備選用的 LAN/LXI 或外接觸發支援。</li>
         </ul>
         <p>可透過 CLI 引數支援選用的 pyvisa-py 測試，但 pyvisa-py 並非必要相依套件。僅在需要時安裝選用的後端套件：</p>
         <div class="code-wrapper"><pre><code>uv pip install pyvisa-py pyserial psutil zeroconf</code></pre></div>
-        <p>目前已驗證的選用 pyvisa-py 擷取範圍是 34461A 經由 LAN/TCPIP。34460A LAN/TCPIP 與 34460A LAN/<code>@py</code> 目前不支援。</p>
+        <p>目前支援的選用 pyvisa-py 擷取範圍是 34461A 經由 LAN/TCPIP。34460A LAN/TCPIP 與 34460A LAN/<code>@py</code> 目前不支援。</p>
 
         <h2>開發</h2>
         <p>在 PowerShell 中，切換到專案目錄，建立或重複使用本機虛擬環境，並依照根目錄 <a href="../../README.zh-TW.md#安裝">README 安裝</a> 章節同步 all-extras 開發環境：</p>
@@ -343,79 +343,9 @@ uv sync --all-extras --link-mode=copy
 .\dist\meters-tool.exe start-trigger-record --resource SIM::34461A --simulate --measurement voltage-dc --trigger-mode immediate --max-samples 1 --csv .tmp_tests\cli_exe_smoke.csv --status-format jsonl</code></pre></div>
         <p>PyInstaller 會將產生的檔案寫入本機 <code>build\</code> 和 <code>dist\</code> 目錄。除非專案刻意切換為簽入的 PyInstaller spec，否則請勿提交產生的 <code>.spec</code> 檔案。</p>
 
-        <h2>無硬體驗證</h2>
-        <p>在進行實體儀器工作前執行此配方：</p>
-        <div class="code-wrapper"><pre><code>.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider --ignore=tests\cli\test_cli_wrappers.py
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\preflight-cli.ps1 -Target all
-.\.venv\Scripts\meters-tool.exe list-resources --dry-run --json</code></pre></div>
-        <p><code>list-resources --dry-run</code> 不會建立 VISA 資源管理員、列出 VISA 資源、開啟資源、查詢 <code>*IDN?</code> 或執行釋放回本機控制／清理。如果主控台指令尚未產生，請先安裝套件；上述的模組形式仍可作為開發備援方案。</p>
 
-        <h2>正式發布驗收</h2>
-        <p>正式發布前，請在所有發布變更已提交且工作樹乾淨的情況下，從 repository 根目錄執行無硬體發布驗收：</p>
-        <div class="code-wrapper"><pre><code>powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\release-acceptance.ps1 -Target keysight-34461a</code></pre></div>
-        <p><code>-Target</code> 預設為 <code>keysight-34461a</code>；只有在發布變更明確與型號相關時才使用 <code>keysight-34460a</code>。<code>-Resource</code> 必須是相符的模擬器資源（<code>SIM::34461A</code> 或 <code>SIM::34460A</code>）；省略時，腳本會自動提供相符的資源。若省略 <code>-Release</code>，會使用套件版本；明確指定的 release 必須等於套件版本。<code>-OutputRoot</code> 必須位於 <code>.tmp_tests</code> 下。</p>
-        <p>驗收會驗證 lock 檔案與乾淨的 Git 狀態，執行包含 wrapper 測試的完整無硬體測試套件，呼叫一次 <code>build_release.ps1</code>，並驗證最終的 wheel、source distribution、CLI 獨立 EXE、WebUI Launcher 獨立 EXE 與 SHA-256 checksums。接著執行 clean-install 套件 smoke test、兩個獨立執行檔的最小 smoke check、指定 target 的 preflight，以及既有的 <code>live-cli-check.ps1 -PlanOnly</code> 驗證。</p>
-        <p>最後的 live wrapper 呼叫是 <code>live-cli-check.ps1 -Suite minimal -PlanOnly -SkipPreflight</code>；它只產生 dry-run plans，不會開啟 VISA 資源。<code>build_release.ps1</code> 會建置獨立執行檔，而 release acceptance 會透過上述最小 smoke check 驗證它們。每個 recorded command 會顯示 <code>[start]</code> 以及含執行時間的 <code>[passed]</code> 或 <code>[failed]</code>。詳細的 child-process captured stdout/stderr 會保留在 acceptance run directory，不會即時串流到主控台。完整 pytest 可能透過 wrapper contract tests 建立 <code>.tmp_tests\cli_live\...</code>；看到該目錄不代表正在執行真實儀器測試。長時間的 PyInstaller build 不應被誤認為正在等待 external trigger。通過後會輸出可直接上傳至 GitHub Release 的版本化目錄。主要輸出位於 <code>.tmp_tests/release_acceptance/&lt;target&gt;/&lt;timestamp&gt;/</code>，包括 <code>report.json</code>、<code>summary.md</code>、<code>checksums.txt</code> 與建置出的 distribution 產物。這是正式發布門檻，不是一般本機套件建置或重新建置獨立 EXE 的必要步驟。</p>
 
-        <h2>實體儀器驗證路徑</h2>
-        <p>當搬移到新電腦、新的 VISA 執行階段或不同的已連接支援型號時，請使用本段落。先從無硬體驗證開始，然後探測作用中的資源，接著在允許包裝器接觸儀器前，執行僅限規劃的實機驗證包裝器。一般產品執行（包括一般 CLI 啟動、WebUI 與直接的 Core 實機呼叫）必須使用連接型號的 Product-open 確切傳輸/後端範圍。下方的維護者 <code>live-cli-check.ps1</code> validation harness 則可針對明確註冊的非 Product-open 範圍執行有界限的驗證；型號專屬安全限制與 Core 驗證仍會強制套用。通過驗證不會自動改變 Product 支援 metadata。</p>
-        <ol>
-            <li>執行上方的無硬體配方。</li>
-            <li>探測目前有回應 <code>*IDN?</code> 的資源：</li>
-        </ol>
-        <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool.exe list-resources --live-only --json</code></pre></div>
-        <ol start="3">
-            <li>從 JSON 輸出中複製一個資源字串，並在目前的 PowerShell 工作階段中設定一次。在下方命令中使用該精確值。實機驗證包裝器絕不會自行掃描或猜測資源：</li>
-        </ol>
-        <div class="code-wrapper"><pre><code>$env:METER_RESOURCE = "USB0::...::INSTR"</code></pre></div>
-        <p>此值可以是探測傳回的任何作用中 VISA 資源，包括 USB 或 TCPIP/LAN 資源。</p>
-        <p>實機驗證包裝器是驗證 harness，而非產品使用介面。它可以針對明確由操作人員提供的資源，執行明確註冊的 <code>transport_pending</code> 連線範圍以及 <code>feature_pending</code> 量測/觸發模式項目，以便記錄驗證結果。通過的 <code>report.json</code> 或 <code>summary.md</code> 本身不會改變 Product 支援 metadata。</p>
-        <p>任何已建立執行目錄的呼叫（包括 <code>-PlanOnly</code>、需要確認、preflight 失敗、通過及失敗的執行）都會自動使用以下產物配置：</p>
-        <div class="code-wrapper"><pre><code class="language-text">.tmp_tests/cli_live/&lt;model-id&gt;/&lt;connection&gt;/&lt;suite&gt;/&lt;timestamp&gt;/
-|- private/
-|  |- report.json
-|  |- summary.md
-|  `- ... 原始命令、診斷、JSONL、stderr 與 CSV 證據
-`- shareable/
-   |- report.json
-   |- summary.md
-   `- ... 已遮罩的命令、診斷、JSONL、stderr 與 CSV 證據</code></pre></div>
-        <p>最後的 <code>summary:</code> 主控台列會指向 repository 相對路徑的 <code>shareable/summary.md</code>。<code>private/</code> 是完整的本機除錯證據，絕不可提交、附加或發佈。只有 <code>shareable/</code> 適合 Pull Request；請壓縮並附加整個 shareable 目錄，以保留其相對參照。兩份報告都使用 artifact schema <code>1.1</code>。private 報告保留原始資源與本機路徑；shareable 報告與樹狀結構會遮罩資源、完整 IDN 與序號、私有位址、操作人員 metadata，以及個人或絕對路徑。</p>
-        <p>完整擷取 CSV 僅保留在 <code>private/</code>。每個含有 CSV 的實機案例都會產生 shareable <code>csv-evidence.json</code>，記錄安全的 schema 與資料列事實，不包含量測值或觸發 metadata。JSON 與 JSONL 會在遮罩前解析；遺失或格式錯誤的輸入會產生安全的佔位內容，而不是複製原始文字。未知的二進位格式仍保留在 private。若無法產生 shareable 證據，包裝器會 fail closed，不會將原始證據當作備援。通過或失敗的產物會記錄驗證結果，不會自動改變產品支援。</p>
-        <p>CLI <code>--model</code> 接受 canonical model token，例如 <code>34461A</code>，或已註冊的穩定型號 ID，例如 <code>keysight-34461a</code>。在 live 模式下它是預期型號防護；在 dry-run 或 simulator 模式下它會選擇規劃設定檔。</p>
-        <p>PowerShell wrapper 的 <code>-Target</code> 值是穩定的 Core 型號 ID。目前維護的值為 <code>keysight-34461a</code> 與 <code>keysight-34460a</code>，分別對應實體 CLI 型號 token <code>34461A</code> 與 <code>34460A</code>。wrapper target 仍是實機驗證的預期型號防護，而偵測到的 <code>*IDN?</code> 會選擇執行階段設定檔。型號 ID 不代表產品開放支援、生命週期、傳輸/後端、量測、觸發模式或驗證狀態；Meters 支援政策仍以工作流程為中心。</p>
-        <ol start="4">
-            <li>產生實機規劃，而不開啟 VISA 或變更儀器：</li>
-        </ol>
-        <div class="code-wrapper"><pre><code>powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\live-cli-check.ps1 `
-  -Target keysight-34461a `
-  -Connection usb `
-  -Resource "$env:METER_RESOURCE" `
-  -Suite minimal `
-  -PlanOnly</code></pre></div>
-        <ol start="5">
-            <li>如果規劃看起來正確，請執行最小限度的實機功能驗證（快速健檢）。包裝器會先執行 preflight，列印規劃的儀器狀態變更，並在實機擷取前要求互動式的 Enter 確認：</li>
-        </ol>
-        <div class="code-wrapper"><pre><code>powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\live-cli-check.ps1 `
-  -Target keysight-34461a `
-  -Connection usb `
-  -Resource "$env:METER_RESOURCE" `
-  -Suite minimal</code></pre></div>
-        <p>最小套件遵循既有的 <code>current-dc immediate</code> 驗證慣例，擷取一個有界限的立即模式取樣。這是實機硬體驗證，不是通常最安全的快速健檢；current 案例執行前需要正確的電流輸入接線。它會將原始命令輸出與完整案例 CSV 寫入 <code>private/</code>，然後產生已遮罩的 <code>shareable/</code> 報告、摘要、命令證據與 <code>csv-evidence.json</code>。請先檢查標準的 <code>shareable/summary.md</code>；通過的案例應顯示 <code>captured=1</code>、<code>errors=0</code>，且至少有一列 CSV 資料。在信任較長期的擷取之前，請在本機將 private CSV 數值與儀器前面板進行對比；不要發佈該 CSV。</p>
-        <p>若要獲得更廣泛的實機覆蓋範圍，請在最小套件通過後使用 <code>-Suite basic</code>。該套件涵蓋立即量測和軟體觸發路徑。Current、AC、電阻、Frequency 與 Period 實機案例需要相符的實體接線及／或穩定訊號源。軟體計時器案例使用 CLI 端的路徑 <code>--trigger-mode software --timer-interval-s 0.5</code>；這不代表 34460A 設定檔支援儀器端的 sample timer 模式。當連接穩定輸入訊號，且 Frequency 與 Period 都應各擷取一個立即自動量程取樣時，請使用 <code>-Suite frequency-period</code>。只有在操作人員能安全提供所需外接觸發邊緣時，才使用 <code>-Suite external</code>，且只能搭配 <code>-Target keysight-34461a</code>。只有在同時需要 basic、Frequency/Period 與 external 覆蓋時，才對 34461A 使用 <code>-Suite full</code>。對 <code>-Target keysight-34460a</code> 而言，<code>-Suite full</code> 是 <code>basic</code> 加上 <code>frequency-period</code>；因為 34460A 基礎設定檔不支援外接觸發模式，所以會拒絕 <code>external</code>。</p>
-        <p>在不開啟 VISA 的情況下預覽頻率/週期（Frequency/Period）實機套件：</p>
-        <div class="code-wrapper"><pre><code>powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\live-cli-check.ps1 `
-  -Target keysight-34461a `
-  -Connection usb `
-  -Resource "$env:METER_RESOURCE" `
-  -Suite frequency-period `
-  -PlanOnly</code></pre></div>
-        <p>在檢閱規劃後，移除 <code>-PlanOnly</code> 以執行這兩個有界限的實機案例。此套件使用 Auto Range（自動量程）、<code>20</code> Hz AC 濾波器、<code>0.1</code> 秒閘門時間（gate time）、自動頻率逾時（automatic Frequency timeout）、無週期逾時指令，以及每個量測各一個樣本。<br>在每個正式的 CLI 案例之前，一個診斷工作階段會根據選定的 target model 驗證識別資訊，傳送規劃的 SCPI 指令，並在每個指令後及 <code>READ?</code> 後檢查 <code>SYST:ERR?</code>。private 報告包含完整 IDN 與原始診斷路徑；shareable 報告保留安全的製造商/型號、韌體、命令、回應與錯誤結果欄位，同時遮罩完整 IDN、序號、資源與 private 路徑。探測錯誤會使該案例失敗並跳過其重複的正式執行，同時允許診斷另一個量測。請將報告的數值和 CSV 資料列與選定的儀器前面板進行對比。在韌體版本為 A.03.03 的 34461A 上，兩個探測皆在沒有 SCPI 錯誤的情況下完成，且在省略週期逾時指令後，每個正式案例都產生一個樣本和 CSV 資料列。<a href="https://www.keysight.com/us/en/assets/9018-03876/service-manuals/9018-03876.pdf">Keysight Truevolt Series DMM Operating and Service Guide</a>，第 10 版，2024 年 5 月，包含模糊的逾時語法；對於不支援的 Period 標頭，應以觀察到的儀器行為為準。</p>
-        <p>如果 stdin 被重新導向且未設定 <code>-PlanOnly</code>，<code>live-cli-check.ps1</code> 將拒絕實機擷取並寫入 <code>confirmation_required</code> 報告。這是預期行為：實機儀器執行需要互動式確認。</p>
-        <p>若要驗證選用的 PyVISA 後端，請向包裝器傳遞 <code>-VisaLibrary "@py"</code>。<code>-Backend "@py"</code> 可作為別名接受，而 <code>-visa-library "@py"</code> 則作為與 CLI 選項名稱相符的便利別名接受。包裝器會將此轉寄給 CLI <code>--visa-library</code> 並將後端記錄在產物中。省略時，包裝器使用系統 VISA，並將 <code>visa_library</code>/<code>backend</code> 記錄為 <code>system_visa</code>。若包裝器輸出顯示 <code>VISA library/backend: system_visa</code>，則該執行不是 <code>@py</code> 驗證產物。34460A LAN/TCPIP 目前不支援；驗證不會使一般的 34460A LAN/TCPIP 產品啟動開啟。</p>
-        <p>非 Product-open scope 尚未開放供一般產品使用。包裝器使用隱藏的 <code>--validation-allow-pending-live-support</code> Core 原則選擇器。它僅允許明確註冊的 <code>transport_pending</code> 和 <code>feature_pending</code> 項目；它不是一般的強制選項。缺少範圍/功能 metadata、未知型號、不支援的設定檔能力、無效請求以及硬性安全限制仍會被拒絕。34460A 基礎設定檔仍保持 external/external-custom 關閉，拒絕 10 A/電流端子請求，並保留 1000 筆讀值的緩衝區限制。其 USB/system-VISA DCV Ratio 項目為 <code>Product-open</code>，不需要此隱藏選擇器；34460A LAN/TCPIP system-VISA 與 LAN/TCPIP pyvisa-py <code>@py</code> 目前不支援，且不會覆寫硬性限制或開放這些範圍。</p>
-
-        <h2>建置與驗證指令腳本</h2>
+        <h2>建置腳本</h2>
         <p>建置腳本：</p>
         <table>
             <thead>
@@ -439,35 +369,6 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\preflight-cli.
                 </tr>
             </tbody>
         </table>
-        <p>驗證與發布腳本：</p>
-        <table>
-            <thead>
-                <tr>
-                    <th>腳本</th>
-                    <th>硬體使用</th>
-                    <th>目的</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><code>scripts\preflight-cli.ps1</code></td>
-                    <td>無硬體</td>
-                    <td>執行依 target 的 dry-run 案例、模擬器案例、用戶端命令 dry-run、<code>list-resources</code> dry-run 合約，以及模擬的 <code>list-resources</code> pytest 覆蓋。一般無硬體驗證請使用 <code>-Target all</code>。</td>
-                </tr>
-                <tr>
-                    <td><code>scripts\live-cli-check.ps1</code></td>
-                    <td>實機硬體（除非設定了 <code>-PlanOnly</code>）</td>
-                    <td>執行依 target 的實機 wrapper 規劃，並在互動確認後，針對明確的 <code>-Resource</code> 與確切連線/後端範圍執行有界限的實機驗證案例。</td>
-                </tr>
-                <tr>
-                    <td><code>scripts\release-acceptance.ps1</code></td>
-                    <td>無硬體</td>
-                    <td>執行包含 wrapper 測試的完整無硬體套件，呼叫一次 <code>build_release.ps1</code>，驗證 wheel/sdist、兩個獨立執行檔與 SHA-256 checksums，接著執行 clean-install 套件 smoke test、兩個獨立執行檔的最小 smoke check、指定 target 的 preflight 與 <code>live-cli-check.ps1 -PlanOnly</code>。</td>
-                </tr>
-            </tbody>
-        </table>
-        <p>將 <code>transport_pending</code> 或 <code>feature_pending</code> 改為 <code>live_validated_full_suite</code> 需要明確的精確範圍支援 metadata 與說明文件更新。僅啟用驗證模式執行不會開放 Product 支援。</p>
-
         <h2>基本工作流程</h2>
         <p>對於包含常見設定說明的引導式操作人員路徑，請參閱 <a href="USER_GUIDE.zh-TW.html">CLI 使用者指南</a>。簡要參考流程如下：</p>
         <ol>
@@ -512,8 +413,8 @@ uv run meters-tool start-trigger-record `
   --trigger-mode immediate `
   --measurement voltage-dc `
   --max-samples 1</code></pre></div>
-        <p><code>--backend "@py"</code> 可作為 <code>--visa-library "@py"</code> 的別名。此選項供 CLI 診斷與選用後端驗證使用。WebUI 使用預設的系統 VISA 執行階段，不公開後端選擇器。</p>
-        <p>LAN/TCPIP 是已驗證的 34461A pyvisa-py 路徑。Windows 上的 USBTMC 可能需要 WinUSB/libusb 設定，通常不比 Keysight IO Libraries Suite 或 NI-VISA 簡單。使用 pyvisa-py 與 pyserial 的 RS-232/ASRL 在支援序列 I/O 的儀器上通常直接，但目前 Meters 設定檔以 USB/LAN Truevolt DMM 為目標。<code>PYVISA_LIBRARY="@py"</code> 仍會直接影響 PyVISA，但本專案建議在 CLI 指令中明確使用 <code>--visa-library "@py"</code>，讓測試可重現。</p>
+        <p><code>--backend "@py"</code> 可作為 <code>--visa-library "@py"</code> 的別名。此選項供 CLI 診斷與選用後端檢查使用。WebUI 使用預設的系統 VISA 執行階段，不公開後端選擇器。</p>
+        <p>LAN/TCPIP 是支援的 34461A pyvisa-py 路徑。Windows 上的 USBTMC 可能需要 WinUSB/libusb 設定，通常不比 Keysight IO Libraries Suite 或 NI-VISA 簡單。使用 pyvisa-py 與 pyserial 的 RS-232/ASRL 在支援序列 I/O 的儀器上通常直接，但目前 Meters 設定檔以 USB/LAN Truevolt DMM 為目標。<code>PYVISA_LIBRARY="@py"</code> 仍會直接影響 PyVISA，但本專案建議在 CLI 指令中明確使用 <code>--visa-library "@py"</code>，讓測試可重現。</p>
 
         <h2>指令參考</h2>
         <p>使用已安裝的主控台指令：</p>
@@ -1087,8 +988,8 @@ uv run meters-tool start-trigger-record `
   --max-samples 2 `
   --simulate `
   --status-format jsonl</code></pre></div>
-        <p>JSONL 輸出是每行一個 JSON 物件。這是專為 Agent 和腳本設計的；預設的文字輸出仍然是面向人類的介面。模擬器數值是確定的工作流程資料，並非真實的 34461A 量測驗證。</p>
-        <p>自動化呼叫端應解析 JSONL、單一回應 JSON、CSV 檔案以及包裝器 <code>report.json</code> 產物來做出決策。人類文字訊息僅用於診斷，且可能會因可讀性而有所變更。</p>
+        <p>JSONL 輸出是每行一個 JSON 物件。這是專為 Agent 和腳本設計的；預設的文字輸出仍然是面向人類的介面。模擬器數值是確定的工作流程資料，並非真實的 34461A 量測。</p>
+        <p>自動化呼叫端應解析 JSONL、單一回應 JSON 與 CSV 檔案來做出決策。人類文字訊息僅用於診斷，且可能會因可讀性而有所變更。</p>
         <p>有關目前的 schema 和別名規則，請參閱 <a href="../contracts/meters-cli-jsonl-contract.md">Meters CLI JSON / JSONL 合約</a>。</p>
         <p>有關 Meters 工作器模式、本機控制端點、狀態 payload 以及包裝器產物/報告 schema，請參閱 <a href="../contracts/meters-worker-contract.md">Meters Worker 合約</a>。</p>
         <p>當工作器執行中，<code>status</code> 會包裝非變更性的 <code>GET /status</code> 並傳回正規化 JSON 以供協調器健康檢查：</p>
@@ -1098,12 +999,12 @@ uv run meters-tool start-trigger-record `
             <li>執行 <code>start-trigger-record --dry-run --status-format jsonl</code> 並驗證規劃（plan）物件。</li>
             <li>以相同的命令搭配 <code>--simulate --status-format jsonl</code> 與有限範圍（如 <code>--max-samples</code>）執行。</li>
             <li>對於實機擷取，使用明確的 <code>--resource</code> 啟動工作器；在無人值守的實機執行中，絕不可掃描、推斷或猜測 VISA 資源。</li>
-            <li>等待 JSONL 的 <code>ready</code> 事件，或執行 <code>wait-ready --port 8765 --json</code>，然後呼叫 <code>status --port 8765 --json</code> 來驗證 <code>run_id</code>。</li>
+            <li>等待 JSONL 的 <code>ready</code> 事件，或執行 <code>wait-ready --port 8765 --json</code>，然後呼叫 <code>status --port 8765 --json</code> 來確認 <code>run_id</code>。</li>
             <li>僅在軟體觸發模式下使用 <code>POST /command</code>，並使用 <code>POST /stop</code> 進行正常停止。</li>
-            <li>讀取 stdout 的 JSONL、CSV 以及例如 <code>report.json</code> 的包裝器產物以做出成功/失敗的決策。</li>
+            <li>讀取 stdout 的 JSONL 與 CSV 輸出以取得執行結果。</li>
         </ol>
         <p>請參閱 <a href="../contracts/meters-orchestrator-workflows.md">Meters 協調器工作流程</a> 了解完整的 Python 子程序工作流程。</p>
-        <p><code>ready</code> 事件與 <code>wait-ready</code> 代表本機控制面可以接受 <code>/command</code>、<code>/stop</code> 與 <code>/status</code> 請求。它們並不代表第一個樣本已經擷取。使用 JSONL <code>run_id</code> 作為同一次執行的 stdout 執行階段事件、<code>status</code> 或直接 <code>GET /status</code> 以及包裝器產物之間的關聯鍵。</p>
+        <p><code>ready</code> 事件與 <code>wait-ready</code> 代表本機控制面可以接受 <code>/command</code>、<code>/stop</code> 與 <code>/status</code> 請求。它們並不代表第一個樣本已經擷取。使用 JSONL <code>run_id</code> 作為同一次執行的 stdout 執行階段事件與 <code>status</code> 或直接 <code>GET /status</code> 回應之間的關聯鍵。</p>
 
         <h3>send-command --format json</h3>
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool.exe send-command --port 8765 --format json</code></pre></div>
@@ -1324,7 +1225,7 @@ uv run meters-tool start-trigger-record `
         </ul>
 
         <h2>範例</h2>
-        <p>這些範例依照實用驗證路徑排序：先確認作用中資源，然後執行單一樣本快速功能健檢，最後使用符合實驗設計的觸發模式。下方的資源字串皆為示意遮蔽值。請使用 VISA discovery 回傳的確切資源，並使用適合您的儀器與測試執行的 CSV 路徑。</p>
+        <p>這些範例依照實用操作路徑排序：先確認作用中資源，然後執行單一樣本快速功能健檢，最後使用符合實驗設計的觸發模式。下方的資源字串皆為示意遮蔽值。請使用 VISA discovery 回傳的確切資源，並使用適合您的儀器與測試執行的 CSV 路徑。</p>
         <p>在執行下方的實機範例前，從 <code>list-resources --live-only</code> 的輸出複製一個確切的資源字串，並在目前的 PowerShell 工作階段中設定一次：</p>
         <div class="code-wrapper"><pre><code>$env:METER_RESOURCE = "USB0::...::INSTR"</code></pre></div>
         <p><code>METER_RESOURCE</code> 只是 PowerShell 文件範例。CLI 不會自動讀取或搜尋這個環境變數；請透過 <code>--resource "$env:METER_RESOURCE"</code> 明確傳入選定的資源。下方 dry-run 範例也使用相同的明確變數以保持一致。請勿猜測、掃描後自動選擇或硬編碼實機硬體資源。</p>
@@ -1393,8 +1294,8 @@ stale   ASRL6::INSTR                                   ASRL 驗證在 1000 ms �
 TCPIP0::...::hislip0::INSTR</code></pre></div>
         <p>請直接從 VISA 探測輸出複製實際值，不要手動組合資源字串。</p>
 
-        <h3>實機驗證路徑</h3>
-        <p>在檢查環境設定時，請使用此順序：</p>
+        <h3>實機擷取路徑</h3>
+        <p>在準備實機擷取時，請使用此順序：</p>
         <ol>
             <li>執行 <code>list-resources --live-only</code> 並選擇作用中的資源。當需要診斷過期的 VISA 快取項目時，請改用 <code>list-resources --verify</code>。</li>
             <li>以 <code>--trigger-mode immediate</code> 與 <code>--max-samples 1</code> 執行單一樣本的電流、電壓、頻率、週期或電阻快速功能健檢。</li>
@@ -1402,7 +1303,7 @@ TCPIP0::...::hislip0::INSTR</code></pre></div>
             <li>確認 CSV 中的 <code>measurement_type</code>、<code>unit</code>、<code>trigger_source</code> 與列數。</li>
             <li>在信賴長期無人值守執行前，先用 <code>stop</code>、Ctrl+C、Ctrl+Break 或 <code>q</code> 確認正常停止行為。</li>
         </ol>
-        <p>在進行無人值守擷取前，請使用操作人員提供、連接至支援型號的 VISA 資源，以及 Product-open 的確切傳輸/後端範圍來驗證工作流程。從立即模式、自動量程開啟以及 <code>--max-samples 1</code> 開始，然後擴展至預期的量測、觸發模式與緩衝模式。在適用時，請將 CLI CSV 資料列與連接型號的前面板讀值進行對比。請保留型號專屬限制，包括 34460A 的 USB/system-VISA 範圍、1000 筆讀值限制，以及基礎設定檔不支援外接觸發。</p>
+        <p>在進行無人值守擷取前，請使用操作人員提供、連接至支援型號的 VISA 資源，以及 Product-open 的確切傳輸/後端範圍。從立即模式、自動量程開啟以及 <code>--max-samples 1</code> 開始，然後擴展至預期的量測、觸發模式與緩衝模式。在適用時，請將 CLI CSV 資料列與連接型號的前面板讀值進行對比。請保留型號專屬限制，包括 34460A 的 USB/system-VISA 範圍、1000 筆讀值限制，以及基礎設定檔不支援外接觸發。</p>
 
         <h3>DC 電流快速功能健檢</h3>
         <p>單一立即電流取樣：</p>
@@ -1522,7 +1423,7 @@ TCPIP0::...::hislip0::INSTR</code></pre></div>
   --nplc 1.0 `
   --max-samples 1 `
   --status-format jsonl</code></pre></div>
-        <p>對於電壓列，預期 CSV 中的 <code>measurement_type=voltage_dc</code> 且 <code>unit=V</code>。電壓也可以透過 <code>--measurement voltage-dc</code> 來配合自訂/緩衝模式使用；這些路徑使用相同的量測設定以及現有的自訂模式觸發/讀取流程。在信賴電壓緩衝擷取以進行生產前，請先使用操作者提供的 VISA 資源執行較長期的緩衝驗證。</p>
+        <p>對於電壓列，預期 CSV 中的 <code>measurement_type=voltage_dc</code> 且 <code>unit=V</code>。電壓也可以透過 <code>--measurement voltage-dc</code> 來配合自訂/緩衝模式使用；這些路徑使用相同的量測設定以及現有的自訂模式觸發/讀取流程。在信賴電壓緩衝擷取以進行生產前，請先使用操作者提供的 VISA 資源執行較長期的緩衝檢查。</p>
         
         <p>DCV Input Z 快速功能健檢，自動模式：</p>
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool.exe start-trigger-record `
@@ -1549,7 +1450,7 @@ TCPIP0::...::hislip0::INSTR</code></pre></div>
         <p>對於這些檢查，請確認前面板 Input Z 狀態是否符合預期變更：<code>auto</code> 應選擇自動並可能在較低的 DC 電壓範圍顯示 HighZ，而 <code>10m</code> 應選擇固定的 10 MOhm。</p>
 
         <h3>DCV 比率 (Ratio) 快速功能健檢</h3>
-        <p>DCV 比率 (Ratio) 使用現有的 <code>VOLT:DC:RAT</code> 實作。它已對驗證過的 34461A scope 開放，且 34460A 僅在 USB/system-VISA 上為 <code>Product-open</code>。一般 CLI 與 WebUI 啟動不需要隱藏的驗證模式選擇器。進行實機操作前，請依照儀器手冊連接信號和參考導線；錯誤連接的比率量測可能數值看起來合理，但量測的卻是錯誤的關係。</p>
+        <p>DCV 比率 (Ratio) 使用現有的 <code>VOLT:DC:RAT</code> 實作。它已對支援的 34461A scope 開放，且 34460A 僅在 USB/system-VISA 上為 <code>Product-open</code>。進行實機操作前，請依照儀器手冊連接信號和參考導線；錯誤連接的比率量測可能數值看起來合理，但量測的卻是錯誤的關係。</p>
         <p>Dry-run DCV Ratio 檢查：</p>
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool.exe start-trigger-record `
   --resource "$env:METER_RESOURCE" `
@@ -1567,7 +1468,7 @@ TCPIP0::...::hislip0::INSTR</code></pre></div>
   --max-samples 1 `
   --simulate `
   --status-format jsonl</code></pre></div>
-        <p>34461A 已驗證 scope 或 34460A USB/system-VISA 的 Product-open 實機 DCV Ratio 快速功能健檢：</p>
+        <p>34461A 支援 scope 或 34460A USB/system-VISA 的 Product-open 實機 DCV Ratio 快速功能健檢：</p>
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool.exe start-trigger-record `
   --resource "$env:METER_RESOURCE" `
   --csv ".\data\voltage_dc_ratio_smoke.csv" `
@@ -1639,7 +1540,6 @@ TCPIP0::...::hislip0::INSTR</code></pre></div>
   --dry-run `
   --status-format jsonl</code></pre></div>
         <p>檢閱規劃後，一個有界限的自動量程實機快速功能健檢將使用相同的指令，但不加上 <code>--dry-run</code>，並提供明確的 <code>--csv</code> 路徑。請分別執行頻率與週期，各擷取一個取樣，並將 CSV 數值與前面板進行對比。頻率的資料列使用 <code>measurement_type=frequency</code>, <code>unit=Hz</code>；週期的資料列使用 <code>measurement_type=period</code>, <code>unit=s</code>。</p>
-        <p>透過 <code>scripts\live-cli-check.ps1 -Suite frequency-period</code> 可執行相同的一對檢查。包裝器會先執行行前檢查（preflight）與 dry-run 規劃，在實機 I/O 前需要互動式確認，在每個規劃的頻率/週期指令後檢查 SCPI 錯誤佇列，並將診斷結果及每個量測值和單位記錄在 <code>report.json</code> 與 <code>summary.md</code> 中。<code>-PlanOnly</code> 保持為無硬體模式且不會執行 SCPI 探測。</p>
 
         <h3>2 線式電阻快速功能健檢</h3>
         <p>自動量程，單一立即電阻取樣：</p>
@@ -1917,14 +1817,6 @@ software trigger server stopped</code></pre></div>
             <li>如果在高精度 DC/電阻設定下遺失外接觸發邊緣，請在變更觸發行為前嘗試 <code>--nplc 1.0 --auto-zero off</code>。</li>
             <li>如果長時間執行的 Windows 主控台看起來像凍結了，請確認 QuickEdit/文字選擇沒有暫停終端機執行。</li>
         </ul>
-
-        <h2>測試</h2>
-        <p>在執行測試前，請依照根目錄 <a href="../../README.zh-TW.md#安裝">README 安裝</a> 流程安裝專案環境。</p>
-        <p>每日快速 pytest 執行：</p>
-        <div class="code-wrapper"><pre><code>.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider --ignore=tests\cli\test_cli_wrappers.py</code></pre></div>
-        <p>Windows wrapper 合約的 CI 工作會另外驗證 <code>tests\cli\test_cli_wrappers.py</code>。完整的無硬體 <code>release-acceptance.ps1</code> 門檻只應在正式發布前執行。</p>
-        <p>與 GitHub Actions 一致的單元測試搜集與執行：</p>
-        <div class="code-wrapper"><pre><code>.\.venv\Scripts\python.exe -m unittest discover -s tests -p "test_*.py" -v</code></pre></div>
 
     </main>
 

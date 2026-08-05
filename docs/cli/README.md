@@ -3,7 +3,7 @@
 ## Documentation Set
 
 - [CLI User Guide](USER_GUIDE.md) - operator workflow and common setting guidance.
-- [CLI README](README.md) - detailed CLI reference, validation, and automation guide.
+- [CLI README](README.md) - detailed CLI reference and automation guide.
 - [Supported Models](../core/supported-models.md) - current model and exact-scope support status.
 - [Changelog](../../CHANGELOG.md) - release notes and version history.
 - [CLI Integration](cli-integration.md) - CLI adapter maintenance boundary.
@@ -21,8 +21,8 @@ hardware, immediate, and custom/buffered trigger workflows. Software timer
 capture is enabled with `--timer-interval-s` as part of software mode.
 
 For normal operator workflows, start with the [CLI User Guide](USER_GUIDE.md).
-This README keeps the detailed command reference, validation paths, JSON/JSONL
-contracts, examples, and maintainer-facing CLI behavior in one place.
+This README keeps the detailed command reference, JSON/JSONL contracts, examples,
+and CLI-specific behavior in one place.
 
 `meters-tool` is the single-distribution baseline. Its package version is
 `[project].version` in the root `pyproject.toml`. The CLI keeps its import
@@ -31,12 +31,9 @@ while sharing that one version number with Core and WebUI. It
 continues to expose Core measurement fields through the CLI:
 `voltage-dc-ratio`, `frequency`, `period`, `--auto-zero once`,
 `--ac-bandwidth-hz`, `--gate-time-s`, `--freq-period-timeout`, and
-`--current-terminal`. Core start
-validation, dry-run planning, runtime orchestration, public integration exports,
-and measurement naming remain separated from adapter-only CLI concerns. This
-baseline also keeps the legacy root-level import cleanup, CLI contract
-diagnostics, no-hardware release validation, wrapper report metadata, and
-Core/CLI boundary guards.
+`--current-terminal`. Core start validation, dry-run planning, runtime
+orchestration, public integration exports, and measurement naming remain
+separated from adapter-only CLI concerns.
 
 Python integrations should import shared APIs from `meters_tool_core` or
 `meters_tool_core.*`. The old root-level Core module imports such as
@@ -84,13 +81,11 @@ Important limitations:
   validated by Core profile logic; unknown models fail validation with the
   supported models listed.
 - Live product support is feature-aware and exact-scope: the connection,
-  measurement, and effective trigger mode must each be
-  `live_validated_full_suite` for the detected model and exact transport/VISA
-  backend. Missing feature metadata fails closed rather than inheriting
-  support from another scope.
-- 34460A DCV Ratio is Product-open only on USB/system-VISA. Normal CLI starts
-  do not need the hidden validation selector. This support does not
-  extend to 34460A LAN or pyvisa-py scopes.
+  measurement, and effective trigger mode must each be Product-open for the
+  detected model and exact transport/VISA backend. Missing feature metadata
+  fails closed rather than inheriting support from another scope.
+- 34460A DCV Ratio is Product-open only on USB/system-VISA. This support does
+  not extend to 34460A LAN or pyvisa-py scopes.
 - The 34460A has a lower maximum reading rate than the 34461A, but the CLI does
   not actively control high-speed reading rate in this release.
 - AC, Frequency, and Period modes expose the 34461A `3`, `20`, and `200` Hz
@@ -118,7 +113,7 @@ Important limitations:
 - Python 3.10 or newer.
 - A VISA runtime, such as Keysight IO Libraries Suite or NI-VISA.
 - A supported digital multimeter visible to VISA; see Supported Models for the
-  currently validated models and connection scopes. The 34460A base profile
+  currently supported models and connection scopes. The 34460A base profile
   does not assume optional LAN/LXI or external trigger support.
 
 Optional pyvisa-py testing is supported through CLI arguments, but pyvisa-py is
@@ -128,7 +123,7 @@ not a required dependency. Install optional backend packages only when needed:
 uv pip install pyvisa-py pyserial psutil zeroconf
 ```
 
-The validated optional pyvisa-py acquisition scope is 34461A over LAN/TCPIP.
+The supported optional pyvisa-py acquisition scope is 34461A over LAN/TCPIP.
 34460A LAN/TCPIP and 34460A LAN/`@py` are not currently supported.
 
 ## Development
@@ -232,251 +227,7 @@ PyInstaller writes generated files under local `build\` and `dist\`
 directories. Do not commit generated `.spec` files unless the project
 intentionally switches to a checked-in PyInstaller spec.
 
-## No-Hardware Validation
-
-Run this recipe before live instrument work:
-
-```powershell
-.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider --ignore=tests\cli\test_cli_wrappers.py
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\preflight-cli.ps1 -Target all
-.\.venv\Scripts\meters-tool.exe list-resources --dry-run --json
-```
-
-`list-resources --dry-run` does not create a VISA resource manager, list VISA
-resources, open resources, query `*IDN?`, or run release/local cleanup. If the
-console script has not been generated yet, install the package first; the module
-form above remains a development fallback.
-
-## Formal Release Acceptance
-
-Before a formal release, run the no-hardware release acceptance from the
-repository root after all release changes have been committed and the working
-tree is clean:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\release-acceptance.ps1 -Target keysight-34461a
-```
-
-`-Target` defaults to `keysight-34461a`; use `keysight-34460a` only when the
-release change is specifically model-dependent. `-Resource` must be the
-matching simulator resource (`SIM::34461A` or `SIM::34460A`); when omitted, the
-script supplies that matching resource automatically. If `-Release` is
-omitted, the package version is used; a specified release must equal the
-package version. `-OutputRoot` must remain under `.tmp_tests`.
-
-The acceptance verifies the lock file and clean Git state, runs the complete
-no-hardware test suite including wrapper tests, invokes `build_release.ps1`
-once, and validates the final wheel, source distribution, standalone CLI EXE,
-standalone WebUI Launcher EXE, and SHA-256 checksums. It then runs clean-install
-package smokes, minimal standalone executable smokes, selected-target preflight,
-and the existing `live-cli-check.ps1 -PlanOnly` validation.
-
-The final live wrapper call is `live-cli-check.ps1 -Suite minimal -PlanOnly
--SkipPreflight`; it generates only dry-run plans and does not open a VISA
-resource. `build_release.ps1` builds the standalone executables; release
-acceptance validates those executables with the minimal smoke checks above.
-Each recorded command prints `[start]` and `[passed]` or `[failed]` with its
-duration. Detailed child-process captured stdout/stderr remains in the
-acceptance run directory rather than being streamed to the console. The
-complete pytest step may create `.tmp_tests\cli_live\...` through wrapper
-contract tests; that directory does not indicate real instrument testing. A
-long PyInstaller build should not be mistaken for waiting for an external
-trigger. A passing run prints the versioned directory that can be uploaded
-directly to a GitHub Release. The main outputs are written under
-`.tmp_tests/release_acceptance/<target>/<timestamp>/` and include
-`report.json`, `summary.md`, `checksums.txt`, and the built distribution
-artifacts. It is a formal release gate, not a prerequisite for ordinary local
-package builds or standalone EXE rebuilds.
-
-## Live Instrument Validation
-
-Use this section when moving to a new PC, a new VISA runtime, or a different
-connected supported model. Start with no-hardware validation, then discover a
-live resource, then run a plan-only live wrapper before allowing the wrapper to
-touch the instrument. Normal product execution, including normal CLI starts,
-the WebUI, and direct Core live calls, must use the connected model's Product-
-open exact transport/backend scope. The maintainer `live-cli-check.ps1`
-validation harness described below may also execute explicitly registered
-non-Product-open scopes for bounded validation; model-specific safety limits
-and Core validation remain enforced. Passing validation does not automatically
-change Product support metadata.
-
-1. Run the no-hardware recipe above.
-2. Discover resources that currently answer `*IDN?`:
-
-```powershell
-.\.venv\Scripts\meters-tool.exe list-resources --live-only --json
-```
-
-3. Copy one resource string from the JSON output and set it once for this
-   PowerShell session. Use that exact value in the commands below. The live
-   wrapper never scans for or guesses a resource:
-
-```powershell
-$env:METER_RESOURCE = "USB0::...::INSTR"
-```
-
-The value can be any live VISA resource returned by discovery, including USB
-or TCPIP/LAN resources.
-
-The live wrapper is a validation harness, not a product usage interface. It may
-execute explicitly registered `transport_pending` connection scopes and
-`feature_pending` measurement/trigger-mode entries with the exact operator-
-provided resource so validation results can be recorded. A passing
-`report.json` or `summary.md` does not by itself change Product support
-metadata.
-
-Every invocation that reaches run-directory creation, including `-PlanOnly`,
-confirmation-required, preflight-failed, passed, and failed runs, automatically
-uses this artifact layout:
-
-```text
-.tmp_tests/cli_live/<model-id>/<connection>/<suite>/<timestamp>/
-|- private/
-|  |- report.json
-|  |- summary.md
-|  `- ... raw command, diagnostic, JSONL, stderr, and CSV evidence
-`- shareable/
-   |- report.json
-   |- summary.md
-   `- ... redacted command, diagnostic, JSONL, stderr, and CSV evidence
-```
-
-The final `summary:` console line points to the repository-relative
-`shareable/summary.md`. `private/` is complete local debugging evidence and
-must never be committed, attached, or published. Only `shareable/` is suitable
-for a pull request; compress and attach the entire shareable directory so its
-relative references remain intact. Both reports use artifact schema `1.1`.
-The private report retains raw resources and local paths. The shareable report
-and tree redact resources, complete IDNs and serials, private addresses,
-operator metadata, and personal or absolute paths.
-
-Full acquisition CSV files remain only under `private/`. Each live case with a
-CSV receives a shareable `csv-evidence.json` that records safe schema and row
-facts without measurement values or trigger metadata. JSON and JSONL are
-parsed before redaction; malformed or missing inputs produce safe placeholders
-instead of copying raw text. Unknown binary formats remain private. A failure
-to generate shareable evidence makes the wrapper fail closed and does not turn
-raw evidence into a fallback. Passed or failed artifacts record validation
-results and do not change Product support automatically.
-
-CLI `--model` accepts a canonical model token such as `34461A` or a registered
-stable model ID such as `keysight-34461a`. In live mode it is an expected-model
-guard; in dry-run or simulator mode it selects the planning profile.
-
-PowerShell wrapper `-Target` values are stable Core model IDs. The maintained values are
-`keysight-34461a` and `keysight-34460a`; they map to the physical CLI model
-tokens `34461A` and `34460A`, respectively. The wrapper target remains an
-expected-model guard for live validation, while detected `*IDN?` selects the
-runtime profile. A model ID does not imply Product-open support, lifecycle,
-transport/backend, measurement, trigger-mode, or validation status. Meters
-support policy remains workflow-centric.
-
-4. Generate the live plan without opening VISA or changing the instrument:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\live-cli-check.ps1 `
-  -Target keysight-34461a `
-  -Connection usb `
-  -Resource $env:METER_RESOURCE `
-  -Suite minimal `
-  -PlanOnly
-```
-
-5. If the plan looks correct, run the minimal live smoke test. The wrapper will
-   run preflight first, print the planned instrument state changes, and require
-   interactive Enter confirmation before live acquisition:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\live-cli-check.ps1 `
-  -Target keysight-34461a `
-  -Connection usb `
-  -Resource $env:METER_RESOURCE `
-  -Suite minimal
-```
-
-The minimal suite follows the existing `current-dc immediate` validation
-convention and captures one bounded immediate-mode sample. It is live hardware
-validation, not the generally safest smoke test; current cases require correct
-current input wiring before execution. It writes raw command output and the
-full case CSV under `private/`, then generates the redacted `shareable/` report,
-summary, command evidence, and `csv-evidence.json`. Check the canonical
-`shareable/summary.md` first; a passed case should show `captured=1`, `errors=0`,
-and at least one CSV data row. Compare the private CSV value with the instrument
-front panel locally before trusting longer captures; do not publish that CSV.
-
-For broader live coverage, use `-Suite basic` after the minimal suite passes.
-That suite covers immediate measurements and software-triggered paths. Current,
-AC, resistance, Frequency, and Period live cases require the matching physical
-wiring and/or stable signal source setup. The software timer case uses the CLI
-PC-side path, `--trigger-mode software --timer-interval-s 0.5`; it does not mean
-the 34460A profile supports instrument-side sample timer mode. Use
-`-Suite frequency-period` when a stable input signal is connected and Frequency
-and Period should each capture one immediate Auto Range sample. Use
-`-Suite external` only with `-Target keysight-34461a` and only when an operator
-can safely provide the required external trigger edge. Use `-Suite full` for
-34461A only when basic, Frequency/Period, and external coverage are all
-intended. For `-Target keysight-34460a`, `-Suite full` is `basic` plus
-`frequency-period`; `external` is rejected because the base 34460A profile does
-not support external trigger modes.
-
-For validation of an optional PyVISA backend, pass `-VisaLibrary "@py"` to the
-wrapper. `-Backend "@py"` is accepted as an alias, and `-visa-library "@py"`
-is accepted as a convenience alias matching the CLI option name. The wrapper
-forwards this to CLI `--visa-library` and records the backend in the artifacts.
-When omitted, the wrapper uses system VISA and records `visa_library`/`backend`
-as `system_visa`. If wrapper output says `VISA library/backend: system_visa`,
-the run is not an `@py` validation artifact. 34460A LAN/TCPIP is not currently
-supported; validation does not make normal 34460A LAN/TCPIP product starts
-open.
-
-Scopes that are not Product-open are not available for normal product use.
-The wrapper uses the hidden
-`--validation-allow-pending-live-support` Core policy selector. It permits only
-explicitly registered `transport_pending` and `feature_pending` entries; it is
-not a general force option. Missing scope/feature metadata, unknown models,
-unsupported profile capabilities, invalid requests, and hard safety limits
-remain rejected. The 34460A base profile still keeps external/external-custom
-closed, rejects 10 A/current-terminal requests, and preserves the 1000-reading
-buffer limits. Its USB/system-VISA DCV Ratio entry is Product-open and does not
-need this hidden selector; LAN/TCPIP or pyvisa-py entries remain non-Product-open
-and do not override hard limits or open the unsupported 34460A LAN scopes.
-
-Preview the Frequency/Period live suite without opening VISA:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\live-cli-check.ps1 `
-  -Target keysight-34461a `
-  -Connection usb `
-  -Resource $env:METER_RESOURCE `
-  -Suite frequency-period `
-  -PlanOnly
-```
-
-After reviewing the plans, remove `-PlanOnly` to run the two bounded live
-cases. The suite uses Auto Range, a `20` Hz AC filter, a `0.1` second gate
-time, automatic Frequency timeout, no Period timeout command, and one sample
-per measurement.
-Before each formal CLI case, a diagnostic session validates identity
-against the selected target model, sends the planned SCPI commands, and checks
-`SYST:ERR?` after every command and after `READ?`. The private report includes
-the complete IDN and raw diagnostic path; the shareable report retains safe
-manufacturer/model, firmware, command, response, and error outcome fields while
-redacting complete IDN, serial, resource, and private paths. A
-probe error fails that case and skips its duplicate formal run while allowing
-the other measurement to be diagnosed. Compare the reported value and CSV row
-with the selected meter front panel. On a 34461A with firmware A.03.03, both
-probes completed without SCPI errors and each formal case produced one sample
-and CSV row after the Period timeout command was omitted. The
-[Keysight Truevolt Series DMM Operating and Service Guide](https://www.keysight.com/us/en/assets/9018-03876/service-manuals/9018-03876.pdf),
-Edition 10, May 2024, contains ambiguous timeout syntax; observed instrument
-behavior is authoritative for the unsupported Period header.
-
-If stdin is redirected and `-PlanOnly` is not set, `live-cli-check.ps1` refuses
-live acquisition and writes a `confirmation_required` report. This is expected:
-live instrument runs require an interactive confirmation.
-
-## Build And Validation Scripts
+## Build Scripts
 
 Build scripts:
 
@@ -485,19 +236,6 @@ Build scripts:
 | `scripts\build_cli_exe.ps1` | Build the Windows-oriented CLI standalone EXE. |
 | `scripts\build_webui_exe.ps1` | Build the Windows-oriented WebUI Launcher standalone EXE. |
 | `scripts\build_release.ps1` | Assemble versioned wheel, sdist, standalone EXEs, and checksums. |
-
-Validation and release scripts:
-
-| Script | Hardware use | Purpose |
-| --- | --- | --- |
-| `scripts\preflight-cli.ps1` | No hardware | Runs target-aware dry-run cases, simulator cases, client-command dry-runs, the `list-resources` dry-run contract, and mocked `list-resources` pytest coverage. Use `-Target all` for general no-hardware validation. |
-| `scripts\live-cli-check.ps1` | Live hardware unless `-PlanOnly` is set | Runs target-aware live-wrapper plans and, with interactive confirmation, bounded live validation cases against the explicit `-Resource` and exact connection/backend scope. |
-| `scripts\release-acceptance.ps1` | No hardware | Runs the complete no-hardware suite including wrapper tests, invokes `build_release.ps1` once, validates wheel/sdist, both standalone executables, and SHA-256 checksums, then runs clean-install package smokes, minimal standalone executable smokes, selected-target preflight, and `live-cli-check.ps1 -PlanOnly`. |
-
-Changing `transport_pending` or `feature_pending` to
-`live_validated_full_suite` requires an explicit exact-scope support metadata
-and documentation update. Enabling validation-mode execution alone does not
-open Product support.
 
 ## Basic Workflow
 
@@ -567,11 +305,11 @@ uv run meters-tool start-trigger-record `
 ```
 
 `--backend "@py"` is accepted as an alias for `--visa-library "@py"`. This
-option is intended for CLI diagnostics and optional backend validation. The
+option is intended for CLI diagnostics and optional backend checks. The
 WebUI uses the default system VISA runtime and does not expose a backend
 selector.
 
-LAN/TCPIP is the validated 34461A pyvisa-py path. USBTMC on Windows may need
+LAN/TCPIP is the supported 34461A pyvisa-py path. USBTMC on Windows may need
 WinUSB/libusb setup and is often not simpler than Keysight IO Libraries Suite
 or NI-VISA. RS-232/ASRL with pyvisa-py and pyserial is usually straightforward
 when a supported instrument uses serial I/O, but the current Meters profiles
@@ -767,11 +505,10 @@ Use `--simulate` for workflow checks without a real VISA session:
 
 JSONL output is one JSON object per line. It is intended for agents and scripts;
 the default text output remains the human-facing interface. Simulator values are
-deterministic workflow data, not real 34461A measurement validation.
+deterministic workflow data, not real 34461A measurements.
 
-Machine callers should parse JSONL, single-response JSON, CSV files, and wrapper
-`report.json` artifacts for decisions. Human text messages are diagnostic and
-may change for readability.
+Machine callers should parse JSONL, single-response JSON, and CSV files for
+decisions. Human text messages are diagnostic and may change for readability.
 
 See [Meters CLI JSON / JSONL Contract](../../docs/contracts/meters-cli-jsonl-contract.md) for the current schema
 and alias rules.
@@ -798,16 +535,15 @@ Recommended orchestrator flow:
    then call `status --port 8765 --json` to verify the `run_id`.
 5. Use `POST /command` only for software-triggered modes, and `POST /stop` for
    graceful stop.
-6. Read stdout JSONL plus CSV and wrapper artifacts such as `report.json` for
-   pass/fail decisions.
+6. Read stdout JSONL and CSV output for run results.
 
 See [Meters Orchestrator Workflows](../../docs/contracts/meters-orchestrator-workflows.md) for a complete
 Python subprocess workflow.
 
 The `ready` event and `wait-ready` mean the local control plane can accept
 `/command`, `/stop`, and `/status` requests. They are not first-sample signals.
-Use the JSONL `run_id` as the correlation key between stdout runtime events,
-`status` or direct `GET /status`, and wrapper artifacts from the same run.
+Use the JSONL `run_id` as the correlation key between stdout runtime events and
+`status` or direct `GET /status` responses from the same run.
 
 ### send-command --format json
 
@@ -980,7 +716,7 @@ Additional validation rules:
 
 ## Examples
 
-These examples are ordered as a practical validation path: first identify a live
+These examples are ordered as a practical usage path: first identify a live
 resource, then run one-sample smoke checks, then use the trigger mode that fits
 the experiment. The resource strings shown below are illustrative placeholders.
 Use exact values returned by VISA discovery and CSV paths appropriate for your
@@ -1123,9 +859,9 @@ TCPIP0::...::hislip0::INSTR
 Copy actual values directly from VISA discovery output; do not construct
 resource strings manually.
 
-### Real-Instrument Validation Path
+### Real-Instrument Acquisition Path
 
-Use this order when checking a setup:
+Use this order when preparing a live acquisition:
 
 1. Run `list-resources --live-only` and choose a live resource. Use
    `list-resources --verify` instead when you need to diagnose stale VISA cache
@@ -1138,14 +874,14 @@ Use this order when checking a setup:
 5. Confirm graceful stop behavior with `stop`, Ctrl+C, Ctrl+Break, or `q`
    before relying on long unattended runs.
 
-Before relying on unattended acquisition, validate the workflow with an
-operator-provided VISA resource for a connected supported model and a
-Product-open exact transport/backend scope. Start with immediate mode, Auto
-Range on, and `--max-samples 1`, then expand to the intended measurement,
-trigger mode, and buffered mode. Compare the CLI CSV row with the connected
-model's front-panel reading where applicable. Keep model-specific restrictions,
-including 34460A's USB/system-VISA scope, 1000-reading limit, and lack of base-
-profile external trigger support.
+Before relying on unattended acquisition, start with an operator-provided VISA
+resource for a connected supported model and a Product-open exact
+transport/backend scope. Use immediate mode, Auto Range on, and
+`--max-samples 1`, then expand to the intended measurement, trigger mode, and
+buffered mode. Compare the CLI CSV row with the connected model's front-panel
+reading where applicable. Keep model-specific restrictions, including 34460A's
+USB/system-VISA scope, 1000-reading limit, and lack of base-profile external
+trigger support.
 
 ### Current DC Smoke Test
 
@@ -1317,9 +1053,9 @@ Live Auto Zero once smoke check:
 For voltage rows, expect `measurement_type=voltage_dc` and `unit=V` in the CSV.
 Voltage can also be selected with custom/buffered modes through
 `--measurement voltage-dc`; those paths use the same measurement configuration
-and the existing custom-mode trigger/read flow. Run a longer buffered validation
-with the operator-provided VISA resource before relying on voltage buffered
-acquisition for production runs.
+and the existing custom-mode trigger/read flow. Run a longer buffered
+acquisition check with the operator-provided VISA resource before relying on
+voltage buffered acquisition for production runs.
 
 DCV Input Z smoke check, Auto mode:
 
@@ -1358,8 +1094,7 @@ For these checks, confirm the front panel Input Z state changes as expected:
 ### DCV Ratio Smoke Tests
 
 DCV Ratio uses the existing `VOLT:DC:RAT` implementation. It is Product-open
-for validated 34461A scopes and for 34460A only on USB/system-VISA. Normal CLI
-use in that exact scope does not need the hidden validation selector.
+for supported 34461A scopes and for 34460A only on USB/system-VISA.
 Connect the signal and reference leads according to the instrument manual
 before running live; a miswired ratio measurement can look numerically
 plausible while measuring the wrong relationship.
@@ -1389,7 +1124,7 @@ Simulated DCV Ratio workflow check:
   --status-format jsonl
 ```
 
-Product-open 34461A validated-scope or 34460A USB/system-VISA live DCV Ratio
+Product-open 34461A supported scope or 34460A USB/system-VISA live DCV Ratio
 smoke check:
 
 ```powershell
@@ -1508,15 +1243,6 @@ commands without `--dry-run` and with an explicit `--csv` path. Run Frequency
 and Period separately, one sample each, and compare the CSV value to the front
 panel. Frequency rows use `measurement_type=frequency`, `unit=Hz`; Period rows
 use `measurement_type=period`, `unit=s`.
-
-The same pair of checks is available through
-`scripts\live-cli-check.ps1 -Suite frequency-period`. The wrapper performs
-preflight and dry-run planning first, requires interactive confirmation before
-live I/O, checks the SCPI error queue after each planned Frequency/Period
-command, and records the diagnostics plus each measured value and unit in
-the private artifacts. Shareable `report.json` and `summary.md` omit measured
-values and private identifiers. `-PlanOnly` remains no-hardware, still creates
-both artifact directories, and does not run the SCPI probe.
 
 ### Resistance 2-Wire Smoke Tests
 
@@ -1918,25 +1644,4 @@ CSV fields:
   settings, try `--nplc 1.0 --auto-zero off` before changing trigger behavior.
 - If a long-running Windows console appears frozen, make sure QuickEdit/text
   selection is not pausing the terminal.
-
-## Tests
-
-Ensure the project environment is installed using the root [README Install](../../README.md#install)
-flow before running tests.
-
-Daily fast pytest run:
-
-```powershell
-.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider --ignore=tests\cli\test_cli_wrappers.py
-```
-
-The Windows wrapper-contract CI job validates `tests\cli\test_cli_wrappers.py`
-separately. Run the complete no-hardware `release-acceptance.ps1` gate only
-before a formal release.
-
-Unittest discovery, matching GitHub Actions:
-
-```powershell
-.\.venv\Scripts\python.exe -m unittest discover -s tests -p "test_*.py" -v
-```
 

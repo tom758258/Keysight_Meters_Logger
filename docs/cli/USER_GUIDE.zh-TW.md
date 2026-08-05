@@ -1,6 +1,6 @@
 # Meters Tool CLI 使用者指南
 
-本指南適用於取得已建置之 CLI 執行檔或已安裝的 `meters-tool` 指令，並使用它來記錄支援的數位萬用電表量測資料的操作人員。本指南專注於正常的量測工作流程與常見設定。如需開發人員設定、驗證腳本、JSON/JSONL 輸出與自動化合約，請參閱 [CLI README](README.zh-TW.md)。
+本指南適用於取得已建置之 CLI 執行檔或已安裝的 `meters-tool` 指令，並使用它來記錄支援的數位萬用電表量測資料的操作人員。本指南專注於正常的量測工作流程與常見設定。如需開發人員設定、JSON/JSONL 輸出與自動化合約，請參閱 [CLI README](README.zh-TW.md)。
 
 ## 啟動 CLI
 
@@ -16,7 +16,7 @@
 meters-tool-<version>.exe
 ```
 
-如果您的發佈資料夾使用帶有版本號的執行檔，請在下方的指令中使用該檔案名稱。開發人員或從原始碼簽出 (source-checkout) 的使用者，應參閱 [CLI README](README.zh-TW.md) 以取得虛擬環境、模組、驗證與建置指令。
+如果您的發佈資料夾使用帶有版本號的執行檔，請在下方的指令中使用該檔案名稱。開發人員或從原始碼簽出 (source-checkout) 的使用者，應參閱 [CLI README](README.zh-TW.md) 以取得虛擬環境、模組與建置指令。
 
 ## 首次實機執行
 
@@ -171,7 +171,7 @@ CLI 預設使用電腦的系統 VISA 執行階段，例如 Keysight IO Libraries
 
 ## 更多 CLI 文件
 
-- [CLI README](README.zh-TW.md)：完整的指令參考、驗證腳本、範例、引數限制與自動化工作流程。
+- [CLI README](README.zh-TW.md)：完整的指令參考、範例、引數限制與自動化工作流程。
 - [CLI 整合](cli-integration.md)：CLI 配接器的維護邊界說明。
 - [Meters CLI JSON / JSONL 合約](../contracts/meters-cli-jsonl-contract.md)：用於自動化的結構化輸出 schema。
 - [Meters Worker 合約](../contracts/meters-worker-contract.md)：工作器控制面與產物合約。

@@ -49,7 +49,7 @@ http://127.0.0.1:8767/
 
 實際 Port 可能較高；請以 Launcher 視窗顯示的 URL 為準。
 
-開發人員或從原始碼簽出 (source-checkout) 的使用者，應參閱 [WebUI README](README.zh-TW.md) 以取得終端機指令、驗證與建置的詳細資訊。
+開發人員或從原始碼簽出 (source-checkout) 的使用者，應參閱 [WebUI README](README.zh-TW.md) 以取得終端機指令、API 行為與建置的詳細資訊。
 
 ## 畫面總覽
 
@@ -237,5 +237,5 @@ fallback 視窗輸入其他合法 Port；每次手動重試只會嘗試該 Port�
 
 ## 更多 WebUI 文件
 
-- [WebUI README](README.zh-TW.md)：工程設定、WebUI API 行為、驗證、建置說明與維護者邊界。
+- [WebUI README](README.zh-TW.md)：工程設定、WebUI API 行為、建置說明與整合邊界。
 - [WebUI 變更日誌 (Changelog)](../../CHANGELOG.md)：專案版本發佈說明。

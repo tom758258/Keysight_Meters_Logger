@@ -41,12 +41,7 @@ TRADITIONAL_MARKDOWN_TOKEN_REQUIREMENTS = {
         "keysight-34461a",
         "USB/system-VISA",
         "LAN/TCPIP",
-        "live_validated_full_suite",
-        "transport_pending",
         "--visa-library",
-        "--validation-allow-pending-live-support",
-        "private/",
-        "shareable/",
     ),
     "docs/webui/README.zh-TW.md": (
         "keysight-34460a",
@@ -413,7 +408,6 @@ def test_english_support_docs_cover_feature_pending_policy():
     paths = (
         REPO_ROOT / "docs" / "core" / "integration.md",
         REPO_ROOT / "docs" / "cli" / "cli-integration.md",
-        REPO_ROOT / "docs" / "cli" / "README.md",
         REPO_ROOT / "docs" / "webui" / "README.md",
         REPO_ROOT / "docs" / "CONTRIBUTING.md",
     )

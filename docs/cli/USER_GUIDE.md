@@ -3,7 +3,7 @@
 This guide is for operators who receive the built CLI executable or an
 already-installed `meters-tool` command and use it to record measurements
 from a supported digital multimeter. It focuses on the normal measurement workflow and
-common settings. For developer setup, validation scripts, JSON/JSONL output,
+common settings. For developer setup, JSON/JSONL output,
 and automation contracts, see the [CLI README](README.md).
 
 ## Start The CLI
@@ -22,7 +22,7 @@ meters-tool-<version>.exe
 
 Use that file name in the commands below if your release folder uses a
 versioned executable. Developers or source-checkout users should use the
-[CLI README](README.md) for virtual environment, module, validation, and build
+[CLI README](README.md) for virtual environment, module, and build
 commands.
 
 ## First Live Run
@@ -264,7 +264,7 @@ according to the configured timeout behavior.
 
 ## More CLI Documentation
 
-- [CLI README](README.md): full command reference, validation scripts, examples,
+- [CLI README](README.md): full command reference, examples,
   argument limits, and automation workflows.
 - [CLI Integration](cli-integration.md): CLI adapter maintenance boundary.
 - [Meters CLI JSON / JSONL Contract](../contracts/meters-cli-jsonl-contract.md):
