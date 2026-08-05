@@ -12,6 +12,13 @@ planning, simple and surgical changes, and text-file hygiene.
 - Read the relevant files in `docs/contracts/` before changing CLI/WebUI
   adapter behavior, worker or subprocess orchestration, JSON/JSONL schemas, or
   HTTP control/status contracts.
+- Preserve machine-mode stdout as structured JSON or JSONL only. Human-readable
+  diagnostics belong in text mode or stderr; do not emit plain-text lifecycle
+  output on machine-mode stdout.
+- Get user confirmation before changing contract-defined queue admission or
+  rejection semantics, worker lifecycle or HTTP control behavior, process exit
+  meanings, run correlation, or artifact path, privacy, redaction, publication,
+  or ownership rules.
 - Read `docs/webui/web-ui-change-rules.md` before changing WebUI static files or
   in-app UI behavior.
 
@@ -32,19 +39,26 @@ planning, simple and surgical changes, and text-file hygiene.
 
 ## 3. Multi-Vendor Extension Boundary
 
-- Keep the product identity and shared architecture vendor-neutral. Current
-  Keysight 34460A/34461A implementation, validation evidence, and user
-  documentation may remain model-specific where accurate.
+- Keep the product identity and shared architecture vendor-neutral.
+  Implementation details and user documentation may remain vendor- or
+  model-specific where accurate. Validation evidence may also remain vendor-
+  or model-specific, but belongs in private or separately shared review
+  artifacts, not tracked public documentation.
 - For future brands or models, keep capability, identification, validation,
-  support-policy, and instrument-command differences primarily in Core.
+  support-policy, and instrument-command differences primarily in Core. Keep
+  detected manufacturer/model identity, canonical model tokens, stable model
+  IDs, and aliases distinct; do not infer vendor or support identity by
+  splitting or formatting a model ID.
 - CLI and WebUI must not copy or reimplement brand/model capabilities, safety
   limits, identification rules, or instrument-command branches. They must use
   Core profile, capability, validation, and support-policy results. Pure
   presentation may be derived from Core metadata.
-- Apply fail-closed behavior to live hardware paths. Unknown, unidentified,
-  mismatched, unsupported, or unvalidated instruments and connection scopes
-  must not run live. Dry-run and simulator paths may use an explicitly selected
-  registered profile as allowed by the existing contracts.
+- Apply fail-closed behavior to normal product live paths. Unknown,
+  unidentified, mismatched, unsupported, or unvalidated instruments and
+  connection scopes must not run through normal CLI, WebUI, or direct Core
+  starts. Maintained validation harnesses may exercise only explicitly
+  registered pending scopes under the documented validation policy; this does
+  not promote product support.
 - These rules constrain future changes. Do not pre-build abstractions for an
   unsupported second vendor or refactor reasonable current model-specific code
   without a concrete requirement.
@@ -64,8 +78,8 @@ planning, simple and surgical changes, and text-file hygiene.
   that contract.
 - Keep concrete SCPI/driver commands and query/wait semantics, including
   `READ?`, `FETC?`, and `*OPC?` behavior, in Core, contracts, or supported-model
-  documentation. Do not change or generalize them without model-appropriate
-  validation and explicit approval.
+  documentation. Do not change or generalize them without explicit approval
+  and model-appropriate real-instrument validation.
 - Keep VISA resource strings configurable. Never commit real resource strings,
   instrument serial numbers, or private lab addresses.
 
@@ -79,7 +93,8 @@ planning, simple and surgical changes, and text-file hygiene.
 - Use `.tmp_tests/` for intentional test and validation artifacts.
 - Real-instrument validation must be explicit, opt-in, bounded, and use a VISA
   resource supplied by the user. Never infer, scan for, or guess a resource for
-  unattended live validation.
+  unattended live validation. Do not describe dry-run, simulator, mocked, or
+  plan-only results as real-instrument validation.
 - If the full test suite is blocked by environment permissions, report the
   limitation and the focused checks that ran. Live validation is not a
   substitute and should run only when live behavior is in scope and approved.
@@ -88,11 +103,12 @@ planning, simple and surgical changes, and text-file hygiene.
 ## 6. Documentation Boundary
 
 - Keep tracked documentation durable, public, and free of temporary planning,
-  transient status, private operator context, and hardware-specific validation
-  artifacts.
+  transient validation, review, or promotion status, private operator context,
+  and run-specific validation results, records, evidence, or artifacts.
 - Keep `USER_GUIDE.md` files operator-facing. Keep setup, build, maintainer,
-  validation, and detailed engineering material in `README.md` or focused
-  contributor documentation unless it is required for user operation.
+  validation workflow and requirements, and detailed engineering material in
+  `README.md` or focused contributor documentation. Include in `USER_GUIDE.md`
+  only the minimum information required for normal user operation.
 - English documentation is the default. Modify localized documentation only
   when the task explicitly includes it. If a modified localized Markdown file
   already has a corresponding HTML mirror, update that mirror in the same
@@ -100,3 +116,6 @@ planning, simple and surgical changes, and text-file hygiene.
 - Do not place personal filesystem paths, real VISA resources, instrument
   serial numbers, private lab addresses, or link-local/private network
   addresses in tracked public documentation.
+- Operator-facing and product-support documentation must not include internal
+  phase names, candidate evidence, unperformed validation, review or promotion
+  status or plans, or temporary laboratory-specific context.
