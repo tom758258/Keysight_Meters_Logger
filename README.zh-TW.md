@@ -4,7 +4,7 @@
 
 Meters Tool 是供支援的數位萬用電表使用的 Python 資料擷取與紀錄工具。目前版本支援 Keysight 34460A 與 34461A；確切的產品支援範圍請參閱 [支援型號文件](docs/core/supported-models.md)。專案提供單一可安裝發行套件 `meters-tool`，其套件版本由根目錄 `pyproject.toml` 定義，同時保留三個獨立的 import package：`meters_tool_core`、`meters_tool_cli` 與 `meters_tool_webui`。
 
-本專案支援透過 VISA 進行 DC 與 AC 電流、DC 與 AC 電壓、DC 電壓比、頻率、週期，以及 2 線式或 4 線式電阻量測。預設會將每筆擷取樣本寫入 CSV 的一行，包含時間戳記、量測類型、單位、觸發來源與相關 metadata。若外部 orchestrator 會保存 JSONL sample events，CLI 呼叫端可使用 `--no-csv`。
+本專案支援透過 VISA 進行 DC 與 AC 電流、DC 與 AC 電壓、DC 電壓比、頻率、週期，以及 2 線式或 4 線式電阻量測。預設會將每筆擷取樣本寫入 CSV 的一行，包含時間戳記、量測類型、單位、觸發來源與相關 metadata。CLI 呼叫端可使用 `--no-csv`，WebUI 使用者則可取消勾選 `CSV 輸出`；兩者都映射到同一個 Core `csv_enabled` 設定。
 
 實體儀器連線需要另外安裝相容的 VISA 實作。Meters Tool 不包含系統 VISA 執行環境；dry-run 與模擬模式則不需要安裝 VISA。
 
@@ -18,7 +18,7 @@ Meters Tool 是供支援的數位萬用電表使用的 Python 資料擷取與紀
 * 透過 CLI 或本機 WebUI 進行操作
 * 在瀏覽器 WebUI 中即時切換英文與繁體中文，不需重新載入頁面，也不會重設目前執行、表單值、即時樣本、圖表、狀態或其他執行階段 UI 狀態；手動選擇會保存在瀏覽器中
 * 產生 JSON 與 JSONL 輸出，供自動化、agent 與 orchestrator 使用
-* 預設產生時間戳記 CSV，CLI 可透過 `--no-csv` 明確停用
+* 預設產生時間戳記 CSV，可透過 CLI `--no-csv` 或 WebUI `CSV 輸出` checkbox 明確停用
 
 實機啟動時會透過 `*IDN?` 自動偵測已連接的型號；明確選擇的型號僅作為預期型號防護 (expected-model guard)，並不會為另一台儀器解鎖功能。精確的實機支援採用 fail-closed (預設關閉) 原則；關於型號、傳輸/後端、量測與觸發模式的狀態，請參閱 [支援型號](docs/core/supported-models.md) 與各元件說明文件。
 

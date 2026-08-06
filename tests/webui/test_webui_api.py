@@ -800,8 +800,12 @@ class WebUiApiTests(unittest.TestCase):
     def test_open_current_csv_rejects_idle_status(self):
         client, _csv_path = self.make_client()
 
+        status = client.get("/api/runs/current").json()
+
         response = client.post("/api/runs/current/open-csv")
 
+        self.assertIsNone(status["csv_enabled"])
+        self.assertIsNone(status["csv_path"])
         self.assertEqual(409, response.status_code)
         self.assertEqual("no completed CSV available", response.json()["detail"])
 
@@ -1950,6 +1954,7 @@ class WebUiApiTests(unittest.TestCase):
             request_fields = RunStartRequest.__fields__
 
         self.assertEqual("current-dc", request.measurement)
+        self.assertTrue(request.csv_enabled)
         self.assertEqual("on", request.auto_zero)
         self.assertIsNone(request.ac_bandwidth_hz)
         self.assertIsNone(request.gate_time_s)
@@ -1957,6 +1962,9 @@ class WebUiApiTests(unittest.TestCase):
         self.assertIsNone(request.current_terminal)
         self.assertNotIn("validation_allow_pending_live_support", request_fields)
         self.assertNotIn("support_policy_mode", request_fields)
+
+        normalized = WebRunManager()._normalize_request_payload(request)
+        self.assertTrue(normalized.csv_enabled)
 
     def test_manager_normalizes_legacy_auto_zero_booleans(self):
         manager = WebRunManager()
@@ -2247,8 +2255,16 @@ class WebUiApiTests(unittest.TestCase):
 
     def test_immediate_run_publishes_final_inactive_status_without_polling(self):
         self.tempdir = tempfile.TemporaryDirectory()
-        csv_path = Path(self.tempdir.name) / "out.csv"
-        manager = WebRunManager()
+        csv_path = Path(self.tempdir.name) / "csv-only-parent" / "out.csv"
+
+        def fail_storage_factory(*args, **kwargs):  # noqa: ARG001
+            self.fail("no-CSV WebUI run must not create CSV storage")
+
+        manager = WebRunManager(
+            runner_dependencies=StartRunnerDependencies(
+                storage_factory=fail_storage_factory,
+            )
+        )
         client = self.make_client_with_manager(manager)
         version_before = manager._status_version
 
@@ -2258,6 +2274,7 @@ class WebUiApiTests(unittest.TestCase):
                 "resource": "USB::FAKE",
                 "instrument_model": "34461A",
                 "csv": str(csv_path),
+                "csv_enabled": False,
                 "simulate": True,
                 "trigger_mode": "immediate",
                 "max_samples": 1,
@@ -2277,13 +2294,24 @@ class WebUiApiTests(unittest.TestCase):
 
         self.assertFalse(handle.worker.is_alive())
         self.assertTrue(handle.worker_done)
+        self.assertFalse(handle.csv_enabled)
+        self.assertIsNone(handle.csv_path)
         self.assertGreater(version_after, version_before)
         self.assertEqual("stopped", status["state"])
         self.assertFalse(status["active"])
         self.assertEqual(1, status["captured"])
+        self.assertEqual(0, status["errors"])
+        self.assertFalse(status["csv_enabled"])
+        self.assertIsNone(status["csv_path"])
         self.assertIsNone(status["fatal_error"])
         self.assertEqual(1, len(status["recent_samples"]))
         self.assertEqual(status["recent_samples"][-1], status["latest_sample"])
+        self.assertFalse(csv_path.exists())
+        self.assertFalse(csv_path.parent.exists())
+
+        open_response = client.post("/api/runs/current/open-csv")
+        self.assertEqual(409, open_response.status_code)
+        self.assertEqual("no completed CSV available", open_response.json()["detail"])
 
     def test_manager_shutdown_stops_active_run_and_waits_for_worker(self):
         events = []

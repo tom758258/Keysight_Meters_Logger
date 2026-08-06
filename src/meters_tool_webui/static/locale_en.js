@@ -146,6 +146,7 @@ export const EN_MESSAGES = Object.freeze({
   "resource.status.stale": "stale",
   "resource.visa_resource": "VISA resource",
   "resource.waiting_scan": "Waiting Scan",
+  "run.csv_output": "CSV output",
   "run.csv_path": "CSV path",
   "run.csv_folder_selection_cancelled": "CSV folder selection cancelled",
   "run.csv_path_selected": "CSV path selected: {path}",

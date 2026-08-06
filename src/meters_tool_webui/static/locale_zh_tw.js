@@ -146,6 +146,7 @@ export const ZH_TW_MESSAGES = Object.freeze({
   "resource.status.stale": "過期",
   "resource.visa_resource": "VISA 資源",
   "resource.waiting_scan": "等待掃描",
+  "run.csv_output": "CSV 輸出",
   "run.csv_path": "CSV 路徑",
   "run.csv_folder_selection_cancelled": "已取消 CSV 資料夾選擇",
   "run.csv_path_selected": "已選取 CSV 路徑：{path}",

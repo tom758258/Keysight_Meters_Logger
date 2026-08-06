@@ -6,6 +6,7 @@ import {
   acBandwidthSelect,
   autoRangeCheckbox,
   autoZeroSelect,
+  csvEnabledCheckbox,
   csvInput,
   currentTerminalSelect,
   deviceResourceBody,
@@ -273,6 +274,14 @@ resourceInput.addEventListener("input", () => {
   updateFeatureAvailability();
 });
 
+function updateCsvOutputUi() {
+  const enabled = csvEnabledCheckbox.checked;
+  csvInput.disabled = !enabled;
+  selectCsvFolderButton.disabled = !enabled;
+}
+
+csvEnabledCheckbox.addEventListener("change", updateCsvOutputUi);
+
 selectCsvFolderButton.addEventListener("click", async () => {
   try {
     appendTranslatedStatusLog("run.opening_csv_folder_selector");
@@ -470,6 +479,7 @@ applyStaticTranslations(document);
 
 initializeStatusUi();
 initializeLiveDataUi();
+updateCsvOutputUi();
 setDeviceResourceExpanded(true);
 updateDeviceResourceSummary();
 for (const button of panelToggles) {

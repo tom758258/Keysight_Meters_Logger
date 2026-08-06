@@ -53,6 +53,7 @@ export const modelSupportStatus = document.querySelector("#model-support-status"
 export const modelSupportOpen = document.querySelector("#model-support-open");
 export const modelSupportLimits = document.querySelector("#model-support-limits");
 export const modelSupportPending = document.querySelector("#model-support-pending");
+export const csvEnabledCheckbox = document.querySelector("#csv-enabled-checkbox");
 export const csvInput = document.querySelector("[name='csv']");
 export const selectCsvFolderButton = document.querySelector("#select-csv-folder");
 export const startRunButton = document.querySelector("#start-run");

@@ -162,6 +162,7 @@ Important payload fields currently sent by the UI include:
 
 - `resource`
 - `instrument_model`
+- `csv_enabled`
 - `csv`
 - `timeout_ms`
 - `trigger_timeout_ms`
@@ -214,6 +215,7 @@ Important IDs:
 
 - `run-form`
 - `refresh-resources`
+- `csv-enabled-checkbox`
 - `select-csv-folder`
 - `start-run`
 - `trigger-run`
@@ -339,6 +341,8 @@ The UI may look different, but these behaviors must remain true:
 - The Trigger button appears only for manual software-triggered modes:
   `software` without Timer trigger, and `software-custom`.
 - Stop calls `POST /api/runs/current/stop`.
+- The default-checked CSV output control sends `csv_enabled`. Clearing it
+  disables the CSV input and Select button without clearing the input value.
 - Open CSV calls `POST /api/runs/current/open-csv` and must use the backend's
   current or latest completed CSV path, not a frontend-supplied path.
 - Select CSV folder calls `POST /api/csv/select-folder` and fills the existing

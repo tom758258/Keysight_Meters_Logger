@@ -155,7 +155,7 @@ destination-language label has its own `lang` attribute.
 Switching language applies immediately without a page reload. It must not:
 
 - stop an active run or issue a Start, Trigger, or Stop request;
-- clear the VISA resource, CSV path, or any form value;
+- clear the VISA resource, CSV path, CSV output checkbox state, or any form value;
 - change canonical measurement or trigger values;
 - reset panel state, live samples, chart state, status, or other runtime UI state.
 
@@ -297,7 +297,7 @@ IDs, `name`, `value`, and `data-*` attributes are not translation prose.
 | `index.html` | Device collapse | `Collapse Device / Resource` | `aria-label` | `translate` | `accessibility.collapse_device_resource` |
 | `index.html` | Resource controls | `VISA resource`; `Waiting Scan`; `Live resource`; `Scan to load live resources`; `Scan Device` | labels/placeholder/option/button | `translate_with_canonical_token` for VISA; otherwise `translate` | `resource.*` |
 | `index.html` | Run panel | `Run Setup`; `Software current-dc` | heading/initial summary | `translate_with_canonical_token` | `run.setup_heading`, `run.summary_initial` |
-| `index.html` | CSV control | `CSV path`; `(Optional)`; `Select`; `Default` | label/marker/button/placeholder | `translate_with_canonical_token` for CSV; otherwise `translate` | `run.csv_path`, `common.optional`, `common.select`, `common.default` |
+| `index.html` | CSV control | `CSV output`; `CSV path`; `(Optional)`; `Select`; `Default` | checkbox/label/marker/button/placeholder | `translate_with_canonical_token` for CSV; otherwise `translate` | `run.csv_output`, `run.csv_path`, `common.optional`, `common.select`, `common.default` |
 | `index.html` | Run selectors | `Measurement`; `Trigger mode` | labels | `translate` | `measurement.heading`, `trigger.mode` |
 | `index.html` | Run limits | `Timeout ms`; `Trigger timeout ms`; `Max samples`; `Default: 5000`; `Default: 10000`; `Default: Unlimited` | labels/placeholders | `translate_with_canonical_token` | `run.timeout_ms`, `trigger.timeout_ms`, `run.max_samples`, `common.default_value` |
 | `index.html` | Measurement panel | `Measurement options`; `Auto range, auto zero` | heading/initial summary | `translate` | `measurement.options_heading`, `measurement.summary_initial` |
@@ -310,7 +310,7 @@ IDs, `name`, `value`, and `data-*` attributes are not translation prose.
 | `index.html` | Software trigger | `SW min interval ms`; `SW queue max`; `Default: 0 (Disabled)` | labels/placeholders | `translate_with_canonical_token` | `trigger.software_min_interval_ms`, `trigger.software_queue_max`, `common.disabled_default` |
 | `index.html` | Timer/metadata | `Timer interval s`; `Trigger metadata JSON`; `{"batch":"A1"}` | labels/example placeholder | labels `translate_with_canonical_token`; example `preserve_raw` | `trigger.timer_interval_s`, `trigger.metadata_json` |
 | `index.html` | Live data header | `Live data`; `No samples captured` | heading/empty state | `translate` | `live_data.heading`, `live_data.no_samples` |
-| `index.html` | Run metrics | `State`; `Sample`; `Errors`; hidden `CSV`; `Idle`; hidden `Default` | labels/defaults | labels/defaults `translate`; CSV token preserved | `status.state`, `status.sample`, `status.errors`, `status.idle`, `common.default` |
+| `index.html` | Run metrics | `State`; `Sample`; `Errors`; hidden `CSV`; `Idle`; hidden `Default` or `Off` | labels/defaults | labels/defaults `translate`; CSV token and raw `csv_enabled`/`csv_path` field names preserved | `status.state`, `status.sample`, `status.errors`, `status.idle`, `common.default`, `common.off` |
 | `index.html` | Run controls | `Start`; `Trigger`; `Stop`; `Open CSV` | buttons | `translate_with_canonical_token` for CSV; otherwise `translate` | `run.start`, `trigger.send`, `run.stop`, `run.open_csv` |
 | `index.html` | Latest sample | `Latest`; `Time UTC+8`; `Trigger` | labels | `translate_with_canonical_token` for UTC+8 | `live_data.latest`, `live_data.time_utc_plus_8`, `trigger.heading` |
 | `index.html` | Trend section | `Trend`; `Scale mode`; `Auto deviation`; `Auto absolute`; `Manual span`; `Range step` | heading/labels/options | `translate` | `live_data.trend`, `live_data.scale_mode`, `live_data.scale.*` |

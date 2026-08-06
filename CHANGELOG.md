@@ -4,6 +4,8 @@
 
 - Adds CLI `--no-csv` support for orchestrator-owned JSONL sample persistence
   while preserving CSV as the default output.
+- Adds a default-enabled WebUI `CSV output` control so a run can opt out of CSV
+  without affecting live samples, status, stopping, or cleanup.
 - Clarifies public support documentation to describe current support behavior while preserving machine-readable support policy contracts.
 
 ## v2.0.0

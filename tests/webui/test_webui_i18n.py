@@ -80,6 +80,8 @@ for (const catalog of [EN_MESSAGES, ZH_TW_MESSAGES]) {
 }
 assert.equal(EN_MESSAGES["app.title"], "Meters Tool");
 assert.equal(ZH_TW_MESSAGES["app.title"], "Meters Tool");
+assert.equal(EN_MESSAGES["run.csv_output"], "CSV output");
+assert.equal(ZH_TW_MESSAGES["run.csv_output"], "CSV 輸出");
 assert.match(ZH_TW_MESSAGES["device.expected_model_help"], /IDN/);
 assert.match(ZH_TW_MESSAGES["live_data.time_utc_plus_8"], /UTC\+8/);
 

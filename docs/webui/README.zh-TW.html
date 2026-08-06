@@ -338,7 +338,7 @@
             <li>觀察狀態列與即時資料面板。</li>
             <li>若為手動軟體觸發模式，請在準備就緒時點擊 <code>Trigger</code>。</li>
             <li>點擊 <code>Stop</code> 以請求經由 Core 路由的停止動作。</li>
-            <li>當執行停止 (inactive) 且 CSV 存在後，點擊 <code>Open CSV</code>。</li>
+            <li>啟用 CSV 的執行停止 (inactive) 且 CSV 存在後，點擊 <code>Open CSV</code>。</li>
         </ol>
         <p>WebUI 每個後端程序僅允許一個作用中的執行 (run)。</p>
 
@@ -537,7 +537,7 @@ pending_keys</code></pre></div>
         <p>這些模式僅影響圖表顯示，不影響原始樣本值、統計數據、CSV 輸出、API 樣本 payload、儀器設定或 SCPI 指令。圖表縮放控制項不包含在 <code>POST /api/runs</code> 中。</p>
 
         <h2>CSV 輸出、選擇與開啟 CSV</h2>
-        <p>執行 payload 可包含選用的 <code>csv</code> 路徑。若省略，Core/預設行為會選擇 CSV 輸出路徑。</p>
+        <p>CSV 輸出預設啟用。瀏覽器會在 <code>POST /api/runs</code> 傳送選用的 <code>csv_enabled</code> boolean；舊 API caller 省略此欄位時預設為 <code>true</code>。<code>csv_enabled=true</code> 時可提供選用的 <code>csv</code> 路徑，省略則使用預設時間戳記路徑。<code>csv_enabled=false</code> 時，後端會忽略殘留的 <code>csv</code> 值，Core 不會建立 CSV writer、檔案或僅供 CSV 使用的父目錄。</p>
         <p><code>CSV path</code> 欄位也有一個 <code>Select</code> 按鈕。它呼叫：</p>
         <div class="code-wrapper"><pre><code class="language-text">POST /api/csv/select-folder</code></pre></div>
         <p>後端行為：</p>
@@ -559,10 +559,13 @@ pending_keys</code></pre></div>
         </ul>
         <p>前端行為：</p>
         <ul>
+            <li><code>CSV 輸出</code> checkbox 預設為勾選。</li>
+            <li>取消勾選會停用 <code>CSV path</code> 與 <code>Select</code>，但不清空目前的路徑；重新勾選後可繼續編輯該值。</li>
             <li>選取的資料夾會在現有的 <code>CSV path</code> 輸入欄位中填入傳回的帶有時間戳記的 <code>.csv</code> 路徑。</li>
             <li>操作人員仍可手動編輯或清除 CSV 路徑。</li>
-            <li><code>Start</code> 會在點擊時使用輸入欄位中的值。</li>
+            <li><code>Start</code> 會傳送 <code>csv_enabled</code>，且只有啟用 CSV 時才傳送正規化後的路徑。</li>
         </ul>
+        <p>目前或最新執行的 status 包含 <code>csv_enabled</code>。CSV 啟用時 <code>csv_path</code> 是 resolved path string；停用時則為 <code>null</code>。即時資料、已擷取樣本、status、Stop、summary 與 cleanup 不依賴 CSV 輸出。</p>
         <p>Open CSV 按鈕呼叫：</p>
         <div class="code-wrapper"><pre><code class="language-text">POST /api/runs/current/open-csv</code></pre></div>
         <p>後端行為：</p>
@@ -579,6 +582,7 @@ pending_keys</code></pre></div>
         <ul>
             <li>預設停用。</li>
             <li>在執行為作用中時停用。</li>
+            <li>no-CSV 執行完成後停用。</li>
             <li>當執行為 inactive 且 <code>csv_path</code> 存在時啟用。</li>
             <li>將成功與失敗訊息附加到 Status 日誌中。</li>
         </ul>

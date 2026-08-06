@@ -232,7 +232,7 @@ JavaScript modules.
 7. Watch the status strip and Live data panel.
 8. For manual software trigger modes, click `Trigger` when ready.
 9. Click `Stop` to request a Core-routed stop.
-10. After the run is inactive and a CSV exists, click `Open CSV`.
+10. After a CSV-enabled run is inactive and the CSV exists, click `Open CSV`.
 
 The WebUI allows only one active run per backend process.
 
@@ -577,8 +577,12 @@ scale controls are not included in `POST /api/runs`.
 
 ## CSV Output, Select, And Open CSV
 
-The run payload can include an optional `csv` path. If omitted, Core/default
-behavior chooses the CSV output path.
+CSV output is enabled by default. The browser sends the optional
+`csv_enabled` boolean in `POST /api/runs`; omitted values default to `true` for
+older API callers. With `csv_enabled=true`, an optional `csv` path selects the
+output file and omission uses the default timestamped path. With
+`csv_enabled=false`, the backend ignores any residual `csv` value and Core does
+not create a CSV writer, file, or CSV-only parent directory.
 
 The `CSV path` field also has a `Select` button. It calls:
 
@@ -609,10 +613,18 @@ Backend behavior:
 
 Frontend behavior:
 
+- The `CSV output` checkbox is checked by default.
+- Clearing it disables `CSV path` and `Select` without clearing the current
+  path; re-enabling it restores editing with that value intact.
 - A selected folder fills the existing `CSV path` input with the returned
   timestamped `.csv` path.
 - Operators can still manually edit or clear the CSV path.
-- `Start` uses the input value at the moment it is clicked.
+- `Start` sends `csv_enabled`; it sends the normalized path only when CSV is
+  enabled.
+
+Current/latest run status includes `csv_enabled`. Its `csv_path` is the resolved
+path string when CSV is enabled and `null` when disabled. Live data, captured
+samples, status, Stop, summary, and cleanup do not depend on CSV output.
 
 The Open CSV button calls:
 
@@ -638,6 +650,7 @@ Frontend behavior:
 
 - Disabled by default.
 - Disabled while a run is active.
+- Disabled after a no-CSV run.
 - Enabled when the run is inactive and `csv_path` is present.
 - Appends success and failure messages to the Status log.
 

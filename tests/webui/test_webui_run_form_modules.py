@@ -178,6 +178,7 @@ const simple = buildRunPayload(simpleValues, {
 assert.deepEqual(simpleValues, simpleBefore);
 assert.deepEqual(simple, {
   resource: "USB0::SIM",
+  csv_enabled: true,
   trigger_timeout_ms: 10000,
   trigger_mode: "immediate",
   measurement: "current-dc",
@@ -233,6 +234,26 @@ assert.equal(custom.sw_min_interval_ms, 50);
 assert.equal(custom.sw_queue_max, 6);
 assert.equal("max_samples" in custom, false);
 assert.equal("csv" in custom, false);
+assert.equal(custom.csv_enabled, true);
+
+for (const csvEnabled of ["on", true]) {
+  const enabled = buildRunPayload({
+    resource: "USB0::SIM",
+    csv_enabled: csvEnabled,
+    csv: " data/example.csv ",
+  }, { measurement: {} });
+  assert.equal(enabled.csv_enabled, true);
+  assert.equal(enabled.csv, "data/example.csv");
+}
+for (const csvEnabled of [null, false]) {
+  const disabled = buildRunPayload({
+    resource: "USB0::SIM",
+    csv_enabled: csvEnabled,
+    csv: "data/residual.csv",
+  }, { measurement: {} });
+  assert.equal(disabled.csv_enabled, false);
+  assert.equal("csv" in disabled, false);
+}
 
 const external = buildRunPayload({
   resource: "TCPIP0::SIM",
@@ -257,6 +278,7 @@ assert.equal(external.max_samples, 5);
 assert.equal(external.hw_trigger_slope, "neg");
 assert.equal(external.hw_trigger_delay_s, 0.5);
 assert.equal(external.auto_zero, "on");
+assert.equal(external.csv_enabled, true);
 assert.equal("dcv_input_impedance" in external, false);
 assert.equal("sw_min_interval_ms" in external, false);
 assert.equal("sw_queue_max" in external, false);

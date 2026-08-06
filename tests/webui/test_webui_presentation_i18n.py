@@ -366,6 +366,11 @@ status.renderStatus({ ...queued, latest_status: "ready" });
 status.renderStatus(queued);
 assert.equal(latestLines().at(-1).getAttribute("data-i18n"), "status.software_trigger_queued");
 
+const noCsv = { ...running, csv_enabled: false, csv_path: null };
+status.renderStatus(noCsv);
+assert.equal(element("#status-csv").getAttribute("data-i18n"), "common.off");
+assert.equal(element("#open-csv").disabled, true);
+
 status.renderStatus({ ...running, active: true });
 const unloadEvent = { preventDefaultCalled: false, returnValue: "", preventDefault() {
   this.preventDefaultCalled = true;

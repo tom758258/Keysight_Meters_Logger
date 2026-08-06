@@ -213,7 +213,9 @@ export function renderStatus(status) {
   statusCaptured.textContent = String(status.captured ?? 0);
   statusErrors.textContent = String(status.errors ?? 0);
   if (statusCsv) {
-    if (status.csv_path) {
+    if (status.csv_enabled === false) {
+      setTranslatedText(statusCsv, "common.off");
+    } else if (status.csv_path) {
       setRawText(statusCsv, status.csv_path);
     } else {
       setTranslatedText(statusCsv, "common.default");
@@ -237,8 +239,12 @@ export function refreshStatusPresentation() {
       statusState,
       runStatePresentation(latestRenderedStatus.state || "idle")
     );
-    if (statusCsv && !latestRenderedStatus.csv_path) {
-      setTranslatedText(statusCsv, "common.default");
+    if (statusCsv) {
+      if (latestRenderedStatus.csv_enabled === false) {
+        setTranslatedText(statusCsv, "common.off");
+      } else if (!latestRenderedStatus.csv_path) {
+        setTranslatedText(statusCsv, "common.default");
+      }
     }
   }
   refreshLiveDataPresentation();

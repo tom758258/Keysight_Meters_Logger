@@ -177,7 +177,7 @@ English／繁體中文呈現使用以下術語規則。繁體中文的 Measureme
 7. 觀察狀態列與即時資料面板。
 8. 若為手動軟體觸發模式，請在準備就緒時點擊 `Trigger`。
 9. 點擊 `Stop` 以請求經由 Core 路由的停止動作。
-10. 當執行停止 (inactive) 且 CSV 存在後，點擊 `Open CSV`。
+10. 啟用 CSV 的執行停止 (inactive) 且 CSV 存在後，點擊 `Open CSV`。
 
 WebUI 每個後端程序僅允許一個作用中的執行 (run)。
 
@@ -403,7 +403,7 @@ GET /api/runs/current
 
 ## CSV 輸出、選擇與開啟 CSV
 
-執行 payload 可包含選用的 `csv` 路徑。若省略，Core/預設行為會選擇 CSV 輸出路徑。
+CSV 輸出預設啟用。瀏覽器會在 `POST /api/runs` 傳送選用的 `csv_enabled` boolean；舊 API caller 省略此欄位時預設為 `true`。`csv_enabled=true` 時可提供選用的 `csv` 路徑，省略則使用預設時間戳記路徑。`csv_enabled=false` 時，後端會忽略殘留的 `csv` 值，Core 不會建立 CSV writer、檔案或僅供 CSV 使用的父目錄。
 
 `CSV path` 欄位也有一個 `Select` 按鈕。它呼叫：
 
@@ -434,9 +434,13 @@ POST /api/csv/select-folder
 
 前端行為：
 
+- `CSV 輸出` checkbox 預設為勾選。
+- 取消勾選會停用 `CSV path` 與 `Select`，但不清空目前的路徑；重新勾選後可繼續編輯該值。
 - 選取的資料夾會在現有的 `CSV path` 輸入欄位中填入傳回的帶有時間戳記的 `.csv` 路徑。
 - 操作人員仍可手動編輯或清除 CSV 路徑。
-- `Start` 會在點擊時使用輸入欄位中的值。
+- `Start` 會傳送 `csv_enabled`，且只有啟用 CSV 時才傳送正規化後的路徑。
+
+目前或最新執行的 status 包含 `csv_enabled`。CSV 啟用時 `csv_path` 是 resolved path string；停用時則為 `null`。即時資料、已擷取樣本、status、Stop、summary 與 cleanup 不依賴 CSV 輸出。
 
 Open CSV 按鈕呼叫：
 
@@ -461,6 +465,7 @@ POST /api/runs/current/open-csv
 
 - 預設停用。
 - 在執行為作用中時停用。
+- no-CSV 執行完成後停用。
 - 當執行為 inactive 且 `csv_path` 存在時啟用。
 - 將成功與失敗訊息附加到 Status 日誌中。
 

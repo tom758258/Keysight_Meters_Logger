@@ -32,6 +32,10 @@ export function compactPayload(payload) {
 }
 
 export function buildRunPayload(values, context) {
+  const csvEnabled =
+    values.csv_enabled === undefined
+      ? true
+      : values.csv_enabled === "on" || values.csv_enabled === true;
   const triggerMode = textOrNull(values.trigger_mode) || "software";
   const customMode = isCustomMode(triggerMode);
   const hardwareMode = isHardwareMode(triggerMode);
@@ -50,7 +54,8 @@ export function buildRunPayload(values, context) {
   const payload = {
     resource: String(values.resource || "").trim(),
     instrument_model: textOrNull(values.instrument_model),
-    csv: textOrNull(values.csv),
+    csv_enabled: csvEnabled,
+    csv: csvEnabled ? textOrNull(values.csv) : null,
     timeout_ms: numberOrNull(values.timeout_ms),
     trigger_timeout_ms: numberOrNull(triggerTimeoutValue),
     trigger_mode: triggerMode,

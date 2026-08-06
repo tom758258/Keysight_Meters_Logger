@@ -62,6 +62,7 @@ class RunStartRequest(BaseModel):
     resource: str
     instrument_model: Optional[str] = None
     csv: Optional[str] = None
+    csv_enabled: bool = True
     simulate: bool = False
     timeout_ms: int = 5000
     trigger_timeout_ms: int = 10000
@@ -95,10 +96,11 @@ class RunStartRequest(BaseModel):
 class _RunHandle:
     run_id: str
     resource: str
-    csv_path: Path
+    csv_path: Path | None
     measurement: str
     trigger_mode: str
     control_plane: "_WebControlPlane"
+    csv_enabled: bool = True
     ready_event: threading.Event = field(default_factory=threading.Event)
     worker: threading.Thread | None = None
     state: str = "starting"
@@ -418,10 +420,11 @@ class WebRunManager:
                 handle = _RunHandle(
                     run_id=run_id,
                     resource=runtime_request.resource,
-                    csv_path=Path(plan.csv_path),
+                    csv_path=Path(plan.csv_path) if plan.csv_path is not None else None,
                     measurement=plan.measurement_name,
                     trigger_mode=trigger_mode,
                     control_plane=control_plane,
+                    csv_enabled=plan.csv_enabled,
                     warnings=warnings,
                 )
                 worker = threading.Thread(
@@ -643,7 +646,7 @@ class WebRunManager:
                 captured=0,
                 errors=0,
                 fatal_error=str(exc),
-                csv_path=str(handle.csv_path),
+                csv_path=str(handle.csv_path) if handle.csv_path is not None else None,
             )
             with self._lock:
                 handle.result = result
@@ -725,7 +728,8 @@ class WebRunManager:
             "resource": handle.resource,
             "measurement": handle.measurement,
             "trigger_mode": handle.trigger_mode,
-            "csv_path": str(handle.csv_path),
+            "csv_enabled": handle.csv_enabled,
+            "csv_path": str(handle.csv_path) if handle.csv_path is not None else None,
             "captured": handle.captured,
             "errors": handle.errors,
             "latest_status": handle.latest_status,
@@ -753,6 +757,7 @@ class WebRunManager:
             "resource": None,
             "measurement": None,
             "trigger_mode": None,
+            "csv_enabled": None,
             "csv_path": None,
             "captured": 0,
             "errors": 0,

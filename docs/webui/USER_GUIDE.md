@@ -102,15 +102,16 @@ Use this flow for a basic immediate measurement:
 5. Leave `Expected model` in `Device options` on Auto-detect unless you need to
    require 34460A or 34461A.
 6. Choose the measurement type, such as DC voltage or DC current.
-7. In `Run Setup`, choose the CSV location. Use `Select` to pick a folder and
-   generate a timestamped CSV path.
+7. Keep `CSV output` checked and choose the CSV location. Use `Select` to pick
+   a folder and generate a timestamped CSV path. Clear `CSV output` only when
+   no CSV file is wanted.
 8. Leave trigger mode on the immediate/default mode unless you specifically
    need software or external triggering.
 9. Review the highlighted settings.
 10. Click `Start`.
 11. Watch `Captured`, `Status`, and `Live data`.
 12. Click `Stop` when the run should end.
-13. Click `Open CSV` after the run stops to open the completed CSV file.
+13. For a CSV-enabled run, click `Open CSV` after it stops.
 
 Only one run can be active at a time. Starting a new run clears the displayed
 recent samples from the previous run.
@@ -152,9 +153,9 @@ the scan recognizes a supported 34460A or 34461A IDN, the WebUI may reload
 model-specific options for display while keeping `Expected model` on
 Auto-detect.
 
-`CSV path` is where readings will be written. Use `Select` to choose a folder
-and let the WebUI generate a timestamped file name, or type a specific file path
-before clicking `Start`.
+`CSV output` is checked by default. While enabled, `CSV path` is where readings
+will be written. Use `Select` to choose a folder and let the WebUI generate a
+timestamped file name, or type a specific file path before clicking `Start`.
 
 Run count and sample limit fields control how long a run can continue. Keep new
 setups bounded while checking wiring, measurement type, and trigger behavior.
@@ -265,8 +266,12 @@ SCPI commands, CSV output, or recorded values.
 
 ## CSV Output
 
-The CSV path shown in `Run Setup` is the file that will be used when `Start` is
-clicked.
+`CSV output` is checked by default. Clear it to run without creating a CSV.
+This disables `CSV path` and `Select` but preserves the current path so it is
+available if CSV output is re-enabled.
+
+When enabled, the CSV path shown in `Run Setup` is the file that will be used
+when `Start` is clicked.
 
 `Select` opens a folder picker on the Windows computer running the WebUI. After
 you choose a folder, the WebUI fills in a timestamped CSV file path in that
@@ -274,7 +279,8 @@ folder. You can edit the path manually before clicking `Start`.
 
 `Open CSV` is available after a completed run has a CSV path. It opens the last
 completed run CSV using the Windows default app. It is disabled while a run is
-active.
+active and after a no-CSV run. Live data, captured samples, status, Stop, and
+cleanup continue normally when CSV output is disabled.
 
 ## Stop And Exit
 
@@ -339,8 +345,9 @@ values. The Status log shows the setting that needs attention.
 
 ### Open CSV is disabled
 
-`Open CSV` is disabled until a run stops and a completed CSV path is available.
-It also stays disabled while a run is active.
+`Open CSV` is disabled until a CSV-enabled run stops and a completed CSV path is
+available. It also stays disabled while a run is active or when `CSV output`
+was cleared.
 
 ### A hardware trigger run appears to wait
 

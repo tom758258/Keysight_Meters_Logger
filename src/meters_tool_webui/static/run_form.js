@@ -252,6 +252,7 @@ export function formPayload() {
   const values = {
     resource: data.get("resource"),
     instrument_model: data.get("instrument_model"),
+    csv_enabled: data.get("csv_enabled"),
     csv: data.get("csv"),
     timeout_ms: data.get("timeout_ms"),
     trigger_timeout_ms: data.get("trigger_timeout_ms"),

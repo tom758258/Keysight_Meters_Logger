@@ -201,10 +201,27 @@ class WebUiStaticTests(unittest.TestCase):
 
     def test_static_ui_exposes_stable_live_data_and_csv_contracts(self):
         index, app_js = load_static_ui()
+        dom_js = (STATIC_DIR / "dom.js").read_text(encoding="utf-8")
+        run_form_js = (STATIC_DIR / "run_form.js").read_text(encoding="utf-8")
+        payload_js = (STATIC_DIR / "run_form_payload.js").read_text(encoding="utf-8")
 
         self.assertIn('id="resource"', index)
         self.assertIn('id="resource-select"', index)
         self.assertIn('id="select-csv-folder"', index)
+        assert_tag_with_attrs(
+            self,
+            index,
+            "input",
+            {
+                "id": "csv-enabled-checkbox",
+                "name": "csv_enabled",
+                "type": "checkbox",
+            },
+        )
+        self.assertRegex(
+            index,
+            r'<input\b(?=[^>]*\bid="csv-enabled-checkbox")(?=[^>]*\bchecked\b)[^>]*>',
+        )
         assert_tag_with_attrs(self, index, "input", {"id": "csv-path-input", "name": "csv"})
         self.assertIn('id="live-trend-chart"', index)
         self.assertIn('id="live-samples-body"', index)
@@ -213,6 +230,12 @@ class WebUiStaticTests(unittest.TestCase):
         self.assertIn('"/api/runs/current/open-csv"', app_js)
         self.assertIn('"/api/csv/select-folder"', app_js)
         self.assertIn("csv_path", app_js)
+        self.assertIn("csvEnabledCheckbox.checked", app_js)
+        self.assertIn("csvInput.disabled = !enabled", app_js)
+        self.assertIn("selectCsvFolderButton.disabled = !enabled", app_js)
+        self.assertIn('querySelector("#csv-enabled-checkbox")', dom_js)
+        self.assertIn('csv_enabled: data.get("csv_enabled")', run_form_js)
+        self.assertIn("csv_enabled: csvEnabled", payload_js)
 
     def test_static_ui_exposes_live_data_panel(self):
         index, _app_js = load_static_ui()
