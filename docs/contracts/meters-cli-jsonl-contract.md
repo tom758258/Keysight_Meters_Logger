@@ -252,8 +252,12 @@ fields and adds explicit safety fields: `dry_run_performs_visa_io: false`,
 `dry_run_writes_csv: false`, and `dry_run_starts_http_server: false`.
 
 Contract revision `v2.1` additively adds `csv_enabled` to this dry-run object.
-When `csv_enabled` is `false`, `csv_path` is `null`; when it is `true`,
-`csv_path` is the resolved explicit or timestamped default path.
+`csv_path` is a Meters-specific, conditionally nullable dry-run plan field,
+not a Common required envelope field. When `csv_enabled` is `true`, `csv_path`
+is the resolved explicit or timestamped default path; when `csv_enabled` is
+`false`, `csv_path` is `null`. Consumers using `--no-csv` must accept this null
+value under Common `schema_version: 2`.
 `dry_run_writes_csv` remains `false` in both cases because dry-run itself never
 writes a file. Consumers must not use it as a substitute for `csv_enabled`.
-This additive field does not change Common `schema_version: 2`.
+This Meters-specific additive extension does not change Common
+`schema_version: 2`.
