@@ -16,9 +16,10 @@
 CLI-first Python logger for supported digital multimeters, covering DC/AC
 current, DC/AC voltage, DCV ratio, frequency, period, and 2-wire or 4-wire
 resistance measurements over VISA.
-It records one CSV row per captured sample and supports software, external
-hardware, immediate, and custom/buffered trigger workflows. Software timer
-capture is enabled with `--timer-interval-s` as part of software mode.
+By default, it records one CSV row per captured sample and supports software,
+external hardware, immediate, and custom/buffered trigger workflows. CSV can
+be disabled with `--no-csv`. Software timer capture is enabled with
+`--timer-interval-s` as part of software mode.
 
 For normal operator workflows, start with the [CLI User Guide](USER_GUIDE.md).
 This README keeps the detailed command reference, JSON/JSONL contracts, examples,
@@ -55,7 +56,8 @@ Implemented:
 - Bounded runs with `--max-samples`.
 - Graceful stop through HTTP, Ctrl+C, Ctrl+Break, or `q`.
 - Software trigger metadata persisted to CSV as `trigger_metadata`.
-- Optional UTC+8 timestamped CSV output path when `--csv` is omitted.
+- UTC+8 timestamped CSV output by default, with explicit opt-out through
+  `--no-csv`.
 - Optional resource verification with `list-resources --verify`.
 - Optional live-resource filtering with `list-resources --live-only`.
 - Optional CLI-only PyVISA library/backend selection for VISA-opening commands
@@ -247,7 +249,8 @@ For a guided operator path with common setting explanations, use the
 3. Start `start-trigger-record` in one terminal.
 4. Send triggers, wait for external trigger edges, or use immediate mode.
 5. Stop with `stop`, Ctrl+C, Ctrl+Break, `q`, or `--max-samples`.
-6. Inspect the CSV output.
+6. Inspect the default CSV output, or consume JSONL `sample` events when using
+   `--no-csv`.
 
 ### 34460A Profile Examples
 
@@ -422,7 +425,7 @@ ignored while `stop` still stops the run. The first timer sample is captured
 when recording starts; each later timer sample waits at least the configured
 interval after the previous capture attempt finishes. This is a simple
 software-mode acquisition path, so `--max-samples` is valid and stops the run
-after that many successful timed CSV rows.
+after that many successful timed samples.
 
 ## `start-trigger-record` Options
 
@@ -432,6 +435,7 @@ after that many successful timed CSV rows.
 | `--model MODEL`, `--instrument-model MODEL` | No | auto for live; required for non-deterministic dry-run/simulate | Accepts a canonical model token or registered stable model ID. It is an expected-model guard for live runs and a planning profile selector for dry-run/simulate. Core profile logic normalizes and validates values such as `34460A`, `34461A`, `keysight-34460a`, and `keysight-34461a`. |
 | `--visa-library TEXT`, `--backend TEXT` | No | system default | Optional PyVISA library/backend argument, such as `@py`. Dry-run and simulator runs accept the option but do not open VISA. |
 | `--csv PATH` | No | `data/YYYY-MM-DD-HH-MM-SS.csv` | CSV output path. If omitted, a UTC+8 timestamped file is created under `data`. Parent directories are created automatically. |
+| `--no-csv` | No | Off | Disable CSV output for this run when an external orchestrator persists JSONL `sample` events. Mutually exclusive with `--csv`. |
 | `--status-format text\|jsonl` | No | `text` | Runtime status output format. `jsonl` emits one JSON object per line for agent callers. |
 | `--dry-run` | No | Off | Validate arguments and print the planned measurement, SCPI, read path, and cleanup contract without opening VISA, writing CSV, or starting the HTTP server. |
 | `--simulate` | No | Off | Run against a deterministic simulated instrument backend instead of opening a real VISA session. Simple modes require bounded runs such as `--max-samples`. |
@@ -442,7 +446,7 @@ after that many successful timed CSV rows.
 | `--sw-min-interval-ms N` | No | `0` | Minimum interval between accepted software triggers. Use `0` to disable rate limiting, or use `50` to `600000`. |
 | `--sw-queue-max N` | No | `0` | Maximum queued software triggers. Supported range: `0` to `10000`; `0` uses the default safety cap. |
 | `--trigger-mode software\|external\|immediate\|immediate-custom\|software-custom\|external-custom` | No | `software` | Select exactly one acquisition mode. Supported choices are profile-specific; 34460A base profile excludes `external` and `external-custom`. |
-| `--max-samples N` | Simple modes only | None | Stop simple modes automatically after N successful CSV samples. Supported range: `1` to `1000000`. Not valid with custom modes. |
+| `--max-samples N` | Simple modes only | None | Stop simple modes automatically after N successful samples. Supported range: `1` to `1000000`. Not valid with custom modes. |
 | `--trigger-count N` | Custom modes only | None | Instrument trigger count. Supported range: `1` to `1000000`. Required with custom modes; not valid with simple modes. |
 | `--sample-count N` | Custom modes only | None | Instrument sample count per trigger. Supported range: `1` to `1000000`. Required with custom modes; not valid with simple modes. |
 | `--timer-interval-s SECONDS` | No | None | Enable fixed-delay software timer capture. Supported range: `0.5` to `86400` seconds. Valid only with `--trigger-mode software`; also valid when `--trigger-mode` is omitted because software is the default. May be combined with `--max-samples` for bounded timer runs. |
@@ -535,7 +539,8 @@ Recommended orchestrator flow:
    then call `status --port 8765 --json` to verify the `run_id`.
 5. Use `POST /command` only for software-triggered modes, and `POST /stop` for
    graceful stop.
-6. Read stdout JSONL and CSV output for run results.
+6. Read stdout JSONL and the default CSV output for run results. With
+   `--no-csv`, persist the JSONL `sample` events instead.
 
 See [Meters Orchestrator Workflows](../../docs/contracts/meters-orchestrator-workflows.md) for a complete
 Python subprocess workflow.
@@ -1597,7 +1602,14 @@ readings at once; the console status shows the last sample in that drain batch.
 
 If `--csv` is omitted, the logger writes to a UTC+8 timestamped file under
 `data`, for example `data/2026-05-11-14-30-05.csv`. Passing `--csv PATH`
-continues to write to that exact path.
+continues to write to that exact path. Passing `--no-csv` explicitly disables
+the CSV writer, file, and CSV-only parent-directory creation; it is mutually
+exclusive with `--csv`.
+
+CSV output is a Meters-specific artifact that remains enabled by default.
+When an external orchestrator owns persistence, use `--no-csv` together with
+`--status-format jsonl` and store the emitted `sample` events. This does not
+change acquisition, status, summary, exit codes, HTTP control, or cleanup.
 
 CSV fields:
 

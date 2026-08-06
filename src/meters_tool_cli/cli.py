@@ -417,6 +417,7 @@ def _emit_start_plan(plan: StartPlan, emitter: CliEventEmitter) -> None:
                 "measurement_type": plan.measurement_type,
                 "measurement_cli_name": plan.measurement_name,
                 "measurement_unit": plan.measurement_unit,
+                "csv_enabled": plan.csv_enabled,
                 "csv_path": plan.csv_path,
                 "resource": plan.resource,
                 "simulate": plan.simulate,
@@ -435,7 +436,10 @@ def _emit_start_plan(plan: StartPlan, emitter: CliEventEmitter) -> None:
     emitter.line(f"  resource: {plan.resource}")
     emitter.line(f"  measurement: {plan.measurement_name} ({plan.measurement_unit})")
     emitter.line(f"  trigger_mode: {plan.trigger_mode}")
-    emitter.line(f"  csv_path: {plan.csv_path}")
+    if plan.csv_enabled:
+        emitter.line(f"  csv_path: {plan.csv_path}")
+    else:
+        emitter.line("  CSV output for real run: disabled")
     emitter.line(f"  simulate: {plan.simulate}")
     emitter.line("  scpi:")
     for command in plan.scpi_commands:
@@ -470,7 +474,7 @@ def _start_request_from_args(args: argparse.Namespace) -> StartRequest:
         resource=args.resource,
         instrument_model=_optional_text(args.instrument_model),
         visa_library=_optional_text(args.visa_library),
-        csv=args.csv,
+        csv=_optional_text(args.csv),
         dry_run=args.dry_run,
         simulate=args.simulate,
         timeout_ms=args.timeout_ms,
@@ -499,6 +503,7 @@ def _start_request_from_args(args: argparse.Namespace) -> StartRequest:
         current_terminal=args.current_terminal,
         dcv_input_impedance=args.dcv_input_impedance,
         vm_comp_slope=args.vm_comp_slope,
+        csv_enabled=not args.no_csv,
     )
 
 def build_parser() -> argparse.ArgumentParser:

@@ -105,7 +105,7 @@ CLI 預設使用電腦的系統 VISA 執行階段，例如 Keysight IO Libraries
 
 `list-resources --verify` 會開啟偵測到的 VISA 資源並查詢 `*IDN?`。`list-resources --live-only` 暗示了驗證並隱藏過期的項目。ASRL/RS-232 驗證使用短暫的有界限逾時，因此過期的序列埠項目不會阻擋後續的 USB 或 TCPIP 資源。序列埠結束字元選項 `--serial-read-termination` 與 `--serial-write-termination` 是僅用於 ASRL 驗證的 CLI 偵測相容性設定；它們不是擷取設定。
 
-`--csv` 是輸出檔案路徑。若省略此項，CLI 會自動建立一個帶有時間戳記的 CSV 路徑。當您需要可預測的檔案位置以便進行檢閱或自動化處理時，請使用明確的路徑。
+`--csv` 是輸出檔案路徑。若省略此項，CLI 會自動建立一個帶有時間戳記的 CSV 路徑。當您需要可預測的檔案位置以便進行檢閱或自動化處理時，請使用明確的路徑。當外部 orchestrator 保存 JSONL `sample` events 時，可使用 `--no-csv` 停用本次 CSV 輸出；`--csv` 與 `--no-csv` 不可同時使用。
 
 `--max-samples` 用來限制簡單作業的執行次數。在進行快速功能健檢與驗證時請使用它，讓指令能自行停止。
 
@@ -131,7 +131,7 @@ CLI 預設使用電腦的系統 VISA 執行階段，例如 Keysight IO Libraries
 
 ## CSV 輸出
 
-每筆擷取的樣本都會被寫成 CSV 檔案中的一列。在快速功能健檢後，請檢查 CSV 檔案以確認：
+預設 CSV 輸出啟用時，每筆擷取樣本都會寫成一列。在快速功能健檢後，請檢查 CSV 檔案以確認：
 
 - 至少有一筆資料列；
 - 預期的 `measurement_type` (量測類型)；

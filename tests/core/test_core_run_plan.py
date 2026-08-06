@@ -271,6 +271,7 @@ class CoreRunPlanTests(unittest.TestCase):
         self.assertEqual("voltage_dc", plan.measurement_type)
         self.assertEqual("voltage-dc", plan.measurement_name)
         self.assertEqual("V", plan.measurement_unit)
+        self.assertTrue(plan.csv_enabled)
         self.assertEqual(csv_path, plan.csv_path)
         self.assertEqual("USB::34461A", plan.resource)
         self.assertFalse(plan.simulate)
@@ -287,6 +288,20 @@ class CoreRunPlanTests(unittest.TestCase):
             ],
             plan.cleanup_steps,
         )
+
+    def test_plan_disables_csv_without_resolving_path(self):
+        plan = self.build_plan(
+            "immediate",
+            make_start_request(
+                csv=str(Path("ignored") / "samples.csv"),
+                csv_enabled=False,
+                trigger_mode="immediate",
+                max_samples=1,
+            ),
+        )
+
+        self.assertFalse(plan.csv_enabled)
+        self.assertIsNone(plan.csv_path)
 
     def test_new_measurement_options_are_included_in_dry_run_scpi(self):
         current_plan = self.build_plan(

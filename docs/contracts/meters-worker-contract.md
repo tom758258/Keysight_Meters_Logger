@@ -49,9 +49,10 @@ execution contract. It does not open VISA, create the CSV writer, start the
 HTTP control server, start the acquisition worker, or write to the instrument.
 
 `start-trigger-record --simulate` runs the normal acquisition engine against
-the deterministic simulator. It starts the local HTTP control server, writes
-normal CSV/runtime output, and is intended for workflow validation without
-hardware. Simple simulate modes require a finite bound such as `--max-samples`.
+the deterministic simulator. It starts the local HTTP control server and emits
+normal runtime output. CSV is written by default and may be disabled with
+`--no-csv`. Simple simulate modes require a finite bound such as
+`--max-samples`.
 
 Live `start-trigger-record` is the default mode. It opens the explicit VISA
 resource, resolves the instrument profile through IDN-only auto-detect when
@@ -93,9 +94,10 @@ Use this order for agent-controlled runs:
    `GET /status` and verify the returned `run_id` matches stdout JSONL.
 6. Use `POST /command` for Meters software-triggered measurement requests. Use
    `POST /stop` for graceful stop.
-7. Read stdout JSONL, CSV, `report.json`, and any wrapper summary artifacts.
-   Machine decisions should come from structured files and JSON events, not
-   human text messages.
+7. Read stdout JSONL, the default CSV when enabled, `report.json`, and any
+   wrapper summary artifacts. With `--no-csv`, persist stdout JSONL `sample`
+   events as the measurement-data source. Machine decisions should come from
+   structured files and JSON events, not human text messages.
 
 `run_id` is the correlation key between stdout JSONL, `GET /status`, and
 wrapper artifacts for one non-dry-run session.
@@ -258,12 +260,19 @@ objects.
 
 Primary worker artifacts:
 
-- CSV: one row per captured sample using the field order documented in the CLI
-  guide.
+- CSV: a Meters-specific artifact enabled by default, with one row per captured
+  sample using the field order documented in the CLI guide. `--no-csv`
+  disables the writer, file, and CSV-only parent-directory creation.
 - stdout: human text by default, or JSONL when `--status-format jsonl` or
   `--json` is used.
 - stderr: validation, connection, or request errors that are not represented as
   JSONL in text mode.
+
+Disabling CSV does not change worker lifecycle, HTTP control, JSONL `sample`
+events, status, summary, process exit meanings, stop behavior, or cleanup.
+Dry-run reports `csv_enabled: false` and `csv_path: null` for a no-CSV plan,
+while `dry_run_writes_csv` remains false for every dry-run. Common schema
+version remains `2`; the Common Worker Protocol is unchanged.
 
 Wrapper artifacts:
 

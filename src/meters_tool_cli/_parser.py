@@ -226,10 +226,19 @@ def build_parser(version_provider) -> argparse.ArgumentParser:
         ),
     )
     _add_visa_library_argument(start)
-    start.add_argument(
+    csv_output = start.add_mutually_exclusive_group()
+    csv_output.add_argument(
         "--csv",
         default=None,
         help="CSV output path; default: data/YYYY-MM-DD-HH-MM-SS.csv in UTC+8",
+    )
+    csv_output.add_argument(
+        "--no-csv",
+        action="store_true",
+        help=(
+            "disable CSV output for this run, primarily when an external orchestrator "
+            "persists sample events"
+        ),
     )
     start.add_argument(
         "--status-format",

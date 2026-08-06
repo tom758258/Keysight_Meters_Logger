@@ -71,8 +71,9 @@ def run_start_session(
     active_control_plane = control_plane or SoftwareTriggerControlPlane(deps.server_factory)
     active_run_id = run_id or new_run_id()
     measurement_type = normalize_measurement_type(request.measurement)
-    csv_path = resolve_csv_path(request.csv)
-    if request.csv is None:
+    resolved_csv_path = resolve_csv_path(request.csv) if request.csv_enabled else None
+    csv_path = str(resolved_csv_path) if resolved_csv_path is not None else None
+    if request.csv_enabled and request.csv is None:
         event_sink.emit(StartRunEvent.message_event(active_run_id, f"csv output path: {csv_path}"))
     iconfig = InstrumentConfig(
         resource_string=request.resource,
@@ -87,7 +88,7 @@ def run_start_session(
         measurement_type=measurement_type,
     )
     router = deps.router_factory(max_pending_events=request.sw_queue_max)
-    storage = deps.storage_factory(csv_path)
+    storage = deps.storage_factory(resolved_csv_path) if resolved_csv_path is not None else None
     measurement = deps.measurement_factory(measurement_type)
     engine = deps.engine_factory(
         instrument=instrument,

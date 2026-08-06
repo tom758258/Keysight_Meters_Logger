@@ -14,8 +14,8 @@
 - [Meters Worker 合約](../contracts/meters-worker-contract.md) - 用於 Agent 和協調器的 Meters 工作器控制面、JSONL 與產物合約。
 
 適用於支援的數位萬用電表的 CLI 優先 Python 記錄器，支援透過 VISA 進行 DC/AC 電流、DC/AC 電壓、DCV 比率、頻率、週期以及 2 線式或 4 線式電阻量測。
-它為每個擷取的樣本記錄一列 CSV，並支援軟體、外接硬體、立即與自訂/緩衝觸發
-工作流程。透過 `--timer-interval-s` 可在軟體模式中啟用軟體計時器擷取。
+它預設為每個擷取樣本記錄一列 CSV，並支援軟體、外接硬體、立即與自訂/緩衝觸發
+工作流程。CSV 可透過 `--no-csv` 停用。透過 `--timer-interval-s` 可在軟體模式中啟用軟體計時器擷取。
 
 對於標準操作人員的工作流程，請從 [CLI 使用者指南](USER_GUIDE.zh-TW.md) 開始。本 README 則將詳細的指令參考、JSON/JSONL 合約、範例及 CLI 特有的行為彙整於一處。
 
@@ -38,12 +38,12 @@ Python 整合應從 `meters_tool_core` 或 `meters_tool_core.*` 匯入共享的 
 - 透過 `--max-samples` 限制樣本數的執行。
 - 透過 HTTP、Ctrl+C、Ctrl+Break 或 `q` 進行正常停止。
 - 軟體觸發 metadata 儲存至 CSV 中的 `trigger_metadata`。
-- 當省略 `--csv` 時，選用的 UTC+8 時間戳記 CSV 輸出路徑。
+- 預設產生 UTC+8 時間戳記 CSV，並可透過 `--no-csv` 明確停用。
 - 透過 `list-resources --verify` 進行選用的資源驗證。
 - 透過 `list-resources --live-only` 進行選用的作用中資源篩選。
 - 對會開啟 VISA 的指令，透過 `--visa-library` 提供選用的 CLI 專用 PyVISA library/backend 選擇，並以 `--backend` 作為別名。
 - 選用的量測控制項：量測類型、自動量程、手動量程、DCV 輸入阻抗、包含 `once` 在內的自動歸零（Auto Zero）、NPLC、AC 頻寬/濾波器、頻率/週期閘門時間（gate time）、頻率逾時（timeout）、電流端子選擇、硬體觸發延遲、硬體觸發斜率與 VM Comp 斜率。
-- 每筆擷取樣本後立即排空（flush）CSV。
+- CSV 啟用時，每筆擷取樣本後立即排空（flush）。
 
 重要限制：
 
@@ -169,7 +169,7 @@ PyInstaller 會將產生的檔案寫入本機 `build\` 和 `dist\` 目錄。除�
 3. 在一個終端機中啟動 `start-trigger-record`。
 4. 傳送觸發、等待外接觸發邊緣，或使用立即模式。
 5. 透過 `stop`、Ctrl+C、Ctrl+Break、`q` 或 `--max-samples` 停止。
-6. 檢查 CSV 輸出。
+6. 檢查預設 CSV 輸出；使用 `--no-csv` 時則讀取 JSONL `sample` events。
 
 ### 34460A 設定檔範例
 
@@ -321,7 +321,7 @@ LAN/TCPIP 是支援的 34461A pyvisa-py 路徑。Windows 上的 USBTMC 可能需
 
 在 `external` 模式下，意外的軟體觸發會被忽略，且不應中斷硬體觸發流程。在 `immediate` 模式下，軟體觸發同樣會被忽略。
 
-當 `--timer-interval-s` 作用中時，一般的 `send-command` 請求會被忽略，而 `stop` 仍可停止執行。當記錄開始時會擷取第一個計時器樣本；後續的每個計時器樣本會在前一次擷取嘗試完成後，至少等待設定的間隔時間。這是簡單的軟體模式擷取路徑，因此 `--max-samples` 有效，並會在達到該數量成功的計時軟體 CSV 資料列後停止執行。
+當 `--timer-interval-s` 作用中時，一般的 `send-command` 請求會被忽略，而 `stop` 仍可停止執行。當記錄開始時會擷取第一個計時器樣本；後續的每個計時器樣本會在前一次擷取嘗試完成後，至少等待設定的間隔時間。這是簡單的軟體模式擷取路徑，因此 `--max-samples` 有效，並會在達到該數量成功的計時軟體樣本後停止執行。
 
 ## `start-trigger-record` 選項
 
@@ -331,6 +331,7 @@ LAN/TCPIP 是支援的 34461A pyvisa-py 路徑。Windows 上的 USBTMC 可能需
 | `--model MODEL`、`--instrument-model MODEL` | 否 | live 為 auto；非確定性 dry-run/simulate 必要 | 接受 canonical model token 或已註冊的穩定型號 ID。它是 live 執行的預期型號防護，也是 dry-run/simulate 的規劃設定檔選擇器。Core 設定檔邏輯會標準化並驗證 `34460A`、`34461A`、`keysight-34460a` 與 `keysight-34461a` 等值。 |
 | `--visa-library TEXT`、`--backend TEXT` | 否 | 系統預設 | 選用的 PyVISA library/backend 引數，例如 `@py`。Dry-run 與 simulator 執行會接受此選項，但不會開啟 VISA。 |
 | `--csv PATH` | 否 | `data/YYYY-MM-DD-HH-MM-SS.csv` | CSV 輸出路徑。若省略，則在 `data` 下建立帶有 UTC+8 時間戳記的檔案。父目錄會自動建立。 |
+| `--no-csv` | 否 | 關閉 | 當外部 orchestrator 保存 JSONL `sample` events 時，停用本次執行的 CSV 輸出。不可與 `--csv` 同時使用。 |
 | `--status-format text\|jsonl` | 否 | `text` | 執行階段狀態輸出格式。`jsonl` 為 Agent 呼叫端每行發出一個 JSON 物件。 |
 | `--dry-run` | 否 | 關閉 | 驗證引數並列印規劃的量測、SCPI、讀取路徑和清除合約，而不開啟 VISA、寫入 CSV 或啟動 HTTP 伺服器。 |
 | `--simulate` | 否 | 關閉 | 針對確定的模擬儀器後端執行，而不開啟實機 VISA 工作階段。簡單模式需要有界限的執行，例如 `--max-samples`。 |
@@ -341,7 +342,7 @@ LAN/TCPIP 是支援的 34461A pyvisa-py 路徑。Windows 上的 USBTMC 可能需
 | `--sw-min-interval-ms N` | 否 | `0` | 接受的軟體觸發之間的最小間隔。使用 `0` 停用速率限制，或使用 `50` 到 `600000`。 |
 | `--sw-queue-max N` | 否 | `0` | 佇列軟體觸發的最大數量。支援範圍：`0` 到 `10000`；`0` 使用預設的安全限制。 |
 | `--trigger-mode software\|external\|immediate\|immediate-custom\|software-custom\|external-custom` | 否 | `software` | 精確選擇一種擷取模式。支援選項依設定檔而定；34460A 基礎設定檔排除 `external` 與 `external-custom`。 |
-| `--max-samples N` | 僅限簡單模式 | 無 | 在成功取得 N 個 CSV 樣本後自動停止簡單模式。支援範圍：`1` 到 `1000000`。與自訂模式不相容。 |
+| `--max-samples N` | 僅限簡單模式 | 無 | 在成功取得 N 個樣本後自動停止簡單模式。支援範圍：`1` 到 `1000000`。與自訂模式不相容。 |
 | `--trigger-count N` | 僅限自訂模式 | 無 | 儀器觸發計數。支援範圍：`1` 到 `1000000`。自訂模式下必要；與簡單模式不相容。 |
 | `--sample-count N` | 僅限自訂模式 | 無 | 每次觸發的儀器樣本計數。支援範圍：`1` 到 `1000000`。自訂模式下必要；與簡單模式不相容。 |
 | `--timer-interval-s SECONDS` | 否 | 無 | 啟用固定延遲的軟體計時器擷取。支援範圍：`0.5` 到 `86400` 秒。僅在 `--trigger-mode software` 時有效；當省略 `--trigger-mode` 時也有效（因為預設為 software）。可與 `--max-samples` 結合以限制計時器執行次數。 |
@@ -413,7 +414,7 @@ JSONL 輸出是每行一個 JSON 物件。這是專為 Agent 和腳本設計的�
 3. 對於實機擷取，使用明確的 `--resource` 啟動工作器；在無人值守的實機執行中，絕不可掃描、推斷或猜測 VISA 資源。
 4. 等待 JSONL 的 `ready` 事件，或執行 `wait-ready --port 8765 --json`，然後呼叫 `status --port 8765 --json` 來確認 `run_id`。
 5. 僅在軟體觸發模式下使用 `POST /command`，並使用 `POST /stop` 進行正常停止。
-6. 讀取 stdout 的 JSONL 與 CSV 輸出以取得執行結果。
+6. 讀取 stdout 的 JSONL 與預設 CSV 輸出以取得執行結果。使用 `--no-csv` 時，改由 orchestrator 保存 JSONL `sample` events。
 
 請參閱 [Meters 協調器工作流程](../../docs/contracts/meters-orchestrator-workflows.md) 了解完整的 Python 子程序工作流程。
 
@@ -1307,7 +1308,9 @@ already stopped (endpoint not listening)
 
 ## CSV 輸出
 
-如果省略 `--csv`，記錄器會寫入 `data` 下的 UTC+8 時間戳記檔案，例如 `data/2026-05-11-14-30-05.csv`。傳送 `--csv PATH` 會繼續寫入該確切路徑。
+如果省略 `--csv`，記錄器會寫入 `data` 下的 UTC+8 時間戳記檔案，例如 `data/2026-05-11-14-30-05.csv`。傳送 `--csv PATH` 會繼續寫入該確切路徑。傳送 `--no-csv` 會明確停用 CSV writer、CSV 檔案及僅供 CSV 使用的父目錄建立；此選項不可與 `--csv` 同時使用。
+
+CSV 是 Meters-specific artifact，預設仍會產生。當外部 orchestrator 統一保存資料時，請搭配 `--no-csv` 與 `--status-format jsonl`，並保存輸出的 `sample` events。這不會改變量測、status、summary、exit code、HTTP control 或 cleanup。
 
 CSV 欄位：
 

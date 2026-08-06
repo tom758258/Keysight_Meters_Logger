@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import tempfile
 import unittest
 from pathlib import Path
 from uuid import uuid4
@@ -16,6 +17,7 @@ from meters_tool_core import (
     validate_start_request,
 )
 from meters_tool_core.models import InstrumentConfig, TriggerEvent, TriggerSource
+from meters_tool_core.runner import StartRunnerDependencies
 from meters_tool_core.simulator import SimulatedVisaInstrument
 
 
@@ -242,6 +244,46 @@ class CoreSimulatorRatioSessionTests(unittest.TestCase):
             finally:
                 if out.exists():
                     out.unlink()
+
+    def test_no_csv_session_emits_samples_and_summary_without_creating_storage(self):
+        sink = RecordingEventSink()
+        with tempfile.TemporaryDirectory() as tempdir:
+            csv_path = Path(tempdir) / "csv-only-parent" / "samples.csv"
+
+            def fail_storage_factory(_path):  # noqa: ANN001
+                self.fail("CSV storage must not be created when csv_enabled is false")
+
+            request = StartRequest(
+                resource="SIM::34461A",
+                csv=str(csv_path),
+                csv_enabled=False,
+                simulate=True,
+                trigger_mode="immediate",
+                max_samples=1,
+            )
+            profile = get_default_instrument_profile()
+            result = run_start_session(
+                request,
+                "immediate",
+                profile,
+                sink,
+                None,
+                control_plane=NoOpControlPlane(),
+                dependencies=StartRunnerDependencies(storage_factory=fail_storage_factory),
+            )
+
+            self.assertTrue(result.ok)
+            self.assertEqual(1, result.captured)
+            self.assertIsNone(result.csv_path)
+            self.assertEqual(1, len(sink.samples()))
+            summaries = [event for event in sink.events if event.event == "summary"]
+            self.assertEqual(1, len(summaries))
+            self.assertEqual(
+                (1, 0, None),
+                (summaries[0].captured, summaries[0].errors, summaries[0].fatal_error),
+            )
+            self.assertFalse(csv_path.exists())
+            self.assertFalse(csv_path.parent.exists())
 
     def test_immediate_ratio_session_emits_measurement_metadata(self):
         out = self._csv_path("ratio-immediate")

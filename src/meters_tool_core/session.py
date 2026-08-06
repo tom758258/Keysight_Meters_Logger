@@ -230,5 +230,5 @@ class StartRunResult:
     captured: int
     errors: int
     fatal_error: str | None
-    csv_path: Any
+    csv_path: str | None
     control: StartControlPlaneHandle | None = None

@@ -52,6 +52,12 @@ CLI-only fields such as output format, JSON aliases, terminal behavior, and
 wrapper compatibility details should not be added to `StartRequest` unless they
 are truly shared Core behavior.
 
+`--csv PATH` and `--no-csv` are mutually exclusive CLI inputs. The adapter
+normalizes blank `--csv` text to `None`, maps `--no-csv` to
+`StartRequest.csv_enabled=False`, and never uses an empty string to disable
+CSV. Core deliberately ignores a residual `csv` value when `csv_enabled` is
+false so other adapters can retain a path in their local state.
+
 `--enable-hw-trigger` was removed from the CLI parser after the compatibility
 period. Users must select simple external hardware triggering with
 `--trigger-mode external`. Do not reintroduce this flag in Core models or
@@ -120,6 +126,10 @@ Adapter compatibility fields in CLI output are CLI schema fields, not Core
 schema fields. For example, CLI dry-run JSON keeps `measurement_cli_name` for
 wrapper compatibility while Core `StartPlan` uses `measurement_name`.
 `measurement_cli_name` is not Core schema.
+
+The start dry-run payload also exposes `csv_enabled` and nullable `csv_path`.
+`dry_run_writes_csv` remains false because the preview itself never writes;
+`csv_enabled` describes what the corresponding non-dry-run session would do.
 
 Do not move CLI output-only fields such as `status_format` or
 `measurement_cli_name` into Core plan models.

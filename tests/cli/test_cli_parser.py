@@ -50,7 +50,13 @@ class CliArgsTests(unittest.TestCase):
                 "--serial-read-termination",
                 "--serial-write-termination",
             ],
-            "start-trigger-record": ["--dry-run", "--simulate", "--json", "--status-format"],
+            "start-trigger-record": [
+                "--dry-run",
+                "--simulate",
+                "--json",
+                "--status-format",
+                "--no-csv",
+            ],
             "send-command": ["--dry-run", "--json", "--format", "--timeout-ms"],
             "stop": ["--dry-run", "--json", "--format", "--timeout-ms"],
             "status": ["--dry-run", "--json", "--format", "--timeout-ms"],
@@ -79,6 +85,7 @@ class CliArgsTests(unittest.TestCase):
             ]
         )
         self.assertIsNone(args.csv)
+        self.assertFalse(args.no_csv)
         self.assertEqual(1.0, args.nplc)
         self.assertTrue(args.auto_zero)
         self.assertTrue(args.auto_range)
@@ -102,6 +109,28 @@ class CliArgsTests(unittest.TestCase):
         self.assertFalse(args.allow_buffer_overflow_risk)
         self.assertIsNone(args.vm_comp_slope)
         self.assertIsNone(args.visa_library)
+
+    def test_start_no_csv_flag_and_csv_conflict(self):
+        parser = build_parser()
+
+        args = parser.parse_args(
+            ["start-trigger-record", "--resource", "USB::FAKE", "--no-csv"]
+        )
+
+        self.assertTrue(args.no_csv)
+        self.assertIsNone(args.csv)
+        with self.assertRaises(SystemExit) as exc:
+            parser.parse_args(
+                [
+                    "start-trigger-record",
+                    "--resource",
+                    "USB::FAKE",
+                    "--csv",
+                    "out.csv",
+                    "--no-csv",
+                ]
+            )
+        self.assertEqual(2, exc.exception.code)
 
     def test_start_parser_accepts_visa_library_and_backend_aliases(self):
         parser = build_parser()

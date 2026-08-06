@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Adds CLI `--no-csv` support for orchestrator-owned JSONL sample persistence
+  while preserving CSV as the default output.
 - Clarifies public support documentation to describe current support behavior while preserving machine-readable support policy contracts.
 
 ## v2.0.0

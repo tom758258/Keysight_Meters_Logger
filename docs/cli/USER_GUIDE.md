@@ -169,7 +169,9 @@ settings.
 
 `--csv` is the output file path. If omitted, the CLI creates a timestamped CSV
 path. Use an explicit path when you need predictable file locations for review
-or automation.
+or automation. Use `--no-csv` to disable CSV for a run when an external
+orchestrator stores the JSONL `sample` events; `--csv` and `--no-csv` cannot be
+used together.
 
 `--max-samples` bounds simple runs. Use it during smoke tests and validation so
 the command stops by itself.
@@ -210,8 +212,8 @@ For complete accepted values and validation limits, see
 
 ## CSV Output
 
-Each captured sample is written as one CSV row. Check the CSV after a smoke run
-for:
+With the default CSV output enabled, each captured sample is written as one
+row. Check the CSV after a smoke run for:
 
 - at least one data row;
 - expected `measurement_type`;

@@ -83,6 +83,8 @@ Before constructing `StartRequest`, adapters should:
 - Convert numeric fields to `int` or `float`.
 - Convert toggles to booleans.
 - Normalize adapter-only aliases.
+- Map output enablement to the positive `csv_enabled` field. It defaults to
+  `True`; when it is `False`, Core ignores any residual `csv` value.
 - Map adapter-owned display labels to Core-owned request values such as
   `auto_zero`, `ac_bandwidth_hz`, `gate_time_s`, `freq_period_timeout`, and
   `current_terminal`.
@@ -373,8 +375,9 @@ generate_buffer_overflow_warning_details(...)]`.
 ## Dry-Run Plan
 
 `build_start_plan(...)` returns a `StartPlan` after validation succeeds. It is
-the Core dry-run preview contract for resource, CSV path, trigger mode,
-measurement, SCPI plan, read path, cleanup steps, and buffer warnings.
+the Core dry-run preview contract for resource, CSV enablement and path,
+trigger mode, measurement, SCPI plan, read path, cleanup steps, and buffer
+warnings.
 Dry-run planning is pure Core planning: it does not open VISA, construct
 runtime trigger adapters, start control servers, or wait for hardware trigger
 events. External-trigger dry-run previews are computed from Core planning data;
@@ -383,6 +386,11 @@ runtime trigger adapters remain responsible for non-dry-run execution only.
 `StartPlan` uses Core-neutral fields such as `measurement_name`.
 Adapters may derive their own display or compatibility fields, but those fields
 are outside the Core schema and are not returned by Core.
+
+`StartPlan.csv_enabled` is `True` by default. When enabled, `csv=None` keeps
+the timestamped default-path behavior. When disabled, Core does not resolve
+the default or explicit CSV path and returns `csv_path=None`; a residual
+`StartRequest.csv` value is ignored rather than treated as a validation error.
 
 ```python
 plan = build_start_plan(request, trigger_mode, profile, buffer_warnings=warnings)
@@ -404,7 +412,9 @@ reruns request validation and support policy checks with that resolved profile.
 
 Runtime status is emitted as typed `StartRunEvent` objects. Final state is
 returned as `StartRunResult`, including `ok`, `reason`, `captured`, `errors`,
-`fatal_error`, `csv_path`, `run_id`, and optional control-plane handle data.
+`fatal_error`, nullable `csv_path`, `run_id`, and optional control-plane handle
+data. A disabled CSV output does not change sample events, summaries, worker
+lifecycle, control-plane behavior, exit meanings, or cleanup sequencing.
 
 Adapters own serialization. Core does not define terminal output, HTTP
 payloads, websocket messages, artifact formats, or localized display text.

@@ -210,6 +210,30 @@ class CliStartCommandTests(CliCommandHarnessMixin, unittest.TestCase):
         mock_server.assert_not_called()
         self.assertEqual("@py", args.visa_library)
 
+    def test_start_no_csv_text_dry_run_reports_disabled_without_none_path(self):
+        parser = build_parser()
+        args = parser.parse_args(
+            [
+                "start-trigger-record",
+                "--resource",
+                "SIM::34461A",
+                "--no-csv",
+                "--trigger-mode",
+                "immediate",
+                "--max-samples",
+                "1",
+                "--dry-run",
+            ]
+        )
+        stdout = io.StringIO()
+
+        with redirect_stdout(stdout):
+            rc = cmd_start(args)
+
+        self.assertEqual(0, rc)
+        self.assertIn("CSV output for real run: disabled", stdout.getvalue())
+        self.assertNotIn("csv_path: None", stdout.getvalue())
+
     def test_start_dry_run_omitted_model_real_resource_fails_without_preflight(self):
         parser = build_parser()
         args = parser.parse_args(
@@ -869,6 +893,8 @@ class CliStartCommandTests(CliCommandHarnessMixin, unittest.TestCase):
         ]:
             self.assertIn(key, payload)
         self.assertEqual("current_dc", payload["measurement_type"])
+        self.assertTrue(payload["csv_enabled"])
+        self.assertEqual("data\\dry_run.csv", payload["csv_path"])
         self.assertFalse(payload["dry_run_performs_visa_io"])
         self.assertFalse(payload["dry_run_writes_csv"])
         self.assertFalse(payload["dry_run_starts_http_server"])
@@ -877,6 +903,34 @@ class CliStartCommandTests(CliCommandHarnessMixin, unittest.TestCase):
         self.assertEqual("FETC?", payload["read_path"])
         self.assertIn("TRIG:SOUR EXT", payload["scpi_commands"])
         self.assertNotIn("run_id", payload)
+
+    def test_start_no_csv_dry_run_jsonl_reports_disabled_plan(self):
+        parser = build_parser()
+        args = parser.parse_args(
+            [
+                "start-trigger-record",
+                "--resource",
+                "SIM::34461A",
+                "--no-csv",
+                "--trigger-mode",
+                "immediate",
+                "--max-samples",
+                "1",
+                "--dry-run",
+                "--status-format",
+                "jsonl",
+            ]
+        )
+        stdout = io.StringIO()
+
+        with redirect_stdout(stdout):
+            rc = cmd_start(args)
+
+        self.assertEqual(0, rc)
+        payload = json.loads(stdout.getvalue())
+        self.assertFalse(payload["csv_enabled"])
+        self.assertIsNone(payload["csv_path"])
+        self.assertFalse(payload["dry_run_writes_csv"])
 
     def test_frequency_dry_run_json_uses_effective_defaults(self):
         parser = build_parser()
@@ -1224,6 +1278,7 @@ class CliStartCommandTests(CliCommandHarnessMixin, unittest.TestCase):
         self.assertEqual("34461A", request_model.instrument_model)
         self.assertEqual("@py", request_model.visa_library)
         self.assertEqual("data\\delegate.csv", request_model.csv)
+        self.assertTrue(request_model.csv_enabled)
         self.assertTrue(request_model.simulate)
         self.assertEqual("current-ac", request_model.measurement)
         self.assertFalse(request_model.auto_range)
@@ -1237,7 +1292,7 @@ class CliStartCommandTests(CliCommandHarnessMixin, unittest.TestCase):
         self.assertEqual("CliStartRunControls", type(controls).__name__)
         self.assertIn("run_id", mock_runner.call_args.kwargs)
 
-    def test_start_normalizes_blank_visa_library_before_runner(self):
+    def test_start_normalizes_blank_optional_text_before_runner(self):
         parser = build_parser()
         args = parser.parse_args(
             [
@@ -1247,7 +1302,7 @@ class CliStartCommandTests(CliCommandHarnessMixin, unittest.TestCase):
                 "--visa-library",
                 "   ",
                 "--csv",
-                "data\\delegate.csv",
+                "   ",
                 "--trigger-mode",
                 "immediate",
                 "--measurement",
@@ -1273,6 +1328,8 @@ class CliStartCommandTests(CliCommandHarnessMixin, unittest.TestCase):
         self.assertEqual(0, rc)
         request_model = mock_runner.call_args.args[0]
         self.assertIsNone(request_model.visa_library)
+        self.assertIsNone(request_model.csv)
+        self.assertTrue(request_model.csv_enabled)
 
     def test_start_dry_run_jsonl_overflow_warnings_are_plan_notes_only(self):
         parser = build_parser()

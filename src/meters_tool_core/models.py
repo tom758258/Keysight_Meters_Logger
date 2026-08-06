@@ -491,6 +491,7 @@ class StartRequest:
     current_terminal: Optional[int] = None
     dcv_input_impedance: str = "default"
     vm_comp_slope: Optional[str] = None
+    csv_enabled: bool = True
 
 
 @dataclass(frozen=True)

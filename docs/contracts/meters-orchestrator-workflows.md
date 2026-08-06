@@ -176,6 +176,31 @@ finally:
         worker.terminate()
 ```
 
+## Orchestrator-Owned Sample Persistence
+
+Keep the preceding `--csv samples.csv` workflow when Meters should own its CSV
+artifact. When the orchestrator owns persistence instead, replace those two
+arguments with `--no-csv` and store each stdout JSONL `sample` event:
+
+```python
+worker_args = [
+    *worker_args_without_csv,
+    "--status-format",
+    "jsonl",
+    "--no-csv",
+]
+
+for line in worker.stdout:
+    event = json.loads(line)
+    if event["event"] == "sample":
+        persist_measurement(event)
+```
+
+`persist_measurement` is orchestrator-owned. Meters creates no CSV file or
+CSV-only parent directory in this mode. Continue consuming `ready`, `status`,
+`summary`, and the process exit code exactly as in the CSV-enabled workflow;
+Common `schema_version` remains `2`.
+
 ## Readiness And Status
 
 For Meters workers, the `ready` JSONL event and `wait-ready --json` mean the

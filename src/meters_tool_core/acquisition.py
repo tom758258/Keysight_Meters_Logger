@@ -74,7 +74,7 @@ class TriggerAcquisitionEngine:
         self,
         instrument: InstrumentBackend,
         measurement: MeasurementPlugin,
-        storage: CsvWriter,
+        storage: CsvWriter | None,
         config: AcquisitionConfig,
         router: TriggerRouter,
         status_cb: Optional[Callable[[str], None]] = None,
@@ -190,13 +190,14 @@ class TriggerAcquisitionEngine:
                 "hardware trigger configured "
                 f"slope={hardware_trigger_slope.upper()} delay_s={self._config.hw_trigger_delay_s}"
             )
-        try:
-            self._storage.open()
-        except PermissionError as exc:
-            self._stats.errors += 1
-            self._fatal_error = _format_csv_permission_error(exc)
-            self._running = False
-            return
+        if self._storage is not None:
+            try:
+                self._storage.open()
+            except PermissionError as exc:
+                self._stats.errors += 1
+                self._fatal_error = _format_csv_permission_error(exc)
+                self._running = False
+                return
         self._emit("recording started")
         if timer_active:
             self._emit(f"software timer enabled interval_s={timer_interval_s}")
@@ -280,7 +281,8 @@ class TriggerAcquisitionEngine:
         finally:
             if self._stop_event.is_set():
                 self._abort_measurement()
-            self._storage.close()
+            if self._storage is not None:
+                self._storage.close()
             self._emit("recording stopped")
 
     def _new_custom_event(
@@ -361,7 +363,8 @@ class TriggerAcquisitionEngine:
                         first_sample_index=self._stats.captured,
                     )
                     for sample in samples:
-                        self._storage.write(sample)
+                        if self._storage is not None:
+                            self._storage.write(sample)
                         self._stats.captured += 1
                         self._emit_sample(sample)
                     self._emit_capture_status(samples[-1])
@@ -453,7 +456,8 @@ class TriggerAcquisitionEngine:
                     first_sample_index=self._stats.captured,
                 )
                 for sample in samples:
-                    self._storage.write(sample)
+                    if self._storage is not None:
+                        self._storage.write(sample)
                     self._stats.captured += 1
                     self._emit_sample(sample)
                 self._emit_capture_status(samples[-1])
@@ -471,7 +475,8 @@ class TriggerAcquisitionEngine:
     def _capture(self, event: TriggerEvent) -> None:
         try:
             sample = self._measurement.read_sample(self._instrument, event)
-            self._storage.write(sample)
+            if self._storage is not None:
+                self._storage.write(sample)
             self._stats.captured += 1
             self._emit_sample(sample)
             self._emit_capture_status(sample)

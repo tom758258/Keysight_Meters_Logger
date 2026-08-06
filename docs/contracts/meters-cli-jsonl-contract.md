@@ -6,7 +6,7 @@ Compatibility policy: `v2-only`
 
 Implementation status: `Common v2-only conformant`
 
-Runtime contract revision: `v2.0`
+Runtime contract revision: `v2.1`
 
 The runtime contract revision tracks this document's evolution only.
 Orchestrators must use the JSON `schema_version` field to determine runtime
@@ -61,8 +61,8 @@ Selected fields:
   `trigger_metadata`, `trigger_source`, `unit`, `value`
 - `summary`: `run_id`, `captured`, `errors`, `ok`, optional `fatal_error`
 - `error`: `message`, `exit_code`, optional `run_id`
-- `dry_run`: plan fields for the command being previewed; no `run_id` and no
-  `ready` event
+- `dry_run`: plan fields for the command being previewed, including
+  `csv_enabled` and nullable `csv_path`; no `run_id` and no `ready` event
 
 For one non-dry-run `start-trigger-record` session, `ready`, `status`,
 `sample`, and `summary` events use the same `run_id`. Sample
@@ -250,3 +250,10 @@ resource verification closes the session immediately after its `*IDN?` query.
 `start-trigger-record --dry-run --status-format jsonl` keeps the existing plan
 fields and adds explicit safety fields: `dry_run_performs_visa_io: false`,
 `dry_run_writes_csv: false`, and `dry_run_starts_http_server: false`.
+
+Contract revision `v2.1` additively adds `csv_enabled` to this dry-run object.
+When `csv_enabled` is `false`, `csv_path` is `null`; when it is `true`,
+`csv_path` is the resolved explicit or timestamped default path.
+`dry_run_writes_csv` remains `false` in both cases because dry-run itself never
+writes a file. Consumers must not use it as a substitute for `csv_enabled`.
+This additive field does not change Common `schema_version: 2`.

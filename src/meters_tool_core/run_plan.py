@@ -63,7 +63,7 @@ class StartPlan:
     measurement_type: str
     measurement_name: str
     measurement_unit: str
-    csv_path: str
+    csv_path: str | None
     resource: str
     simulate: bool
     dry_run: bool
@@ -74,6 +74,7 @@ class StartPlan:
     trigger_description: str = ""
     sample_limit_description: str = ""
     option_summary: dict[str, object] = field(default_factory=dict)
+    csv_enabled: bool = True
 
 
 def _trigger_description(trigger_mode: str, request: StartRequest) -> str:
@@ -144,7 +145,7 @@ def build_start_plan(
     args = request
     measurement_type = normalize_measurement_type(args.measurement)
     measurement_def = get_measurement_definition(measurement_type)
-    csv_path = str(resolve_csv_path(args.csv))
+    csv_path = str(resolve_csv_path(args.csv)) if args.csv_enabled else None
     config = acquisition_config_from_start_request(args, measurement_type)
     measurement = create_measurement_plugin(measurement_type)
     recorder = _PlanRecorder()
@@ -238,4 +239,5 @@ def build_start_plan(
         trigger_description=_trigger_description(trigger_mode, args),
         sample_limit_description=_sample_limit_description(trigger_mode, args),
         option_summary=_option_summary(args),
+        csv_enabled=args.csv_enabled,
     )

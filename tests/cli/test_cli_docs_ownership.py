@@ -130,7 +130,7 @@ def test_cli_jsonl_contract_documents_v2_conformance_and_machine_fields():
         "Common schema version: `2`",
         "Compatibility policy: `v2-only`",
         "Implementation status: `Common v2-only conformant`",
-        "Runtime contract revision: `v2.0`",
+        "Runtime contract revision: `v2.1`",
     ):
         assert metadata in text
 
@@ -150,6 +150,9 @@ def test_cli_jsonl_contract_documents_v2_conformance_and_machine_fields():
         "reason",
         "error",
         "message",
+        "csv_enabled",
+        "csv_path",
+        "dry_run_writes_csv",
     ):
         assert field in text
 

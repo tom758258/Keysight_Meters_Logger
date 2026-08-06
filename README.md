@@ -11,9 +11,10 @@ Product support scope. It provides one installable distribution,
 `meters_tool_core`, `meters_tool_cli`, and `meters_tool_webui`.
 
 The project supports DC and AC current, DC and AC voltage, DC voltage ratio,
-frequency, period, and 2-wire or 4-wire resistance measurements over VISA. Each
-captured sample is written as one CSV row with timestamp, measurement type,
-unit, trigger source, and related metadata.
+frequency, period, and 2-wire or 4-wire resistance measurements over VISA. By
+default, each captured sample is written as one CSV row with timestamp,
+measurement type, unit, trigger source, and related metadata. CLI callers can
+use `--no-csv` when an external orchestrator persists JSONL sample events.
 
 Live instrument access requires a separately installed VISA implementation. Meters Tool does not bundle a system VISA runtime; dry-run and simulation can be used without one.
 
@@ -32,6 +33,8 @@ Live instrument access requires a separately installed VISA implementation. Mete
   samples, chart state, status, or other runtime UI state; the manual choice is
   persisted in the browser
 * Produce JSON and JSONL output for automation, agents, and orchestrators
+* Produce a timestamped CSV by default, with explicit CLI opt-out through
+  `--no-csv`
 
 Live starts auto-detect the connected model from `*IDN?`; an explicitly selected
 model is an expected-model guard and does not unlock capabilities for another
