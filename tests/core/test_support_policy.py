@@ -10,6 +10,8 @@ from meters_tool_core.models import (
     StartRequest,
 )
 from meters_tool_core.support_policy import (
+    BACKEND_CUSTOM,
+    BACKEND_PYVISA_BT,
     BACKEND_PYVISA_PY,
     BACKEND_SYSTEM_VISA,
     FEATURE_KIND_MEASUREMENT,
@@ -26,6 +28,7 @@ from meters_tool_core.support_policy import (
     VALIDATION_STATUS_NOT_SUPPORTED_BY_MODEL,
     VALIDATION_STATUS_TRANSPORT_PENDING,
     find_feature_support,
+    infer_backend_scope,
     start_request_feature_requirements,
     start_workflow_support,
     validate_start_workflow_support,
@@ -156,6 +159,26 @@ class StartSupportPolicyTests(unittest.TestCase):
         with self.assertRaises(ValueError) as exc:
             validate_start_workflow_support(request, trigger_mode, profile, **kwargs)
         self.assertIn(expected, str(exc.exception))
+
+    def test_backend_scope_normalization(self):
+        cases = (
+            (None, BACKEND_SYSTEM_VISA),
+            ("", BACKEND_SYSTEM_VISA),
+            ("@py", BACKEND_PYVISA_PY),
+            ("@bt", BACKEND_PYVISA_BT),
+            ("@BT", BACKEND_PYVISA_BT),
+            ("@foo", BACKEND_CUSTOM),
+        )
+
+        for visa_library, expected in cases:
+            with self.subTest(visa_library=visa_library):
+                self.assertEqual(expected, infer_backend_scope(visa_library))
+
+    def test_pyvisa_bt_live_scope_is_not_registered(self):
+        self.assert_policy_rejects(
+            make_request(visa_library="@bt"),
+            "not registered for transport=usb, backend=pyvisa_bt",
+        )
 
     def test_34460a_support_metadata_uses_normalized_status_and_scope(self):
         support = start_workflow_support(KEYSIGHT_34460A_PROFILE)["start-trigger-record"]["live"]

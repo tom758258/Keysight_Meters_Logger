@@ -24,6 +24,7 @@ TRANSPORT_TCPIP = "tcpip"
 TRANSPORT_UNKNOWN = "unknown"
 BACKEND_SYSTEM_VISA = "system_visa"
 BACKEND_PYVISA_PY = "pyvisa_py"
+BACKEND_PYVISA_BT = "pyvisa_bt"
 BACKEND_CUSTOM = "custom_visa"
 
 
@@ -289,8 +290,11 @@ def infer_transport_scope(resource: str) -> str:
 def infer_backend_scope(visa_library: str | None) -> str:
     if visa_library is None or not str(visa_library).strip():
         return BACKEND_SYSTEM_VISA
-    if str(visa_library).strip().lower() == "@py":
+    selector = str(visa_library).strip().lower()
+    if selector == "@py":
         return BACKEND_PYVISA_PY
+    if selector == "@bt":
+        return BACKEND_PYVISA_BT
     return BACKEND_CUSTOM
 
 

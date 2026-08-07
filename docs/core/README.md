@@ -23,6 +23,13 @@ Core can carry an optional `visa_library` value through `StartRequest` and
 diagnostics may pass an explicit value such as `@py`; normal WebUI runs leave
 the value unset.
 
+For support-policy matching, an unset or blank selector maps to `system_visa`,
+`@py` maps to `pyvisa_py`, `@bt` is reserved as the distinct `pyvisa_bt`
+identity, and other selectors map to `custom_visa`. A backend identity does not
+itself grant Product support. No Meters Product-open live scope is currently
+registered for `pyvisa_bt`, so Product-mode live requests using `@bt` fail
+closed. The WebUI remains System-VISA-only and exposes no backend override.
+
 ## Request Admission And Adapter Boundary
 
 `StartRequest` is the shared Core request boundary for validation, dry-run
