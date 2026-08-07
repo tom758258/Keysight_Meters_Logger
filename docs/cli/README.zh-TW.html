@@ -280,7 +280,7 @@
             <li>預設產生 UTC+8 時間戳記 CSV，並可透過 <code>--no-csv</code> 明確停用。</li>
             <li>透過 <code>list-resources --verify</code> 進行選用的資源驗證。</li>
             <li>透過 <code>list-resources --live-only</code> 進行選用的作用中資源篩選。</li>
-            <li>對會開啟 VISA 的指令，透過 <code>--visa-library</code> 提供選用的 CLI 專用 PyVISA library/backend 選擇，並以 <code>--backend</code> 作為別名。</li>
+            <li>在開發或已安裝的 Python 環境中，對會開啟 VISA 的 CLI 指令透過 <code>--visa-library</code> 提供選用的 PyVISA library/backend 選擇，並以 <code>--backend</code> 作為別名。</li>
             <li>選用的量測控制項：量測類型、自動量程、手動量程、DCV 輸入阻抗、包含 <code>once</code> 在內的自動歸零（Auto Zero）、NPLC、AC 頻寬/濾波器、頻率/週期閘門時間（gate time）、頻率逾時（timeout）、電流端子選擇、硬體觸發延遲、硬體觸發斜率與 VM Comp 斜率。</li>
             <li>CSV 啟用時，每筆擷取樣本後立即排空（flush）。</li>
         </ul>
@@ -305,9 +305,9 @@
             <li>VISA 執行階段，例如 Keysight IO Libraries Suite 或 NI-VISA。</li>
             <li>透過 VISA 可見的支援數位萬用電表；目前支援的型號與連線範圍請參閱支援型號文件。34460A 基礎設定檔不假設具備選用的 LAN/LXI 或外接觸發支援。</li>
         </ul>
-        <p>可透過 CLI 引數支援選用的 pyvisa-py 測試，但 pyvisa-py 並非必要相依套件。僅在需要時安裝選用的後端套件：</p>
+        <p><code>@py</code> 或 <code>@bt</code> 等選用 backend 引數屬於開發／已安裝 Python 環境的能力。只有當對應的 backend 套件已安裝且可由該 Python 環境載入時才能使用。若要測試 pyvisa-py，僅在需要時安裝其選用套件：</p>
         <div class="code-wrapper"><pre><code>uv pip install pyvisa-py pyserial psutil zeroconf</code></pre></div>
-        <p>目前支援的選用 pyvisa-py 擷取範圍是 34461A 經由 LAN/TCPIP。34460A LAN/TCPIP 與 34460A LAN/<code>@py</code> 目前不支援。</p>
+        <p>目前 Product-open 的選用 pyvisa-py support-policy 範圍是 34461A 經由 LAN/TCPIP。34460A LAN/TCPIP 與 34460A LAN/<code>@py</code> 目前不支援。Support-policy validation status 不代表 distribution 已包含該 backend 套件。目前官方 standalone Meters Tool 執行檔只支援預設 System VISA 路徑；<code>@py</code> 與 <code>@bt</code> 未被 bundle，也不屬於受支援的 standalone runtime。</p>
 
         <h2>開發</h2>
         <p>在 PowerShell 中，切換到專案目錄，建立或重複使用本機虛擬環境，並依照根目錄 <a href="../../README.zh-TW.md#安裝">README 安裝</a> 章節同步 all-extras 開發環境：</p>
@@ -399,9 +399,9 @@ uv sync --all-extras --link-mode=copy
   --allow-buffer-overflow-risk</code></pre></div>
         <p>此旗標只接受 <code>trigger_count * sample_count</code> 超過讀值記憶體的風險；不會允許 10 A 電流範圍、<code>current_terminal=10</code>、不支援的觸發模式，或超過選定設定檔讀值記憶體的 <code>--buffer-drain-size</code>。</p>
 
-        <h3>選用的 PyVISA 後端選擇</h3>
+        <h3>已安裝 Python 環境中的選用 PyVISA backend</h3>
         <p>預設情況下，<code>meters-tool</code> 使用 <code>pyvisa.ResourceManager()</code>，因此使用系統 VISA 執行階段，例如 Keysight IO Libraries Suite 或 NI-VISA。</p>
-        <p>若要使用 pyvisa-py 進行進階測試，請安裝選用的後端套件，並在會開啟 VISA 資源的 CLI 指令中傳入 <code>--visa-library "@py"</code>：</p>
+        <p>在 source checkout、虛擬環境或已安裝的 Python 環境中，只有當對應的 backend 套件已安裝且可載入時，<code>@py</code> 或 <code>@bt</code> 等選用引數才能運作。若要使用 pyvisa-py 進行進階測試，請安裝其選用套件，並在會開啟 VISA 資源的 CLI 指令中傳入 <code>--visa-library "@py"</code>：</p>
         <div class="code-wrapper"><pre><code>uv pip install pyvisa-py pyserial psutil zeroconf
 
 uv run meters-tool list-resources --visa-library "@py" --verify
@@ -413,8 +413,8 @@ uv run meters-tool start-trigger-record `
   --trigger-mode immediate `
   --measurement voltage-dc `
   --max-samples 1</code></pre></div>
-        <p><code>--backend "@py"</code> 可作為 <code>--visa-library "@py"</code> 的別名。此選項供 CLI 診斷與選用後端檢查使用。WebUI 使用預設的系統 VISA 執行階段，不公開後端選擇器。</p>
-        <p>LAN/TCPIP 是支援的 34461A pyvisa-py 路徑。Windows 上的 USBTMC 可能需要 WinUSB/libusb 設定，通常不比 Keysight IO Libraries Suite 或 NI-VISA 簡單。使用 pyvisa-py 與 pyserial 的 RS-232/ASRL 在支援序列 I/O 的儀器上通常直接，但目前 Meters 設定檔以 USB/LAN Truevolt DMM 為目標。<code>PYVISA_LIBRARY="@py"</code> 仍會直接影響 PyVISA，但本專案建議在 CLI 指令中明確使用 <code>--visa-library "@py"</code>，讓測試可重現。</p>
+        <p><code>--backend "@py"</code> 可作為 <code>--visa-library "@py"</code> 的別名。此選項供 CLI 診斷與已安裝環境中的選用 backend 檢查使用。目前官方 standalone CLI 執行檔只支援預設 System VISA 路徑，且不 bundle <code>@py</code> 或 <code>@bt</code>。WebUI 同樣使用固定的預設 System VISA runtime，且不接受 backend override。</p>
+        <p>當該 backend 可用時，LAN/TCPIP 是 Product-open 的 34461A pyvisa-py support-policy 範圍；這項 validation metadata 不表示特定 distribution 已包含 pyvisa-py。Windows 上的 USBTMC 可能需要 WinUSB/libusb 設定，通常不比 Keysight IO Libraries Suite 或 NI-VISA 簡單。使用 pyvisa-py 與 pyserial 的 RS-232/ASRL 在支援序列 I/O 的儀器上通常直接，但目前 Meters 設定檔以 USB/LAN Truevolt DMM 為目標。<code>PYVISA_LIBRARY="@py"</code> 仍會直接影響 PyVISA，但本專案建議在 CLI 指令中明確使用 <code>--visa-library "@py"</code>，讓測試可重現。</p>
 
         <h2>指令參考</h2>
         <p>使用已安裝的主控台指令：</p>
@@ -540,7 +540,7 @@ uv run meters-tool start-trigger-record `
                 </tr>
                 <tr>
                     <td><code>--visa-library TEXT</code>、<code>--backend TEXT</code></td>
-                    <td>選用的 PyVISA library/backend 引數，例如 <code>@py</code>。省略時，透過 <code>pyvisa.ResourceManager()</code> 使用系統預設 VISA 執行階段。</td>
+                    <td>已安裝環境中的選用 PyVISA library/backend 引數，例如 <code>@py</code>；backend 套件必須已安裝且可載入。省略時，透過 <code>pyvisa.ResourceManager()</code> 使用系統預設 VISA 執行階段。</td>
                 </tr>
                 <tr>
                     <td><code>--serial-read-termination VALUE</code></td>
@@ -597,7 +597,7 @@ uv run meters-tool start-trigger-record `
                     <td>選用的用戶端產生工作識別碼，僅由指令外殼回應。</td>
                 </tr>
                 <tr>
-                    <td><code>--format text\|json</code></td>
+                    <td><code>--format text|json</code></td>
                     <td><code>text</code></td>
                     <td>回應輸出格式。<code>json</code> 為 Agent 呼叫端發出一個結構化物件。</td>
                 </tr>
@@ -635,7 +635,7 @@ uv run meters-tool start-trigger-record `
                     <td>HTTP 用戶端逾時（毫秒）。支援範圍：<code>100</code> 到 <code>600000</code>。</td>
                 </tr>
                 <tr>
-                    <td><code>--format text\|json</code></td>
+                    <td><code>--format text|json</code></td>
                     <td><code>text</code></td>
                     <td>回應輸出格式。<code>json</code> 為 Agent 呼叫端發出一個結構化物件。</td>
                 </tr>
@@ -673,7 +673,7 @@ uv run meters-tool start-trigger-record `
                     <td>HTTP 用戶端逾時（毫秒）。支援範圍：<code>100</code> 到 <code>600000</code>。</td>
                 </tr>
                 <tr>
-                    <td><code>--format text\|json</code></td>
+                    <td><code>--format text|json</code></td>
                     <td><code>text</code></td>
                     <td>回應輸出格式。<code>json</code> 發出一個正規化的狀態物件。</td>
                 </tr>
@@ -711,7 +711,7 @@ uv run meters-tool start-trigger-record `
                     <td>整體準備就緒期限（毫秒）。支援範圍：<code>100</code> 到 <code>600000</code>。</td>
                 </tr>
                 <tr>
-                    <td><code>--format text\|json</code></td>
+                    <td><code>--format text|json</code></td>
                     <td><code>text</code></td>
                     <td>回應輸出格式。<code>json</code> 發出正規化狀態加上準備就緒計時欄位。</td>
                 </tr>
@@ -809,7 +809,7 @@ uv run meters-tool start-trigger-record `
                     <td><code>--visa-library TEXT</code>、<code>--backend TEXT</code></td>
                     <td>否</td>
                     <td>系統預設</td>
-                    <td>選用的 PyVISA library/backend 引數，例如 <code>@py</code>。Dry-run 與 simulator 執行會接受此選項，但不會開啟 VISA。</td>
+                    <td>已安裝環境中的選用 PyVISA library/backend 引數，例如 <code>@py</code>；backend 套件必須已安裝且可載入。Dry-run 與 simulator 執行會接受此選項，但不會開啟 VISA。</td>
                 </tr>
                 <tr>
                     <td><code>--csv PATH</code></td>
@@ -824,7 +824,7 @@ uv run meters-tool start-trigger-record `
                     <td>當外部 orchestrator 保存 JSONL <code>sample</code> events 時，停用本次執行的 CSV 輸出。不可與 <code>--csv</code> 同時使用。</td>
                 </tr>
                 <tr>
-                    <td><code>--status-format text\|jsonl</code></td>
+                    <td><code>--status-format text|jsonl</code></td>
                     <td>否</td>
                     <td><code>text</code></td>
                     <td>執行階段狀態輸出格式。<code>jsonl</code> 為 Agent 呼叫端每行發出一個 JSON 物件。</td>
@@ -878,7 +878,7 @@ uv run meters-tool start-trigger-record `
                     <td>佇列軟體觸發的最大數量。支援範圍：<code>0</code> 到 <code>10000</code>；<code>0</code> 使用預設的安全限制。</td>
                 </tr>
                 <tr>
-                    <td><code>--trigger-mode software\|external\|immediate\|immediate-custom\|software-custom\|external-custom</code></td>
+                    <td><code>--trigger-mode software|external|immediate|immediate-custom|software-custom|external-custom</code></td>
                     <td>否</td>
                     <td><code>software</code></td>
                     <td>精確選擇一種擷取模式。支援選項依設定檔而定；34460A 基礎設定檔排除 <code>external</code> 與 <code>external-custom</code>。</td>
@@ -920,7 +920,7 @@ uv run meters-tool start-trigger-record `
                     <td>允許自訂模式請求超過選定設定檔的讀值記憶體。這取決於排空讀值的速度是否夠快，可能會遺失資料或產生 SCPI 錯誤；不會允許不支援的範圍、端子、觸發模式，或超過讀值記憶體的 <code>--buffer-drain-size</code>。</td>
                 </tr>
                 <tr>
-                    <td><code>--hw-trigger-slope pos\|neg</code></td>
+                    <td><code>--hw-trigger-slope pos|neg</code></td>
                     <td>否</td>
                     <td><code>neg</code></td>
                     <td>外接觸發邊緣極性。</td>
@@ -932,7 +932,7 @@ uv run meters-tool start-trigger-record `
                     <td>硬體觸發延遲，對應到 <code>TRIG:DEL</code>。支援範圍：<code>0</code> 到 <code>3600</code> 秒。</td>
                 </tr>
                 <tr>
-                    <td><code>--measurement current-dc\|voltage-dc\|voltage-dc-ratio\|current-ac\|voltage-ac\|frequency\|period\|resistance-2w\|resistance-4w</code></td>
+                    <td><code>--measurement current-dc|voltage-dc|voltage-dc-ratio|current-ac|voltage-ac|frequency|period|resistance-2w|resistance-4w</code></td>
                     <td>否</td>
                     <td><code>current-dc</code></td>
                     <td>量測類型。</td>
@@ -944,13 +944,13 @@ uv run meters-tool start-trigger-record `
                     <td>用於 DC 電流、DC 電壓、DCV 比率和電阻的電源線週期積分時間。DC/電阻/比率的允許值：<code>0.02</code>、<code>0.2</code>、<code>1</code>、<code>10</code>、<code>100</code>。AC 電流、AC 電壓、頻率與週期僅接受中性預設值 <code>1.0</code>。</td>
                 </tr>
                 <tr>
-                    <td><code>--auto-zero on\|off\|once</code></td>
+                    <td><code>--auto-zero on|off|once</code></td>
                     <td>否</td>
                     <td><code>on</code></td>
                     <td>支援量測的自動歸零（Auto Zero）。<code>once</code> 在 DC 電流、DC 電壓和 2 線電阻下有效。DCV 比率僅接受預設/啟用（on）行為且不寫入 Auto Zero SCPI；4 線電阻、AC 量測、頻率與週期則將 Auto Zero 交給儀器處理。</td>
                 </tr>
                 <tr>
-                    <td><code>--auto-range on\|off</code></td>
+                    <td><code>--auto-range on|off</code></td>
                     <td>否</td>
                     <td><code>on</code></td>
                     <td>啟用或停用自動量程（Auto Range）。</td>
@@ -968,37 +968,37 @@ uv run meters-tool start-trigger-record `
                     <td>與 <code>current-dc</code> 的 <code>--range</code> 相容的別名。不可與 <code>--range</code> 同時使用；在 AC 電流、電壓和電阻量測下無效。</td>
                 </tr>
                 <tr>
-                    <td><code>--ac-bandwidth-hz 3\|20\|200</code></td>
+                    <td><code>--ac-bandwidth-hz 3|20|200</code></td>
                     <td>僅限 AC/頻率/週期</td>
                     <td>依量測而定</td>
                     <td>AC 頻寬/濾波器設定。AC 電流/電壓省略時保持目前設定；頻率和週期省略時預設為 <code>20</code> Hz。</td>
                 </tr>
                 <tr>
-                    <td><code>--gate-time-s 0.01\|0.1\|1</code></td>
+                    <td><code>--gate-time-s 0.01|0.1|1</code></td>
                     <td>僅限頻率/週期</td>
                     <td><code>0.1</code></td>
                     <td>頻率/週期孔徑或閘門時間（gate time），單位為秒。</td>
                 </tr>
                 <tr>
-                    <td><code>--freq-period-timeout auto\|1s</code></td>
+                    <td><code>--freq-period-timeout auto|1s</code></td>
                     <td>僅限頻率</td>
                     <td><code>auto</code></td>
                     <td>使用自動頻率逾時（timeout），或停用自動逾時以使用固定 1 秒行為。週期不支援此選項，也不會送出逾時 SCPI。</td>
                 </tr>
                 <tr>
-                    <td><code>--current-terminal 3\|10</code></td>
+                    <td><code>--current-terminal 3|10</code></td>
                     <td>僅限電流</td>
                     <td>無</td>
                     <td>對公開端子選擇的設定檔而言的電流輸入端子。34461A 的 10 A 範圍需要 <code>--current-terminal 10</code>；<code>--current-terminal 10</code> 僅在 10 A 範圍下有效。34460A 設定檔拒絕電流端子選擇。</td>
                 </tr>
                 <tr>
-                    <td><code>--dcv-input-impedance default\|10m\|auto</code></td>
+                    <td><code>--dcv-input-impedance default|10m|auto</code></td>
                     <td>僅限 DC 電壓或 DCV 比率</td>
                     <td><code>default</code></td>
                     <td>DC 電壓輸入阻抗。<code>default</code> 不寫入阻抗指令；<code>10m</code> 強制為 10 MOhm；<code>auto</code> 啟用儀器自動（Auto）模式（在較低的 DC 電壓範圍下可能會顯示 HighZ）。</td>
                 </tr>
                 <tr>
-                    <td><code>--vm-comp-slope pos\|neg</code></td>
+                    <td><code>--vm-comp-slope pos|neg</code></td>
                     <td>否</td>
                     <td>無</td>
                     <td>設定後面板 VM Comp 輸出脈衝斜率。省略以保持 VM Comp 不變。</td>

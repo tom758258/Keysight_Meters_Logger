@@ -197,7 +197,7 @@ GET /api/resources?verify=true&live_only=true
 
 使用者仍然可以手動輸入資源，並在掃描後於 `Device options` 中要求特定的 `Expected model`。
 
-WebUI 使用 Core 預設的系統 VISA 執行階段。瀏覽器中不提供 PyVISA backend 選擇器。34461A LAN/TCPIP 已透過此預設系統 VISA 路徑支援。只有在需要可選的 pyvisa-py 診斷時，才使用 CLI 專用的 `--visa-library` 進階選項；支援的選用 `@py` 擷取範圍是 34461A LAN/TCPIP。
+WebUI 透過 Core 使用固定的預設 System VISA runtime。瀏覽器不提供選用的 PyVISA backend 選擇器，WebUI API 也不接受 resource scan 或實機執行的 backend override。34461A LAN/TCPIP 已透過此 System VISA 路徑支援。選用的 `@py` 或 `@bt` 僅屬於 source 或已安裝 Python 環境中的 CLI 關注範圍，且對應 backend 必須已安裝並可載入；官方 standalone WebUI 不支援這兩者。請勿嘗試透過未記載的 API payload 指定 backend。
 
 WebUI 不公開驗證模式。未對產品開放的傳輸/後端範圍以及量測或觸發模式功能，會在瀏覽器啟動時被封鎖。瀏覽器會停用產品不可用的功能選項，但該狀態僅為 UX；Core 驗證、支援原則關卡以及 `run_start_session()` 最終關卡仍是安全邊界。34460A LAN/TCPIP 目前不支援 WebUI。
 
@@ -248,11 +248,11 @@ pending_keys
 `transport_pending` 狀態。瀏覽器會將這些 scope 視為一般 Product 啟動不可用；
 此狀態不代表執行授權。
 
-瀏覽器使用此 metadata 來顯示型號的實機支援，並停用對目前資源傳輸與 WebUI 固定系統-VISA 後端而言非產品開放的功能。在資源已知之前，Auto-detect 保持現有的備援功能檢視，且僅使用備援設定檔宣告的產品範圍；它絕不會開放非 Product-open 功能。對於 34461A，該 metadata 包含已支援的 USB/system-VISA、LAN/system-VISA 以及選用的 CLI 專用 LAN/pyvisa-py `@py` 範圍。對於 34460A，DCV Ratio 在 USB/system-VISA 上為 `Product-open`；LAN/TCPIP 目前不支援。現有的量測、觸發、範圍與限制欄位仍是控制項定義的 source of truth。
+瀏覽器使用此 metadata 來顯示型號的實機支援，並停用對目前資源傳輸與 WebUI 固定系統-VISA 後端而言非產品開放的功能。在資源已知之前，Auto-detect 保持現有的備援功能檢視，且僅使用備援設定檔宣告的產品範圍；它絕不會開放非 Product-open 功能。對於 34461A，該 metadata 包含已支援的 USB/system-VISA、LAN/system-VISA 以及選用的 CLI 專用 LAN/pyvisa-py `@py` 範圍。對於 34460A，DCV Ratio 在 USB/system-VISA 上為 `Product-open`；LAN/TCPIP 目前不支援。現有的量測、觸發、範圍與限制欄位仍是控制項定義的 source of truth。Product-open support-policy 範圍不代表每個 distribution 都已 bundle 該 backend 套件。
 
 Expected model 檢查是選用的。Core 會在 Start 時驗證連接儀器的識別資訊。若明確指定的預期型號與新的 IDN preflight 不符，WebUI 會回報選取的型號以及 IDN 中找到的支援型號。
 
-選取的 WebUI 型號不得被視為功能解鎖。停用或隱藏的控制項僅為 UX；Core 支援原則與 `run_start_session()` 最終關卡仍是 WebUI 後端提交的安全邊界。WebUI 不應加入 pyvisa-py 後端選擇器；後端診斷保持 CLI 專用。
+選取的 WebUI 型號不得被視為功能解鎖。停用或隱藏的控制項僅為 UX；Core 支援原則與 `run_start_session()` 最終關卡仍是 WebUI 後端提交的安全邊界。目前 WebUI 不提供選用 backend 選擇器；System VISA 仍是受支援的 WebUI runtime。選用的 `@py` 或 `@bt` backend 工作不在目前 WebUI product surface 內，僅限於 backend 套件可用時的 CLI 開發／已安裝環境用途。
 
 目前呈現的量測模式包括：
 

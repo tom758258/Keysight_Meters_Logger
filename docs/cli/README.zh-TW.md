@@ -41,7 +41,7 @@ Python 整合應從 `meters_tool_core` 或 `meters_tool_core.*` 匯入共享的 
 - 預設產生 UTC+8 時間戳記 CSV，並可透過 `--no-csv` 明確停用。
 - 透過 `list-resources --verify` 進行選用的資源驗證。
 - 透過 `list-resources --live-only` 進行選用的作用中資源篩選。
-- 對會開啟 VISA 的指令，透過 `--visa-library` 提供選用的 CLI 專用 PyVISA library/backend 選擇，並以 `--backend` 作為別名。
+- 在開發或已安裝的 Python 環境中，對會開啟 VISA 的 CLI 指令透過 `--visa-library` 提供選用的 PyVISA library/backend 選擇，並以 `--backend` 作為別名。
 - 選用的量測控制項：量測類型、自動量程、手動量程、DCV 輸入阻抗、包含 `once` 在內的自動歸零（Auto Zero）、NPLC、AC 頻寬/濾波器、頻率/週期閘門時間（gate time）、頻率逾時（timeout）、電流端子選擇、硬體觸發延遲、硬體觸發斜率與 VM Comp 斜率。
 - CSV 啟用時，每筆擷取樣本後立即排空（flush）。
 
@@ -65,13 +65,13 @@ Python 整合應從 `meters_tool_core` 或 `meters_tool_core.*` 匯入共享的 
 - VISA 執行階段，例如 Keysight IO Libraries Suite 或 NI-VISA。
 - 透過 VISA 可見的支援數位萬用電表；目前支援的型號與連線範圍請參閱支援型號文件。34460A 基礎設定檔不假設具備選用的 LAN/LXI 或外接觸發支援。
 
-可透過 CLI 引數支援選用的 pyvisa-py 測試，但 pyvisa-py 並非必要相依套件。僅在需要時安裝選用的後端套件：
+`@py` 或 `@bt` 等選用 backend 引數屬於開發／已安裝 Python 環境的能力。只有當對應的 backend 套件已安裝且可由該 Python 環境載入時才能使用。若要測試 pyvisa-py，僅在需要時安裝其選用套件：
 
 ```powershell
 uv pip install pyvisa-py pyserial psutil zeroconf
 ```
 
-目前支援的選用 pyvisa-py 擷取範圍是 34461A 經由 LAN/TCPIP。34460A LAN/TCPIP 與 34460A LAN/`@py` 目前不支援。
+目前 Product-open 的選用 pyvisa-py support-policy 範圍是 34461A 經由 LAN/TCPIP。34460A LAN/TCPIP 與 34460A LAN/`@py` 目前不支援。Support-policy validation status 不代表 distribution 已包含該 backend 套件。目前官方 standalone Meters Tool 執行檔只支援預設 System VISA 路徑；`@py` 與 `@bt` 未被 bundle，也不屬於受支援的 standalone runtime。
 
 ## 開發
 
@@ -199,11 +199,11 @@ PyInstaller 會將產生的檔案寫入本機 `build\` 和 `dist\` 目錄。除�
 
 此旗標只接受 `trigger_count * sample_count` 超過讀值記憶體的風險；不會允許 10 A 電流範圍、`current_terminal=10`、不支援的觸發模式，或超過選定設定檔讀值記憶體的 `--buffer-drain-size`。
 
-### 選用的 PyVISA 後端選擇
+### 已安裝 Python 環境中的選用 PyVISA backend
 
 預設情況下，`meters-tool` 使用 `pyvisa.ResourceManager()`，因此使用系統 VISA 執行階段，例如 Keysight IO Libraries Suite 或 NI-VISA。
 
-若要使用 pyvisa-py 進行進階測試，請安裝選用的後端套件，並在會開啟 VISA 資源的 CLI 指令中傳入 `--visa-library "@py"`：
+在 source checkout、虛擬環境或已安裝的 Python 環境中，只有當對應的 backend 套件已安裝且可載入時，`@py` 或 `@bt` 等選用引數才能運作。若要使用 pyvisa-py 進行進階測試，請安裝其選用套件，並在會開啟 VISA 資源的 CLI 指令中傳入 `--visa-library "@py"`：
 
 ```powershell
 uv pip install pyvisa-py pyserial psutil zeroconf
@@ -219,9 +219,9 @@ uv run meters-tool start-trigger-record `
   --max-samples 1
 ```
 
-`--backend "@py"` 可作為 `--visa-library "@py"` 的別名。此選項供 CLI 診斷與選用後端檢查使用。WebUI 使用預設的系統 VISA 執行階段，不公開後端選擇器。
+`--backend "@py"` 可作為 `--visa-library "@py"` 的別名。此選項供 CLI 診斷與已安裝環境中的選用 backend 檢查使用。目前官方 standalone CLI 執行檔只支援預設 System VISA 路徑，且不 bundle `@py` 或 `@bt`。WebUI 同樣使用固定的預設 System VISA runtime，且不接受 backend override。
 
-LAN/TCPIP 是支援的 34461A pyvisa-py 路徑。Windows 上的 USBTMC 可能需要 WinUSB/libusb 設定，通常不比 Keysight IO Libraries Suite 或 NI-VISA 簡單。使用 pyvisa-py 與 pyserial 的 RS-232/ASRL 在支援序列 I/O 的儀器上通常直接，但目前 Meters 設定檔以 USB/LAN Truevolt DMM 為目標。`PYVISA_LIBRARY="@py"` 仍會直接影響 PyVISA，但本專案建議在 CLI 指令中明確使用 `--visa-library "@py"`，讓測試可重現。
+當該 backend 可用時，LAN/TCPIP 是 Product-open 的 34461A pyvisa-py support-policy 範圍；這項 validation metadata 不表示特定 distribution 已包含 pyvisa-py。Windows 上的 USBTMC 可能需要 WinUSB/libusb 設定，通常不比 Keysight IO Libraries Suite 或 NI-VISA 簡單。使用 pyvisa-py 與 pyserial 的 RS-232/ASRL 在支援序列 I/O 的儀器上通常直接，但目前 Meters 設定檔以 USB/LAN Truevolt DMM 為目標。`PYVISA_LIBRARY="@py"` 仍會直接影響 PyVISA，但本專案建議在 CLI 指令中明確使用 `--visa-library "@py"`，讓測試可重現。
 
 ## 指令參考
 
@@ -269,7 +269,7 @@ LAN/TCPIP 是支援的 34461A pyvisa-py 路徑。Windows 上的 USBTMC 可能需
 | `--verify` | 開啟每個偵測到的資源、查詢 `*IDN?`，然後關閉工作階段與資源管理員。不執行擷取清理，也不傳送 release-to-local SCPI。文字輸出將資料列標記為 `live`（作用中）或 `stale`（過期）；JSON 輸出包含 `live`、`status` 和 `detail`。ASRL/RS-232 檢查使用短暫的有界限逾時。 |
 | `--live-only` | 驗證資源並僅列印有回應的資料列。這隱含 `--verify`，會隱藏過期資源，並在 ASRL 過期逾時後繼續執行。驗證會在 `*IDN?` 查詢後關閉每個工作階段與資源管理員，不執行擷取清理或 release-to-local SCPI。如果沒有連接或可連線的資源，文字輸出會列印 `no live VISA resources found`。 |
 | `--dry-run` | 列印資源探測合約並以 0 退出，而不建立 VISA 資源管理員、列出資源、開啟資源、查詢 `*IDN?` 或執行釋放回本機控制／清理。可與 `--verify`、`--live-only` 和 `--json` 結合使用。 |
-| `--visa-library TEXT`、`--backend TEXT` | 選用的 PyVISA library/backend 引數，例如 `@py`。省略時，透過 `pyvisa.ResourceManager()` 使用系統預設 VISA 執行階段。 |
+| `--visa-library TEXT`、`--backend TEXT` | 已安裝環境中的選用 PyVISA library/backend 引數，例如 `@py`；backend 套件必須已安裝且可載入。省略時，透過 `pyvisa.ResourceManager()` 使用系統預設 VISA 執行階段。 |
 | `--serial-read-termination VALUE` | 僅適用於 ASRL 資源的 CLI 探測/驗證相容性設定。接受 `CRLF`、`LF`、`CR` 與 `NONE`。查詢 `*IDN?` 前會將它映射到 PyVISA session 的 `read_termination`；不是擷取設定。 |
 | `--serial-write-termination VALUE` | 僅適用於 ASRL 資源的 CLI 探測/驗證相容性設定。接受 `CRLF`、`LF`、`CR` 與 `NONE`。查詢 `*IDN?` 前會將它映射到 PyVISA session 的 `write_termination`；不是擷取設定。 |
 | `--format json` | 為腳本發出一個 JSON 物件。可與 `--verify` 或 `--live-only` 結合使用。 |
@@ -338,7 +338,7 @@ LAN/TCPIP 是支援的 34461A pyvisa-py 路徑。Windows 上的 USBTMC 可能需
 | --- | --- | --- | --- |
 | `--resource RESOURCE` | 是 | 無 | VISA 資源字串，例如 USB 或 TCPIP HiSLIP。 |
 | `--model MODEL`、`--instrument-model MODEL` | 否 | live 為 auto；非確定性 dry-run/simulate 必要 | 接受 canonical model token 或已註冊的穩定型號 ID。它是 live 執行的預期型號防護，也是 dry-run/simulate 的規劃設定檔選擇器。Core 設定檔邏輯會標準化並驗證 `34460A`、`34461A`、`keysight-34460a` 與 `keysight-34461a` 等值。 |
-| `--visa-library TEXT`、`--backend TEXT` | 否 | 系統預設 | 選用的 PyVISA library/backend 引數，例如 `@py`。Dry-run 與 simulator 執行會接受此選項，但不會開啟 VISA。 |
+| `--visa-library TEXT`、`--backend TEXT` | 否 | 系統預設 | 已安裝環境中的選用 PyVISA library/backend 引數，例如 `@py`；backend 套件必須已安裝且可載入。Dry-run 與 simulator 執行會接受此選項，但不會開啟 VISA。 |
 | `--csv PATH` | 否 | `data/YYYY-MM-DD-HH-MM-SS.csv` | CSV 輸出路徑。若省略，則在 `data` 下建立帶有 UTC+8 時間戳記的檔案。父目錄會自動建立。 |
 | `--no-csv` | 否 | 關閉 | 當外部 orchestrator 保存 JSONL `sample` events 時，停用本次執行的 CSV 輸出。不可與 `--csv` 同時使用。 |
 | `--status-format text\|jsonl` | 否 | `text` | 執行階段狀態輸出格式。`jsonl` 為 Agent 呼叫端每行發出一個 JSON 物件。 |

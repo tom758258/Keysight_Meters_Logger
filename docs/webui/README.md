@@ -267,11 +267,13 @@ IDN preflight.
 The user can still type a resource manually and can require a specific Expected
 model from `Device options` after scanning.
 
-The WebUI uses the default system VISA runtime through Core. It does not expose
-a PyVISA backend selector in the browser. 34461A LAN/TCPIP is supported through
-this default system VISA path. Use the CLI-only `--visa-library` advanced
-option when optional pyvisa-py backend diagnostics are required; the supported
-optional `@py` acquisition scope is 34461A LAN/TCPIP.
+The WebUI uses the fixed default System VISA runtime through Core. The browser
+exposes no optional PyVISA backend selector, and the WebUI API accepts no
+backend override for resource scans or live runs. 34461A LAN/TCPIP is supported
+through this System VISA path. Optional `@py` or `@bt` work is a CLI concern in
+a source or installed Python environment where the corresponding backend is
+installed and loadable; the official standalone WebUI does not support either
+backend. Do not attempt to supply one through an undocumented API payload.
 
 The WebUI does not expose validation mode. Transport/backend scopes and
 measurement or trigger-mode features that are not Product-open remain blocked
@@ -371,7 +373,8 @@ For 34461A the metadata includes Product-open USB/system-VISA,
 LAN/system-VISA, and optional CLI-only LAN/pyvisa-py `@py` scopes. For 34460A,
 DCV Ratio is Product-open on USB/system-VISA, while LAN/TCPIP is not currently
 supported. Existing measurement, trigger, range, and limit fields remain the
-source of truth for control definitions.
+source of truth for control definitions. A Product-open support-policy scope
+does not mean that every distribution bundles its backend package.
 
 The Expected model check is optional. Core validates the connected instrument
 identity at Start. If an explicit expected model does not match the fresh IDN
@@ -381,8 +384,10 @@ was found in the IDN.
 The selected WebUI model must not be treated as a feature unlock. Disabled or
 hidden controls are UX only; the Core support policy and `run_start_session()`
 runner final gate remain the safety boundary for WebUI backend submissions.
-The WebUI should not add a pyvisa-py backend selector; backend diagnostics
-remain CLI-only.
+The current WebUI exposes no optional backend selector; System VISA remains the
+supported WebUI runtime. Optional `@py` or `@bt` backend work remains outside
+the current WebUI product surface and is limited to CLI development/installed-
+environment use when its backend package is available.
 
 Currently surfaced measurement modes include:
 

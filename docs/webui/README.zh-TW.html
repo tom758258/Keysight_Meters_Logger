@@ -349,7 +349,7 @@
         <p>驗證的掃描結果在傳回的 IDN 與支援的 Core 設定檔匹配時，包含可為空的型號 metadata。34460A IDN 傳回 <code>instrument_model: "34460A"</code> 與 <code>instrument_model_id: "keysight-34460a"</code>；34461A IDN 則傳回對應的 <code>34461A</code> 與 <code>keysight-34461a</code> 值。巢狀的 <code>matched_profile</code> 包含 <code>vendor</code>、<code>model</code> 與 <code>model_id</code>。未知或空白的實機 IDN 仍保留在資源列表中，並將 <code>instrument_model</code>、<code>instrument_model_id</code> 與 <code>matched_profile</code> 設為 null，因此後端不會從備援功能設定檔猜測偵測到的身份。</p>
         <p>選擇實機資源會將其複製到 <code>VISA resource</code> 輸入欄位中。當掃描推斷出支援的型號且 <code>Expected model</code> 仍為 Auto-detect 時，瀏覽器可能會載入 <code>/api/capabilities?model=&lt;model&gt;</code> 以顯示選項，但仍會將 <code>Expected model</code> 保持在 Auto-detect。Start 一律會先執行新的後端 IDN preflight。</p>
         <p>使用者仍然可以手動輸入資源，並在掃描後於 <code>Device options</code> 中要求特定的 <code>Expected model</code>。</p>
-        <p>WebUI 使用 Core 預設的系統 VISA 執行階段。瀏覽器中不提供 PyVISA backend 選擇器。34461A LAN/TCPIP 已透過此預設系統 VISA 路徑支援。只有在需要可選的 pyvisa-py 診斷時，才使用 CLI 專用的 <code>--visa-library</code> 進階選項；支援的選用 <code>@py</code> 擷取範圍是 34461A LAN/TCPIP。</p>
+        <p>WebUI 透過 Core 使用固定的預設 System VISA runtime。瀏覽器不提供選用的 PyVISA backend 選擇器，WebUI API 也不接受 resource scan 或實機執行的 backend override。34461A LAN/TCPIP 已透過此 System VISA 路徑支援。選用的 <code>@py</code> 或 <code>@bt</code> 僅屬於 source 或已安裝 Python 環境中的 CLI 關注範圍，且對應 backend 必須已安裝並可載入；官方 standalone WebUI 不支援這兩者。請勿嘗試透過未記載的 API payload 指定 backend。</p>
         <p>WebUI 不公開驗證模式。非 Product-open 的傳輸/後端範圍以及非 Product-open 的量測或觸發模式功能，會在瀏覽器啟動時被封鎖。瀏覽器會停用產品不可用的功能選項，但該狀態僅為 UX；Core 驗證、支援原則關卡以及 <code>run_start_session()</code> 最終關卡仍是安全邊界。34460A LAN/TCPIP 目前不支援。</p>
 
         <h2>量測模式</h2>
@@ -421,9 +421,9 @@ pending_keys</code></pre></div>
         <p>標準型號名稱仍可供一般使用，穩定的型號 ID 也可作為設定檔查詢輸入。選定的型號仍是預期型號防護；從 live <code>*IDN?</code> 偵測到的設定檔仍是執行階段驅動程式。型號 ID 不代表支援狀態或生命週期狀態。</p>
         
         <p><code>/api/capabilities</code> 也包含額外的支援 metadata。每個確切的實機連線範圍保留其現有的 <code>validation_status</code>、<code>transport_scope</code> 與 <code>backend_scope</code> 欄位，並新增 <code>features.measurement</code> 與 <code>features.trigger_mode</code> 對照表。功能項目公開其自身的 <code>validation_status</code>；量測鍵使用現有的配接器端名稱，例如 <code>voltage-dc-ratio</code>。現有的回應欄位不會被移除或重新命名。已註冊但尚未對產品開放的 scope，可能仍保留 machine-readable <code>transport_pending</code> 狀態。瀏覽器會將這些 scope 視為一般 Product 啟動不可用；此狀態不代表執行授權。</p>
-        <p>瀏覽器使用此 metadata 來顯示型號的實機支援，並停用對目前資源傳輸與 WebUI 固定系統-VISA 後端而言非產品開放的功能。在資源已知之前，Auto-detect 保持現有的備援功能檢視，且僅使用備援設定檔宣告的產品範圍。對於 34461A，該 metadata 包含 USB/system-VISA、LAN/system-VISA 以及選用的 CLI 專用 LAN/pyvisa-py <code>@py</code> 範圍。對於 34460A，DCV Ratio 在 USB/system-VISA 上為 <code>Product-open</code>；34460A LAN/TCPIP system-VISA 與 LAN/TCPIP pyvisa-py <code>@py</code> 目前不支援。現有的量測、觸發、範圍與限制欄位仍是控制項定義的 source of truth。</p>
+        <p>瀏覽器使用此 metadata 來顯示型號的實機支援，並停用對目前資源傳輸與 WebUI 固定系統-VISA 後端而言非產品開放的功能。在資源已知之前，Auto-detect 保持現有的備援功能檢視，且僅使用備援設定檔宣告的產品範圍。對於 34461A，該 metadata 包含 USB/system-VISA、LAN/system-VISA 以及選用的 CLI 專用 LAN/pyvisa-py <code>@py</code> 範圍。對於 34460A，DCV Ratio 在 USB/system-VISA 上為 <code>Product-open</code>；34460A LAN/TCPIP system-VISA 與 LAN/TCPIP pyvisa-py <code>@py</code> 目前不支援。現有的量測、觸發、範圍與限制欄位仍是控制項定義的 source of truth。Product-open support-policy 範圍不代表每個 distribution 都已 bundle 該 backend 套件。</p>
         <p>Expected model 檢查是選用的。Core 會在 Start 時驗證連接儀器的識別資訊。若明確指定的預期型號與新的 IDN preflight 不符，WebUI 會回報選取的型號以及 IDN 中找到的支援型號。</p>
-        <p>選取的 WebUI 型號不得被視為功能解鎖。停用或隱藏的控制項僅為 UX；Core 支援原則與 <code>run_start_session()</code> 最終關卡仍是 WebUI 後端提交的安全邊界。WebUI 不應加入 pyvisa-py 後端選擇器；後端診斷保持 CLI 專用。</p>
+        <p>選取的 WebUI 型號不得被視為功能解鎖。停用或隱藏的控制項僅為 UX；Core 支援原則與 <code>run_start_session()</code> 最終關卡仍是 WebUI 後端提交的安全邊界。目前 WebUI 不提供選用 backend 選擇器；System VISA 仍是受支援的 WebUI runtime。選用的 <code>@py</code> 或 <code>@bt</code> backend 工作不在目前 WebUI product surface 內，僅限於 backend 套件可用時的 CLI 開發／已安裝環境用途。</p>
         
         <p>目前呈現的量測模式包括：</p>
         <ul>

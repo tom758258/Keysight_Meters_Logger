@@ -142,10 +142,13 @@ found by `Scan Device`, or type a known resource provided by the operator or
 test procedure. Do not guess a resource when more than one instrument may be
 connected.
 
-The WebUI uses the computer's default system VISA runtime. It does not include
-a PyVISA backend selector. 34461A LAN/TCPIP with system VISA is Product-open.
-The optional pyvisa-py `@py` acquisition scope is 34461A LAN/TCPIP and is
-available through the CLI only; 34460A LAN/TCPIP with `@py` is not supported.
+The WebUI uses the computer's fixed default System VISA runtime. It does not
+include a PyVISA backend selector, and its resource scan and run API accept no
+backend override. 34461A LAN/TCPIP with System VISA is Product-open. Optional
+`@py` or `@bt` backend work is limited to CLI source or installed Python
+environments where the corresponding backend is installed and loadable; it is
+not supported by the official standalone WebUI. A Product-open `@py` support-
+policy scope does not mean the standalone distribution bundles pyvisa-py.
 
 `Live resource` shows the result of the last scan. Use it to confirm which
 instrument answered before copying or selecting a resource for the run. When

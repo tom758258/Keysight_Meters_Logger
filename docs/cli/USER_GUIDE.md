@@ -86,7 +86,8 @@ itself Product-open for every model and transport/backend combination. Before
 the first live run, keep these operator-facing limits in mind:
 
 - `34461A`: USB/system VISA and LAN/TCPIP with system VISA are Product-open.
-  LAN/TCPIP with pyvisa-py `@py` is Product-open for CLI only.
+  LAN/TCPIP with pyvisa-py `@py` is a Product-open support-policy scope for
+  CLI use when that backend is installed and loadable.
 - `34460A`: the current Product-open live connection scope is USB/system VISA.
   LAN/TCPIP with system VISA and LAN/TCPIP with pyvisa-py `@py` are not
   Product-open. DCV Ratio is Product-open only within the USB/system VISA
@@ -97,13 +98,15 @@ the first live run, keep these operator-facing limits in mind:
 For the exact model, transport/backend, measurement, and trigger support scope,
 see [Supported Models](../core/supported-models.md).
 
-By default, the CLI uses the computer's system VISA runtime, such as Keysight
-IO Libraries Suite or NI-VISA. For pyvisa-py LAN acquisition, an operator may
-install the optional backend packages and add `--visa-library "@py"` to
-`list-resources` or `start-trigger-record`. The alias `--backend "@py"` is
-also accepted. The Product-open optional `@py` acquisition scope is 34461A
-over LAN/TCPIP; 34460A LAN/`@py` is not supported.
-Normal WebUI runs use the default system VISA runtime.
+By default, the CLI uses the computer's System VISA runtime, such as Keysight
+IO Libraries Suite or NI-VISA. In a source checkout, virtual environment, or
+installed Python environment, optional arguments such as `@py` or `@bt` work
+only when the corresponding backend package is installed and loadable. The
+Product-open optional `@py` support-policy scope is 34461A over LAN/TCPIP;
+34460A LAN/`@py` is not supported. That validation status does not guarantee
+backend package availability in a distribution. The current official
+standalone CLI executable supports only the System VISA path; it does not
+bundle `@py` or `@bt`. Normal WebUI runs also use the fixed System VISA path.
 
 ## Choosing A Measurement
 
@@ -155,9 +158,11 @@ PowerShell examples, set `$env:METER_RESOURCE` once and pass
 `--resource "$env:METER_RESOURCE"` so copied commands continue to use
 the selected instrument.
 
-`--visa-library` is an advanced CLI-only PyVISA backend selector. Omit it for
-normal use. Use `--visa-library "@py"` for the Product-open optional pyvisa-py
-acquisition scope: 34461A LAN/TCPIP.
+`--visa-library` is an advanced CLI PyVISA backend selector. Omit it for normal
+use. In an installed Python environment, use `--visa-library "@py"` for the
+Product-open optional pyvisa-py acquisition scope, 34461A LAN/TCPIP, only when
+pyvisa-py is installed and loadable. This option does not make the optional
+backend available in the standalone executable.
 
 `list-resources --verify` opens discovered VISA resources and queries `*IDN?`.
 `list-resources --live-only` implies verification and hides stale entries.

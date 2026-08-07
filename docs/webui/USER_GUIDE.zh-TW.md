@@ -106,7 +106,7 @@ WebUI 會在啟動作業前檢查各項設定。如果 `Start` 被封鎖無法�
 
 `VISA resource` (VISA 資源) 是作業將使用的儀器位址。建議使用透過 `Scan Device` 找到的資源，或手動輸入由操作人員或測試程序提供的已知資源。當可能連接多台儀器時，請勿用猜測的方式填寫資源。
 
-WebUI 使用電腦的預設系統 VISA 執行階段。它不提供 PyVISA backend 選擇器。34461A LAN/TCPIP with system VISA 產品已開放。選用的 pyvisa-py `@py` 擷取範圍是 34461A LAN/TCPIP，且僅由 CLI 提供；34460A LAN/TCPIP with `@py` 目前不支援。
+WebUI 使用電腦固定的預設 System VISA runtime。它不提供 PyVISA backend 選擇器，resource scan 與 run API 也不接受 backend override。34461A LAN/TCPIP with System VISA 已 Product-open。選用的 `@py` 或 `@bt` backend 工作僅限於對應 backend 已安裝且可載入的 CLI source 或已安裝 Python 環境；官方 standalone WebUI 不支援這兩者。Product-open 的 `@py` support-policy 範圍不代表 standalone distribution 已 bundle pyvisa-py。
 
 `Live resource`（實機資源）顯示最後一次掃描回應的結果。請先用它確認是哪台儀器回應，再複製或選取資源以進行作業。當掃描辨識出支援的 34460A 或 34461A IDN 時，WebUI 可能會載入特定型號的選項以供顯示，同時保持 `Expected model` 在 `Auto-detect`。
 
