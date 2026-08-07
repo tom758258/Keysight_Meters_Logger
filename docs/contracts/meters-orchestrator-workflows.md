@@ -214,9 +214,11 @@ For a complete scheduler job history, the orchestrator should retain:
    `status`, `sample`, `error`, `message`, and final `summary` events.
 3. Worker stderr as diagnostics. Stderr does not replace structured pass/fail
    evaluation.
-4. The final `summary` event and process exit code.
+4. The final `summary` event, when emitted, and process exit code.
 5. An orchestrator-owned terminal result that correlates the scheduler job
-   identity, Meters `run_id`, final summary, and process exit code.
+   identity and process exit code, plus the Meters `run_id` and final `summary`
+   when available. Validation or support admission can fail before a runtime
+   session exists, so either optional value may be absent.
 6. Scheduler-owned sample persistence derived from JSONL `sample` events when
    `--no-csv` is used.
 

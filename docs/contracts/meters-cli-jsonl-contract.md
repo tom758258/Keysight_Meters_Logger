@@ -135,6 +135,13 @@ The capability object contains:
   measurement/trigger feature's canonical `feature_kind`, `feature_value`, and
   validation status.
 
+`measurements[].measurement_name` is the canonical CLI request spelling, such
+as `current-dc`, while `measurements[].measurement_type` is the Core-normalized
+type, such as `current_dc`. For measurement feature scopes, `feature_value`
+uses that Core-normalized type, so consumers can join it to
+`measurements[].measurement_type`. Trigger-mode feature values retain the
+existing Core canonical semantics.
+
 For Product support decisions, consumers must not treat the aggregate live
 `validation_status` as sufficient. Product mode requires an exact matching
 transport/backend scope whose connection status is
