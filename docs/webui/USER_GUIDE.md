@@ -144,11 +144,14 @@ connected.
 
 The WebUI uses the computer's fixed default System VISA runtime. It does not
 include a PyVISA backend selector, and its resource scan and run API accept no
-backend override. 34461A LAN/TCPIP with System VISA is Product-open. Optional
-`@py` or `@bt` backend work is limited to CLI source or installed Python
-environments where the corresponding backend is installed and loadable; it is
-not supported by the official standalone WebUI. A Product-open `@py` support-
-policy scope does not mean the standalone distribution bundles pyvisa-py.
+backend override. 34461A LAN/TCPIP with System VISA is Product-open. In a CLI
+source or installed Python environment, live acquisition with `@py` still
+requires a loadable backend and a registered Product-open scope. Although the
+CLI backend abstraction can carry an installed, loadable `@bt` selector, Meters
+currently registers no Product-open `@bt` live acquisition scope. Neither
+optional backend is supported by the official standalone WebUI. A Product-open
+`@py` support-policy scope does not mean the standalone distribution bundles
+pyvisa-py.
 
 `Live resource` shows the result of the last scan. Use it to confirm which
 instrument answered before copying or selecting a resource for the run. When

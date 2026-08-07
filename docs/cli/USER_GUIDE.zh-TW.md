@@ -64,7 +64,7 @@ live 啟動省略 `--model` 時，連接儀器的 `*IDN?` 決定 runtime profile
 
 精確的型號、transport/backend、量測與觸發支援範圍，請參閱 [支援型號](../core/supported-models.md)。
 
-CLI 預設使用電腦的 System VISA runtime，例如 Keysight IO Libraries Suite 或 NI-VISA。在 source checkout、虛擬環境或已安裝的 Python 環境中，只有當對應的 backend 套件已安裝且可載入時，`@py` 或 `@bt` 等選用引數才能使用。Product-open 的選用 `@py` support-policy 範圍是 LAN/TCPIP 上的 34461A；34460A LAN/`@py` 目前不支援。該 validation status 不保證 distribution 中存在 backend 套件。目前官方 standalone CLI 執行檔只支援 System VISA 路徑，不 bundle `@py` 或 `@bt`。一般的 WebUI 執行同樣使用固定的 System VISA 路徑。
+CLI 預設使用電腦的 System VISA runtime，例如 Keysight IO Libraries Suite 或 NI-VISA。在 source checkout、虛擬環境或已安裝的 Python 環境中，CLI 可在 backend 已安裝且可載入時傳遞選用 selector；實機擷取還需要完全相符且已註冊的 Product-open support scope。`@py` 已具備文件所列 Product-open scope 的註冊支援，包括 LAN/TCPIP 上的 34461A；34460A LAN/`@py` 目前不支援。`@bt` 目前沒有已註冊的 Meters Product-open 實機擷取 scope，因此僅安裝其 backend 不會開放 `start-trigger-record`。Support-policy status 不保證 distribution 中存在 backend 套件。目前官方 standalone CLI 執行檔只支援 System VISA 路徑，不 bundle `@py` 或 `@bt`。一般的 WebUI 執行同樣使用固定的 System VISA 路徑。
 
 ## 選擇量測類型
 

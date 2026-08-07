@@ -270,10 +270,13 @@ model from `Device options` after scanning.
 The WebUI uses the fixed default System VISA runtime through Core. The browser
 exposes no optional PyVISA backend selector, and the WebUI API accepts no
 backend override for resource scans or live runs. 34461A LAN/TCPIP is supported
-through this System VISA path. Optional `@py` or `@bt` work is a CLI concern in
-a source or installed Python environment where the corresponding backend is
-installed and loadable; the official standalone WebUI does not support either
-backend. Do not attempt to supply one through an undocumented API payload.
+through this System VISA path. In a source or installed Python environment, CLI
+live acquisition with `@py` is limited to its registered Product-open scopes.
+The CLI can carry an installed, loadable `@bt` selector through the backend
+abstraction, but Meters currently registers no Product-open `@bt` live
+acquisition scope.
+The official standalone WebUI supports neither optional backend. Do not attempt
+to supply one through an undocumented API payload.
 
 The WebUI does not expose validation mode. Transport/backend scopes and
 measurement or trigger-mode features that are not Product-open remain blocked
@@ -386,8 +389,9 @@ hidden controls are UX only; the Core support policy and `run_start_session()`
 runner final gate remain the safety boundary for WebUI backend submissions.
 The current WebUI exposes no optional backend selector; System VISA remains the
 supported WebUI runtime. Optional `@py` or `@bt` backend work remains outside
-the current WebUI product surface and is limited to CLI development/installed-
-environment use when its backend package is available.
+the current WebUI product surface. CLI development/installed-environment use
+still requires a loadable backend and an exact registered Product-open scope;
+`@bt` currently has no such live acquisition scope.
 
 Currently surfaced measurement modes include:
 

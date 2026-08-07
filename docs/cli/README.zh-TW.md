@@ -65,7 +65,7 @@ Python 整合應從 `meters_tool_core` 或 `meters_tool_core.*` 匯入共享的 
 - VISA 執行階段，例如 Keysight IO Libraries Suite 或 NI-VISA。
 - 透過 VISA 可見的支援數位萬用電表；目前支援的型號與連線範圍請參閱支援型號文件。34460A 基礎設定檔不假設具備選用的 LAN/LXI 或外接觸發支援。
 
-`@py` 或 `@bt` 等選用 backend 引數屬於開發／已安裝 Python 環境的能力。只有當對應的 backend 套件已安裝且可由該 Python 環境載入時才能使用。若要測試 pyvisa-py，僅在需要時安裝其選用套件：
+CLI 在開發／已安裝 Python 環境中，可在對應 backend 已安裝且可載入時傳遞 `@py` 或 `@bt` 等選用 selector。這只代表 PyVISA 可承接該 selector；實機擷取還需要完全相符且已註冊的 Product-open support scope。`@py` 已具備文件所列 Product-open scope 的註冊支援。`@bt` 目前沒有已註冊的 Meters Product-open 實機擷取 scope，因此僅安裝對應 backend 套件不會開放 `start-trigger-record` 實機執行。若要測試 pyvisa-py，僅在需要時安裝其選用套件：
 
 ```powershell
 uv pip install pyvisa-py pyserial psutil zeroconf
@@ -203,7 +203,7 @@ PyInstaller 會將產生的檔案寫入本機 `build\` 和 `dist\` 目錄。除�
 
 預設情況下，`meters-tool` 使用 `pyvisa.ResourceManager()`，因此使用系統 VISA 執行階段，例如 Keysight IO Libraries Suite 或 NI-VISA。
 
-在 source checkout、虛擬環境或已安裝的 Python 環境中，只有當對應的 backend 套件已安裝且可載入時，`@py` 或 `@bt` 等選用引數才能運作。若要使用 pyvisa-py 進行進階測試，請安裝其選用套件，並在會開啟 VISA 資源的 CLI 指令中傳入 `--visa-library "@py"`：
+在 source checkout、虛擬環境或已安裝的 Python 環境中，CLI 可在 backend 已安裝且可載入時傳遞選用 selector；實機擷取仍另外需要完全相符且已註冊的 Product-open support scope。`@py` 已具備文件所列 Product-open scope 的註冊支援；`@bt` 目前沒有已註冊的 Meters Product-open 實機擷取 scope，因此僅安裝其 backend 不會開放 `start-trigger-record`。若要使用 pyvisa-py 進行進階測試，請安裝其選用套件，並在會開啟 VISA 資源的 CLI 指令中傳入 `--visa-library "@py"`：
 
 ```powershell
 uv pip install pyvisa-py pyserial psutil zeroconf

@@ -100,13 +100,16 @@ see [Supported Models](../core/supported-models.md).
 
 By default, the CLI uses the computer's System VISA runtime, such as Keysight
 IO Libraries Suite or NI-VISA. In a source checkout, virtual environment, or
-installed Python environment, optional arguments such as `@py` or `@bt` work
-only when the corresponding backend package is installed and loadable. The
-Product-open optional `@py` support-policy scope is 34461A over LAN/TCPIP;
-34460A LAN/`@py` is not supported. That validation status does not guarantee
-backend package availability in a distribution. The current official
-standalone CLI executable supports only the System VISA path; it does not
-bundle `@py` or `@bt`. Normal WebUI runs also use the fixed System VISA path.
+installed Python environment, the CLI can pass an optional backend selector
+when its backend is installed and loadable. Live acquisition also requires an
+exact registered Product-open support scope. `@py` has registered Product-open
+support for the documented scopes, including 34461A LAN/TCPIP; 34460A
+LAN/`@py` is not supported. `@bt` currently has no registered Product-open
+Meters live acquisition scope, so installing its backend alone does not enable
+`start-trigger-record`. Support-policy status does not guarantee backend
+package availability in a distribution. The current official standalone CLI
+executable supports only the System VISA path; it does not bundle `@py` or
+`@bt`. Normal WebUI runs also use the fixed System VISA path.
 
 ## Choosing A Measurement
 

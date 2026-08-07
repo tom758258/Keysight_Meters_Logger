@@ -119,10 +119,15 @@ Important limitations:
   currently supported models and connection scopes. The 34460A base profile
   does not assume optional LAN/LXI or external trigger support.
 
-Optional backend arguments such as `@py` or `@bt` are development/installed-
-environment capabilities. They are usable only when the corresponding backend
-package is installed and loadable in that Python environment. For pyvisa-py
-testing, install the optional packages only when needed:
+The CLI can pass optional backend selectors such as `@py` or `@bt` in a
+development or installed Python environment when the corresponding backend is
+installed and loadable. That makes the selector available to PyVISA; live
+acquisition also requires an exact registered Product-open support scope.
+`@py` has registered support for the documented Product-open scopes. `@bt`
+currently has no registered Product-open Meters live acquisition scope, so
+installing a corresponding backend package alone does not enable
+`start-trigger-record` live execution. For pyvisa-py testing, install the
+optional packages only when needed:
 
 ```powershell
 uv pip install pyvisa-py pyserial psutil zeroconf
@@ -298,10 +303,14 @@ By default, `meters-tool` uses `pyvisa.ResourceManager()` and therefore the
 system VISA runtime, such as Keysight IO Libraries Suite or NI-VISA.
 
 In a source checkout, virtual environment, or installed Python environment,
-optional arguments such as `@py` or `@bt` work only when the corresponding
-backend package is installed and loadable. For advanced pyvisa-py testing,
-install its optional packages and pass `--visa-library "@py"` to CLI commands
-that open VISA resources:
+the CLI can pass an optional selector when its backend is installed and
+loadable. Live acquisition separately requires an exact registered
+Product-open support scope. `@py` has registered support for the documented
+Product-open scopes; `@bt` currently has no registered Product-open Meters live
+acquisition scope, so installing its backend alone does not enable
+`start-trigger-record`. For advanced pyvisa-py testing, install its optional
+packages and pass `--visa-library "@py"` to CLI commands that open VISA
+resources:
 
 ```powershell
 uv pip install pyvisa-py pyserial psutil zeroconf

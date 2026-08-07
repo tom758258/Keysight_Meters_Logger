@@ -251,7 +251,7 @@
             <li><code>34460A</code>：目前 Product-open 的實機 connection scope 是 USB/system VISA。LAN/TCPIP with system VISA 尚未 Product-open；LAN/TCPIP with pyvisa-py <code>@py</code> 目前不支援。DCV Ratio 只在 USB/system VISA scope 開放。base profile 不支援 <code>external</code> 或 <code>external-custom</code> trigger、不支援 10 A/current-terminal 選擇，且 reading memory 上限為 1000。</li>
         </ul>
         <p>精確的型號、transport/backend、量測與觸發支援範圍，請參閱 <a href="../core/supported-models.md">支援型號</a>。</p>
-        <p>CLI 預設使用電腦的 System VISA runtime，例如 Keysight IO Libraries Suite 或 NI-VISA。在 source checkout、虛擬環境或已安裝的 Python 環境中，只有當對應的 backend 套件已安裝且可載入時，<code>@py</code> 或 <code>@bt</code> 等選用引數才能使用。Product-open 的選用 <code>@py</code> support-policy 範圍是 LAN/TCPIP 上的 34461A；34460A LAN/<code>@py</code> 目前不支援。該 validation status 不保證 distribution 中存在 backend 套件。目前官方 standalone CLI 執行檔只支援 System VISA 路徑，不 bundle <code>@py</code> 或 <code>@bt</code>。一般的 WebUI 執行同樣使用固定的 System VISA 路徑。</p>
+        <p>CLI 預設使用電腦的 System VISA runtime，例如 Keysight IO Libraries Suite 或 NI-VISA。在 source checkout、虛擬環境或已安裝的 Python 環境中，CLI 可在 backend 已安裝且可載入時傳遞選用 selector；實機擷取還需要完全相符且已註冊的 Product-open support scope。<code>@py</code> 已具備文件所列 Product-open scope 的註冊支援，包括 LAN/TCPIP 上的 34461A；34460A LAN/<code>@py</code> 目前不支援。<code>@bt</code> 目前沒有已註冊的 Meters Product-open 實機擷取 scope，因此僅安裝其 backend 不會開放 <code>start-trigger-record</code>。Support-policy status 不保證 distribution 中存在 backend 套件。目前官方 standalone CLI 執行檔只支援 System VISA 路徑，不 bundle <code>@py</code> 或 <code>@bt</code>。一般的 WebUI 執行同樣使用固定的 System VISA 路徑。</p>
         
         <h2>選擇量測類型</h2>
         <p>請選擇與儀器接線及待測訊號相符的量測類型：</p>

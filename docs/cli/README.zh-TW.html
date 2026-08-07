@@ -305,7 +305,7 @@
             <li>VISA 執行階段，例如 Keysight IO Libraries Suite 或 NI-VISA。</li>
             <li>透過 VISA 可見的支援數位萬用電表；目前支援的型號與連線範圍請參閱支援型號文件。34460A 基礎設定檔不假設具備選用的 LAN/LXI 或外接觸發支援。</li>
         </ul>
-        <p><code>@py</code> 或 <code>@bt</code> 等選用 backend 引數屬於開發／已安裝 Python 環境的能力。只有當對應的 backend 套件已安裝且可由該 Python 環境載入時才能使用。若要測試 pyvisa-py，僅在需要時安裝其選用套件：</p>
+        <p>CLI 在開發／已安裝 Python 環境中，可在對應 backend 已安裝且可載入時傳遞 <code>@py</code> 或 <code>@bt</code> 等選用 selector。這只代表 PyVISA 可承接該 selector；實機擷取還需要完全相符且已註冊的 Product-open support scope。<code>@py</code> 已具備文件所列 Product-open scope 的註冊支援。<code>@bt</code> 目前沒有已註冊的 Meters Product-open 實機擷取 scope，因此僅安裝對應 backend 套件不會開放 <code>start-trigger-record</code> 實機執行。若要測試 pyvisa-py，僅在需要時安裝其選用套件：</p>
         <div class="code-wrapper"><pre><code>uv pip install pyvisa-py pyserial psutil zeroconf</code></pre></div>
         <p>目前 Product-open 的選用 pyvisa-py support-policy 範圍是 34461A 經由 LAN/TCPIP。34460A LAN/TCPIP 與 34460A LAN/<code>@py</code> 目前不支援。Support-policy validation status 不代表 distribution 已包含該 backend 套件。目前官方 standalone Meters Tool 執行檔只支援預設 System VISA 路徑；<code>@py</code> 與 <code>@bt</code> 未被 bundle，也不屬於受支援的 standalone runtime。</p>
 
@@ -401,7 +401,7 @@ uv sync --all-extras --link-mode=copy
 
         <h3>已安裝 Python 環境中的選用 PyVISA backend</h3>
         <p>預設情況下，<code>meters-tool</code> 使用 <code>pyvisa.ResourceManager()</code>，因此使用系統 VISA 執行階段，例如 Keysight IO Libraries Suite 或 NI-VISA。</p>
-        <p>在 source checkout、虛擬環境或已安裝的 Python 環境中，只有當對應的 backend 套件已安裝且可載入時，<code>@py</code> 或 <code>@bt</code> 等選用引數才能運作。若要使用 pyvisa-py 進行進階測試，請安裝其選用套件，並在會開啟 VISA 資源的 CLI 指令中傳入 <code>--visa-library "@py"</code>：</p>
+        <p>在 source checkout、虛擬環境或已安裝的 Python 環境中，CLI 可在 backend 已安裝且可載入時傳遞選用 selector；實機擷取仍另外需要完全相符且已註冊的 Product-open support scope。<code>@py</code> 已具備文件所列 Product-open scope 的註冊支援；<code>@bt</code> 目前沒有已註冊的 Meters Product-open 實機擷取 scope，因此僅安裝其 backend 不會開放 <code>start-trigger-record</code>。若要使用 pyvisa-py 進行進階測試，請安裝其選用套件，並在會開啟 VISA 資源的 CLI 指令中傳入 <code>--visa-library "@py"</code>：</p>
         <div class="code-wrapper"><pre><code>uv pip install pyvisa-py pyserial psutil zeroconf
 
 uv run meters-tool list-resources --visa-library "@py" --verify

@@ -197,7 +197,7 @@ GET /api/resources?verify=true&live_only=true
 
 使用者仍然可以手動輸入資源，並在掃描後於 `Device options` 中要求特定的 `Expected model`。
 
-WebUI 透過 Core 使用固定的預設 System VISA runtime。瀏覽器不提供選用的 PyVISA backend 選擇器，WebUI API 也不接受 resource scan 或實機執行的 backend override。34461A LAN/TCPIP 已透過此 System VISA 路徑支援。選用的 `@py` 或 `@bt` 僅屬於 source 或已安裝 Python 環境中的 CLI 關注範圍，且對應 backend 必須已安裝並可載入；官方 standalone WebUI 不支援這兩者。請勿嘗試透過未記載的 API payload 指定 backend。
+WebUI 透過 Core 使用固定的預設 System VISA runtime。瀏覽器不提供選用的 PyVISA backend 選擇器，WebUI API 也不接受 resource scan 或實機執行的 backend override。34461A LAN/TCPIP 已透過此 System VISA 路徑支援。在 source 或已安裝 Python 環境中，CLI 使用 `@py` 的實機擷取僅限於已註冊的 Product-open scope。CLI backend abstraction 可承接已安裝且可載入的 `@bt` selector，但 Meters 目前沒有已註冊的 Product-open `@bt` 實機擷取 scope。官方 standalone WebUI 不支援這兩種選用 backend。請勿嘗試透過未記載的 API payload 指定 backend。
 
 WebUI 不公開驗證模式。未對產品開放的傳輸/後端範圍以及量測或觸發模式功能，會在瀏覽器啟動時被封鎖。瀏覽器會停用產品不可用的功能選項，但該狀態僅為 UX；Core 驗證、支援原則關卡以及 `run_start_session()` 最終關卡仍是安全邊界。34460A LAN/TCPIP 目前不支援 WebUI。
 
@@ -252,7 +252,7 @@ pending_keys
 
 Expected model 檢查是選用的。Core 會在 Start 時驗證連接儀器的識別資訊。若明確指定的預期型號與新的 IDN preflight 不符，WebUI 會回報選取的型號以及 IDN 中找到的支援型號。
 
-選取的 WebUI 型號不得被視為功能解鎖。停用或隱藏的控制項僅為 UX；Core 支援原則與 `run_start_session()` 最終關卡仍是 WebUI 後端提交的安全邊界。目前 WebUI 不提供選用 backend 選擇器；System VISA 仍是受支援的 WebUI runtime。選用的 `@py` 或 `@bt` backend 工作不在目前 WebUI product surface 內，僅限於 backend 套件可用時的 CLI 開發／已安裝環境用途。
+選取的 WebUI 型號不得被視為功能解鎖。停用或隱藏的控制項僅為 UX；Core 支援原則與 `run_start_session()` 最終關卡仍是 WebUI 後端提交的安全邊界。目前 WebUI 不提供選用 backend 選擇器；System VISA 仍是受支援的 WebUI runtime。選用的 `@py` 或 `@bt` backend 工作不在目前 WebUI product surface 內。CLI 開發／已安裝環境用途仍需要可載入的 backend 與完全相符且已註冊的 Product-open scope；`@bt` 目前沒有這類實機擷取 scope。
 
 目前呈現的量測模式包括：
 
