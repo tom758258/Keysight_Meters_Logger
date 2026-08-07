@@ -336,6 +336,7 @@ The module form remains an explicit development/fallback alternative:
 
 | Command | Purpose | Typical use |
 | --- | --- | --- |
+| `capabilities` | Print Core-owned instrument capabilities and Product support metadata without instrument I/O. | Let scripts inspect profiles, measurements, trigger modes, limits, and exact support scopes before constructing a request. |
 | `list-resources` | Print VISA resources discovered by PyVISA. | Find the USB or LAN resource string. Add `--verify` to query `*IDN?`; add `--live-only` to hide stale cached resources; add `--dry-run` to preview discovery actions without touching VISA. |
 | `start-trigger-record` | Connect to the instrument and record samples to CSV. | Main logging command. |
 | `send-command` | POST one `software_trigger` command to the local command endpoint. | Used with `--trigger-mode software`. |
@@ -348,6 +349,14 @@ Root options:
 | Option | Description |
 | --- | --- |
 | `--version` | Print `meters-tool <package-version>` and exit without requiring a subcommand. |
+
+`capabilities` options:
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `--model MODEL`, `--instrument-model MODEL` | Core fallback profile | Select an offline capability profile through Core model resolution. This performs no live detection and does not override a later live run's detected model. |
+| `--format text\|json` | `text` | Output a concise human summary or one machine-readable capability object. |
+| `--json` | Off | Alias for `--format json`. |
 
 `list-resources` options:
 
@@ -480,6 +489,20 @@ the 34461A Auto Input Z behavior. The instrument may display HighZ while Auto
 is active on lower DC voltage ranges.
 
 ## Agent-Friendly CLI Workflows
+
+Inspect capabilities before constructing a scheduler request without opening
+VISA or creating an artifact:
+
+```powershell
+.\.venv\Scripts\meters-tool.exe capabilities --json
+.\.venv\Scripts\meters-tool.exe capabilities --model 34461A --json
+```
+
+When `--model` is omitted, the response identifies the Core fallback capability
+profile and separately reports that runtime identity detection was not
+performed. Product-open live support must be evaluated at the exact
+transport/backend scope together with the requested measurement and trigger
+mode; the aggregate live validation status alone is not sufficient.
 
 Use `--dry-run` to validate a command and inspect the planned SCPI/read path
 without touching the instrument:

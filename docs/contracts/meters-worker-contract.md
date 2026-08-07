@@ -274,6 +274,11 @@ Dry-run reports `csv_enabled: false` and `csv_path: null` for a no-CSV plan,
 while `dry_run_writes_csv` remains false for every dry-run. Common schema
 version remains `2`; the Common Worker Protocol is unchanged.
 
+Schedulers that retain launch requests, complete stdout/stderr, terminal
+results, or derived sample files own those filenames and layouts. See
+[Meters Orchestrator Workflows](meters-orchestrator-workflows.md#orchestrator-owned-sample-persistence);
+they are not additional Meters Worker artifacts.
+
 Wrapper artifacts:
 
 - `report.json`: machine-readable wrapper report.

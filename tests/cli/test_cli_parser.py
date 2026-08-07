@@ -23,6 +23,7 @@ class CliArgsTests(unittest.TestCase):
         help_text = stdout.getvalue()
         self.assertIn("--version", help_text)
         for command in [
+            "capabilities",
             "list-resources",
             "start-trigger-record",
             "send-command",
@@ -43,6 +44,7 @@ class CliArgsTests(unittest.TestCase):
 
     def test_subcommand_help_lists_agent_flags(self):
         cases = {
+            "capabilities": ["--model", "--json", "--format"],
             "list-resources": [
                 "--dry-run",
                 "--json",
@@ -74,6 +76,25 @@ class CliArgsTests(unittest.TestCase):
                 help_text = stdout.getvalue()
                 for flag in flags:
                     self.assertIn(flag, help_text)
+
+    def test_capabilities_parser_defaults_and_json_alias(self):
+        parser = build_parser()
+
+        default_args = parser.parse_args(["capabilities"])
+        json_args = parser.parse_args(["capabilities", "--model", "34461A", "--json"])
+
+        self.assertIsNone(default_args.instrument_model)
+        self.assertEqual("text", default_args.output_format)
+        self.assertEqual("34461A", json_args.instrument_model)
+        self.assertEqual("json", json_args.output_format)
+
+    def test_capabilities_json_alias_conflicts_with_text_format(self):
+        parser = build_parser()
+
+        with self.assertRaises(SystemExit) as exc:
+            parser.parse_args(["capabilities", "--json", "--format", "text"])
+
+        self.assertEqual(2, exc.exception.code)
 
     def test_start_defaults(self):
         parser = build_parser()

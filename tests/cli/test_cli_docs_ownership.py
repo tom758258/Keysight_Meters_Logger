@@ -153,8 +153,30 @@ def test_cli_jsonl_contract_documents_v2_conformance_and_machine_fields():
         "csv_enabled",
         "csv_path",
         "dry_run_writes_csv",
+        "capability_profile",
+        "runtime_identity",
+        "available_profiles",
+        "transport_scope",
+        "feature_kind",
     ):
         assert field in text
+
+
+def test_orchestrator_contract_documents_owned_complete_run_history():
+    text = read_contract("meters-orchestrator-workflows.md")
+
+    for artifact in (
+        "request.json",
+        "stdout.jsonl",
+        "stderr.txt",
+        "result.json",
+        "samples.csv",
+    ):
+        assert artifact in text
+    for result_input in ("scheduler job", "run_id", "summary", "process exit code"):
+        assert result_input in text
+    assert "orchestrator-owned examples" in text
+    assert "not Meters Worker artifact names" in text
 
 
 def test_common_contracts_stay_instrument_neutral():

@@ -86,6 +86,7 @@ def _apply_json_aliases(args: argparse.Namespace, argv: list[str], parser: argpa
         args.status_format = "jsonl"
         return
     if getattr(args, "command", None) in {
+        "capabilities",
         "list-resources",
         "send-command",
         "stop",
@@ -206,6 +207,23 @@ def build_parser(version_provider) -> argparse.ArgumentParser:
         help="output format for discovered resources; default: text",
     )
     list_resources.add_argument("--json", action="store_true", help="alias for --format json")
+
+    capabilities = sub.add_parser(
+        "capabilities",
+        formatter_class=MetersHelpFormatter,
+    )
+    capabilities.add_argument(
+        "--model",
+        "--instrument-model",
+        dest="instrument_model",
+        metavar="MODEL",
+        default=None,
+        help=(
+            f"capability profile to inspect, e.g. {supported_models}; "
+            "default uses the Core fallback profile without detecting an instrument"
+        ),
+    )
+    _add_client_output_arguments(capabilities, include_dry_run=False)
 
     start = sub.add_parser(
         "start-trigger-record",

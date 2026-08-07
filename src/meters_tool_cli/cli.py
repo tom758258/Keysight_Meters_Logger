@@ -16,8 +16,11 @@ from meters_tool_core import (
     StopController,
     build_start_plan,
     generate_buffer_overflow_warnings,
+    get_core_capabilities,
+    resolve_instrument_profile,
     resolve_trigger_mode,
     run_start_session,
+    start_workflow_support,
     validate_start_request,
     validate_start_workflow_support,
 )
@@ -29,6 +32,18 @@ from meters_tool_core._version import (
 from meters_tool_core.instrument import InstrumentError, VisaInstrument
 from meters_tool_core.session import new_run_id
 from meters_tool_core.start_resolution import resolve_start_profile
+from meters_tool_core.validation import (
+    BUFFER_DRAIN_SIZE_RANGE,
+    HW_TRIGGER_DELAY_S_RANGE,
+    MAX_SAMPLES_RANGE,
+    SAMPLE_COUNT_RANGE,
+    SW_MIN_INTERVAL_MS_RANGE,
+    SW_QUEUE_MAX_RANGE,
+    TIMEOUT_MS_RANGE,
+    TIMER_INTERVAL_S_RANGE,
+    TRIGGER_COUNT_RANGE,
+    TRIGGER_TIMEOUT_MS_RANGE,
+)
 
 try:
     from ._constants import CLI_EVENT_SCHEMA_VERSION
@@ -509,6 +524,160 @@ def _start_request_from_args(args: argparse.Namespace) -> StartRequest:
 def build_parser() -> argparse.ArgumentParser:
     return _build_parser(get_cli_version)
 
+
+def _range_payload(values: tuple[int | float, int | float]) -> dict[str, int | float]:
+    return {"min": values[0], "max": values[1]}
+
+
+def _support_scope_payload(scope) -> dict[str, object]:  # noqa: ANN001
+    return {
+        "backend_scope": scope.backend_scope,
+        "features": [
+            {
+                "feature_kind": feature.feature_kind,
+                "feature_value": feature.feature_value,
+                "validation_status": feature.validation_status,
+            }
+            for feature in scope.feature_scopes
+        ],
+        "transport_scope": scope.transport_scope,
+        "validation_status": scope.validation_status,
+    }
+
+
+def _support_payload(profile) -> dict[str, object]:  # noqa: ANN001
+    return {
+        command: {
+            mode: {
+                "backend_scope": support.backend_scope,
+                "scopes": [_support_scope_payload(scope) for scope in support.scopes],
+                "transport_scope": support.transport_scope,
+                "validation_status": support.validation_status,
+            }
+            for mode, support in modes.items()
+        }
+        for command, modes in start_workflow_support(profile).items()
+    }
+
+
+def cmd_capabilities(
+    model: str | None = None,
+    output_format: str = "text",
+    print_fn=print,  # noqa: ANN001
+) -> int:
+    requested_model = _optional_text(model)
+    try:
+        profile = resolve_instrument_profile(requested_model)
+    except ValueError as exc:
+        if output_format == "json":
+            print_fn(
+                json.dumps(
+                    {
+                        "command": "capabilities",
+                        "event": "error",
+                        "exit_code": 2,
+                        "message": str(exc),
+                        "requested_model": requested_model,
+                        "schema_version": CLI_EVENT_SCHEMA_VERSION,
+                        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+                    },
+                    sort_keys=True,
+                )
+            )
+        else:
+            print(str(exc), file=sys.stderr)
+        return 2
+
+    capabilities = get_core_capabilities(profile)
+    payload = {
+        "available_profiles": list(capabilities.available_profiles),
+        "capability_profile": {
+            "model": capabilities.model,
+            "model_id": capabilities.model_id,
+            "reading_memory_limit": capabilities.reading_memory_limit,
+            "supports_buffered_reading_memory": profile.supports_buffered_reading_memory,
+            "vendor": capabilities.vendor,
+        },
+        "event": "capabilities",
+        "limits": {
+            "buffer_drain_size": _range_payload(
+                (
+                    BUFFER_DRAIN_SIZE_RANGE[0],
+                    min(BUFFER_DRAIN_SIZE_RANGE[1], capabilities.reading_memory_limit),
+                )
+            ),
+            "hw_trigger_delay_s": _range_payload(HW_TRIGGER_DELAY_S_RANGE),
+            "max_samples": _range_payload(MAX_SAMPLES_RANGE),
+            "sample_count": _range_payload(SAMPLE_COUNT_RANGE),
+            "sw_min_interval_ms": {
+                **_range_payload(SW_MIN_INTERVAL_MS_RANGE),
+                "nonzero_min": 50,
+            },
+            "sw_queue_max": _range_payload(SW_QUEUE_MAX_RANGE),
+            "timeout_ms": _range_payload(TIMEOUT_MS_RANGE),
+            "timer_interval_s": _range_payload(TIMER_INTERVAL_S_RANGE),
+            "trigger_count": _range_payload(TRIGGER_COUNT_RANGE),
+            "trigger_timeout_ms": _range_payload(TRIGGER_TIMEOUT_MS_RANGE),
+        },
+        "measurements": [
+            {
+                "ac_bandwidth_hz_values": list(measurement.ac_bandwidth_hz_values),
+                "auto_zero_values": list(measurement.auto_zero_values),
+                "current_terminal_values": list(measurement.current_terminal_values),
+                "dcv_input_impedance_values": list(measurement.dcv_input_impedance_values),
+                "default_ac_bandwidth_hz": measurement.default_ac_bandwidth_hz,
+                "default_auto_range": measurement.default_auto_range,
+                "default_freq_period_timeout": measurement.default_freq_period_timeout,
+                "default_gate_time_s": measurement.default_gate_time_s,
+                "freq_period_timeout_values": list(measurement.freq_period_timeout_values),
+                "gate_time_s_values": list(measurement.gate_time_s_values),
+                "measurement_name": measurement.measurement_name,
+                "measurement_type": measurement.measurement_type,
+                "nplc_values": list(measurement.nplc_values),
+                "range_values": list(measurement.range_values),
+                "unit": measurement.unit,
+            }
+            for measurement in capabilities.measurements
+        ],
+        "runtime_identity": {
+            "detection_performed": False,
+            "model": None,
+            "model_id": None,
+            "vendor": None,
+        },
+        "schema_version": CLI_EVENT_SCHEMA_VERSION,
+        "selection": {
+            "requested_model": requested_model,
+            "source": "requested_model" if requested_model is not None else "default_fallback",
+        },
+        "support": _support_payload(profile),
+        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        "trigger_modes": list(capabilities.trigger_modes),
+    }
+
+    if output_format == "json":
+        print_fn(json.dumps(payload, sort_keys=True))
+        return 0
+
+    source_label = "requested model" if requested_model is not None else "default fallback"
+    print_fn(
+        "capability profile: "
+        f"{capabilities.vendor} {capabilities.model} ({capabilities.model_id})"
+    )
+    print_fn(f"profile source: {source_label}")
+    print_fn("runtime identity detection: not performed")
+    print_fn(
+        "available profiles: "
+        + ", ".join(item["model"] for item in capabilities.available_profiles)
+    )
+    print_fn(
+        "measurements: "
+        + ", ".join(measurement.measurement_name for measurement in capabilities.measurements)
+    )
+    print_fn("trigger modes: " + ", ".join(capabilities.trigger_modes))
+    return 0
+
+
 def cmd_list_resources(
     verify: bool = False,
     live_only: bool = False,
@@ -721,6 +890,8 @@ def cmd_start(args: argparse.Namespace) -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    if args.command == "capabilities":
+        return cmd_capabilities(args.instrument_model, args.output_format)
     if args.command == "list-resources":
         return cmd_list_resources(
             verify=args.verify,

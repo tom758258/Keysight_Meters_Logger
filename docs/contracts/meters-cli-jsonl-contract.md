@@ -92,6 +92,7 @@ captured a first sample.
 
 These commands accept `--format json` and the `--json` alias:
 
+- `capabilities`
 - `list-resources`
 - `send-command`
 - `stop`
@@ -100,6 +101,7 @@ These commands accept `--format json` and the `--json` alias:
 
 Alias rules:
 
+- `capabilities --json` is the same as `--format json`
 - `list-resources --json` is the same as `--format json`
 - `send-command --json` is the same as `--format json`
 - `stop --json` is the same as `--format json`
@@ -108,6 +110,43 @@ Alias rules:
 - `start-trigger-record --json` is the same as `--status-format jsonl`
 
 Conflicts exit with code `2`.
+
+### Capability Discovery
+
+`capabilities --json` emits one `event: capabilities` object and exits `0`.
+It does not create a VISA resource manager, scan or open resources, start a
+Worker or HTTP server, or create CSV or other output files. Optional
+`--model MODEL` selects an offline Core capability profile using the normal
+Core profile-resolution rules. It is not persisted and never overrides the
+model detected from `*IDN?` by a later live run.
+
+The capability object contains:
+
+- `selection`: the optional `requested_model` and a `source` of
+  `requested_model` or `default_fallback`.
+- `runtime_identity`: `detection_performed: false` with null identity fields,
+  because capability discovery performs no live detection.
+- `capability_profile`: Core-owned `vendor`, `model`, canonical `model_id`,
+  `reading_memory_limit`, and buffered-reading-memory support.
+- `available_profiles`, `measurements`, `trigger_modes`, and `limits` derived
+  from Core capability, profile, and validation data.
+- `support`: Core `start-trigger-record` mode and exact live support scopes,
+  including `validation_status`, `transport_scope`, `backend_scope`, and each
+  measurement/trigger feature's canonical `feature_kind`, `feature_value`, and
+  validation status.
+
+For Product support decisions, consumers must not treat the aggregate live
+`validation_status` as sufficient. Product mode requires an exact matching
+transport/backend scope whose connection status is
+`live_validated_full_suite`, plus `live_validated_full_suite` entries for the
+requested measurement and trigger mode in that same scope. Pending, missing,
+unknown, and model-unsupported scopes remain fail-closed. The CLI serializes
+Core statuses and does not add a separate `product_open` decision field.
+
+The machine payload excludes WebUI presentation fields and Core support-policy
+evidence, notes, and private validation artifact paths. An unsupported model is
+a validation error: JSON mode emits one `event: error` object with
+`exit_code: 2`, while text mode writes the diagnostic to stderr.
 
 `send-command`, `stop`, and `status` accept client `--timeout-ms`
 values from `100` to `600000`. Their default is `3000` ms.

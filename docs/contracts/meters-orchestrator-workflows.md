@@ -42,6 +42,12 @@ Meters context is fixed at startup. Live model selection is an
 `planning_model_id`. Meters does not use `planning_profile_id`, and command
 requests do not override startup context.
 
+Use `meters-tool capabilities --json` to discover the default Core capability
+view, or add `--model MODEL` to inspect one registered profile. This command
+performs no live identity detection or VISA I/O. A requested capability profile
+does not become a live runtime driver override; live runs still use detected
+identity and Core Product support policy.
+
 ## Simulator Software Trigger Workflow
 
 Use a simulator-only worker for automated orchestration tests. The worker emits
@@ -180,7 +186,9 @@ finally:
 
 Keep the preceding `--csv samples.csv` workflow when Meters should own its CSV
 artifact. When the orchestrator owns persistence instead, replace those two
-arguments with `--no-csv` and store each stdout JSONL `sample` event:
+arguments with `--no-csv`. Persist the complete raw stdout JSONL stream, not
+only its `sample` events, while separately parsing events needed for control
+and sample storage:
 
 ```python
 worker_args = [
@@ -191,15 +199,52 @@ worker_args = [
 ]
 
 for line in worker.stdout:
+    persist_stdout_jsonl(line)
     event = json.loads(line)
     if event["event"] == "sample":
         persist_measurement(event)
 ```
 
-`persist_measurement` is orchestrator-owned. Meters creates no CSV file or
-CSV-only parent directory in this mode. Continue consuming `ready`, `status`,
-`summary`, and the process exit code exactly as in the CSV-enabled workflow;
-Common `schema_version` remains `2`.
+For a complete scheduler job history, the orchestrator should retain:
+
+1. The submitted request and effective launch configuration before starting
+   Meters. This may be the command/argv or the scheduler's canonical request
+   representation.
+2. The complete unmodified Worker stdout JSONL stream, including `ready`,
+   `status`, `sample`, `error`, `message`, and final `summary` events.
+3. Worker stderr as diagnostics. Stderr does not replace structured pass/fail
+   evaluation.
+4. The final `summary` event and process exit code.
+5. An orchestrator-owned terminal result that correlates the scheduler job
+   identity, Meters `run_id`, final summary, and process exit code.
+6. Scheduler-owned sample persistence derived from JSONL `sample` events when
+   `--no-csv` is used.
+
+A non-zero process exit, a missing final summary, or `summary.ok: false` makes
+the run failed or incomplete under the existing Common and Meters contracts.
+The terminal result should record that outcome; stderr alone must not decide it.
+
+An orchestrator might choose an artifact layout such as:
+
+```text
+request.json
+stdout.jsonl
+stderr.txt
+result.json
+samples.csv
+```
+
+These names and the containing layout are entirely orchestrator-owned examples,
+not Meters Worker artifact names or a new runtime schema. Meters does not create
+or manage these files. In particular, an orchestrator may create `samples.csv`
+from JSONL `sample` events while Meters runs with `--no-csv`.
+
+If Meters should own CSV persistence instead, keep the existing `--csv PATH` or
+default CSV workflow. Do not layer a new storage contract on top of it.
+`persist_stdout_jsonl`, `persist_measurement`, and terminal-result construction
+are orchestrator responsibilities. Meters creates no CSV file or CSV-only
+parent directory with `--no-csv`, and its `ready`, `status`, `summary`, process
+exit, `run_id`, and Common `schema_version: 2` semantics remain unchanged.
 
 ## Readiness And Status
 

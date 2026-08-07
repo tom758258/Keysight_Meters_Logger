@@ -239,6 +239,7 @@ LAN/TCPIP 是支援的 34461A pyvisa-py 路徑。Windows 上的 USBTMC 可能需
 
 | 指令 | 目的 | 典型用法 |
 | --- | --- | --- |
+| `capabilities` | 列印由 Core 管理的儀器能力與產品支援中繼資料，不執行儀器 I/O。 | 讓腳本在建構請求前檢查設定檔、量測、觸發模式、限制與精確支援範圍。 |
 | `list-resources` | 列印由 PyVISA 偵測到的 VISA 資源。 | 尋找 USB 或 LAN 資源字串。加入 `--verify` 以查詢 `*IDN?`；加入 `--live-only` 以隱藏過期的快取資源；加入 `--dry-run` 以預覽探測動作而不接觸 VISA。 |
 | `start-trigger-record` | 連接到儀器並記錄樣本到 CSV。 | 主要記錄指令。 |
 | `send-command` | 將一個 `software_trigger` 指令 POST 到本機指令端點。 | 與 `--trigger-mode software` 配合使用。 |
@@ -251,6 +252,14 @@ LAN/TCPIP 是支援的 34461A pyvisa-py 路徑。Windows 上的 USBTMC 可能需
 | 選項 | 說明 |
 | --- | --- |
 | `--version` | 列印 `meters-tool <package-version>`並退出，不需要子指令。 |
+
+`capabilities` 選項：
+
+| 選項 | 預設值 | 說明 |
+| --- | --- | --- |
+| `--model MODEL`、`--instrument-model MODEL` | Core 備援設定檔 | 透過 Core 型號解析選擇離線能力設定檔。這不會執行實機偵測，也不會覆寫後續實機執行所偵測到的型號。 |
+| `--format text\|json` | `text` | 輸出精簡的人類可讀摘要，或單一可供機器讀取的能力物件。 |
+| `--json` | 關閉 | `--format json` 的別名。 |
 
 `list-resources` 選項：
 
@@ -367,6 +376,15 @@ LAN/TCPIP 是支援的 34461A pyvisa-py 路徑。Windows 上的 USBTMC 可能需
 `--dcv-input-impedance` 僅在 `--measurement voltage-dc` 或 `--measurement voltage-dc-ratio` 時有效。使用 `default` 以保持儀器目前的 Input Z 設定不變，`10m` 強制為 10 MOhm，或 `auto` 啟用 34461A 的 Auto Input Z 行為。當 Auto 作用於較低 DC 電壓範圍時，儀器可能會顯示 HighZ。
 
 ## 友善 Agent 的 CLI 工作流程
+
+在不開啟 VISA 或建立產物的情況下，先檢查能力再建構排程器請求：
+
+```powershell
+.\.venv\Scripts\meters-tool.exe capabilities --json
+.\.venv\Scripts\meters-tool.exe capabilities --model 34461A --json
+```
+
+省略 `--model` 時，回應會識別 Core 的備援能力設定檔，並另行指出未執行執行階段身分偵測。判斷實機產品支援是否開放時，必須同時檢查精確的傳輸／後端範圍、要求的量測與觸發模式；不能只依賴彙總的實機驗證狀態。
 
 使用 `--dry-run` 來驗證命令並檢查規劃的 SCPI/讀取路徑，而不接觸實體儀器：
 
