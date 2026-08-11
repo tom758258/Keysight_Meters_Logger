@@ -2086,6 +2086,7 @@ class WebUiApiTests(unittest.TestCase):
         self.assertEqual(8769, configs[0].kwargs["port"])
         self.assertEqual("off", configs[0].kwargs["lifespan"])
         self.assertEqual(_uvicorn_log_config(), configs[0].kwargs["log_config"])
+        self.assertTrue(configs[0].kwargs["access_log"])
 
     def test_api_runs_validation_core_v1_1_0_contracts(self):
         client, csv_path = self.make_client()

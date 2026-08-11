@@ -76,6 +76,27 @@ http://127.0.0.1:8767/
 並等待清理完成，再透過 PID 終止監聽程序。強制終止只是最後的復原方式，可能
 會略過儀器的正常清理。
 
+## 私有 Desktop Host 整合邊界
+
+`meters_tool_webui._desktop_host` 是供本機 desktop shell 使用的私有整合
+邊界。在 source environment 中可透過以下方式啟動：
+
+```powershell
+python -m meters_tool_webui._desktop_host
+```
+
+此 host 僅繫結至 `127.0.0.1` 並使用 Port `0`，從已繫結的 socket 取得作業
+系統配置的 ephemeral port，再將同一個 socket 傳給 Uvicorn。它重用既有的
+FastAPI application、WebUI static assets、HTTP API 與 `WebRunManager`，沒有
+另一套 WebUI implementation，也不會開啟 system browser 或使用 Tkinter。
+
+此 host 透過 stdin/stdout JSONL 提供私有 lifecycle boundary。Stdout 僅供
+lifecycle events 使用，包括帶有實際本機 URL 的 `ready` event；Python 與
+Uvicorn diagnostics 一律使用 stderr。收到 `{"command":"shutdown"}` stdin
+message 時，會先執行既有的 `WebRunManager.shutdown()` cleanup。只有 cleanup
+成功後才停止 Uvicorn 並關閉已繫結的 socket；若 cleanup 未完成，host 會輸出
+`shutdown_incomplete` event 並保持執行。
+
 ## 安裝或重新載入
 
 主要專案設定請遵循根目錄 [README 安裝](../../README.zh-TW.md#安裝) 章節。

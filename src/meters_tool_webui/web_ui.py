@@ -232,6 +232,7 @@ def create_uvicorn_server(
     *,
     host: str,
     port: int,
+    access_log: bool = True,
 ) -> Any:
     import uvicorn
 
@@ -255,6 +256,7 @@ def create_uvicorn_server(
         port=port,
         lifespan="off",
         log_config=_uvicorn_log_config(),
+        access_log=access_log,
     )
     return WebUiServer(config=config)
 

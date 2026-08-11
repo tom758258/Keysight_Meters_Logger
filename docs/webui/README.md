@@ -99,6 +99,29 @@ stop any active run and wait for cleanup to finish before terminating the
 listening process by PID. Forced process termination is a last-resort recovery
 path and may bypass graceful instrument cleanup.
 
+## Private Desktop Host Integration
+
+`meters_tool_webui._desktop_host` is a private integration boundary for a
+local desktop shell. In a source environment it can be started with:
+
+```powershell
+python -m meters_tool_webui._desktop_host
+```
+
+The host binds only to `127.0.0.1` with port `0`, obtains the operating
+system-assigned ephemeral port from the bound socket, and passes that same
+socket to Uvicorn. It reuses the existing FastAPI application, WebUI static
+assets, HTTP API, and `WebRunManager`; there is no separate WebUI
+implementation. It does not open a system browser or use Tkinter.
+
+The host uses stdin/stdout JSONL for its private lifecycle boundary. Stdout is
+reserved exclusively for lifecycle events, including the `ready` event with
+the actual local URL; Python and Uvicorn diagnostics use stderr. A
+`{"command":"shutdown"}` stdin message first runs the existing
+`WebRunManager.shutdown()` cleanup. Uvicorn stops and the bound socket closes
+only after that cleanup succeeds. If cleanup is incomplete, the host emits a
+`shutdown_incomplete` event and remains running.
+
 ## Install Or Refresh
 
 For the primary project setup, follow the root [README Install](../../README.md#install)

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Adds a private Desktop WebUI host as the local integration boundary for a
+  future desktop shell while reusing the existing FastAPI application and
+  graceful WebRunManager cleanup.
 - Replaces the two versioned Windows onefile executables with one versioned
   Windows x64 ZIP containing unversioned CLI and WebUI Launcher executables
   that share one PyInstaller onedir `_internal` directory.
