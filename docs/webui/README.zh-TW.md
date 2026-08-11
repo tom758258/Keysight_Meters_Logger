@@ -79,10 +79,19 @@ http://127.0.0.1:8767/
 ## 私有 Desktop Host 整合邊界
 
 `meters_tool_webui._desktop_host` 是供本機 desktop shell 使用的私有整合
-邊界。在 source environment 中可透過以下方式啟動：
+邊界。若要在 source environment 中直接啟動或診斷此 private host，請使用
+repository virtual environment：
 
 ```powershell
-python -m meters_tool_webui._desktop_host
+.\.venv\Scripts\python.exe -m meters_tool_webui._desktop_host
+```
+
+這個直接命令不是 user-facing entry point，也不是另一個 WebUI Launcher。一般
+Electron Desktop source development 應從 `desktop/` 啟動 Electron：
+
+```powershell
+cd desktop
+npm start
 ```
 
 此 host 僅繫結至 `127.0.0.1` 並使用 Port `0`，從已繫結的 socket 取得作業
@@ -97,12 +106,12 @@ message 時，會先執行既有的 `WebRunManager.shutdown()` cleanup。只有 
 成功後才停止 Uvicorn 並關閉已繫結的 socket；若 cleanup 未完成，host 會輸出
 `shutdown_incomplete` event 並保持執行。
 
-`desktop/` 中的 Electron shell 直接使用這個既有 JSONL lifecycle。Development
-mode 透過 repository virtual environment 啟動 host；Windows portable build 則
-從 `resources/backend/` 啟動內含的私有 backend。Shell 會等待 `ready`、在
-sandboxed BrowserWindow 載入 loopback URL，並在關閉前要求同一套 graceful
-shutdown。它不擁有另一套 FastAPI application、frontend、HTTP API 或 run
-cleanup implementation。
+`desktop/` 中的 Electron shell 會啟動這個 private host 並使用既有 JSONL
+lifecycle。Development mode 透過 repository virtual environment 啟動 host；
+Windows portable build 則從 `resources/backend/` 啟動內含的私有 backend。
+Shell 會等待 `ready`、從該 event 取得 loopback URL、在 sandboxed BrowserWindow
+載入同一套既有 WebUI，並在關閉前要求同一套 graceful shutdown。它不擁有另一
+套 FastAPI application、frontend、HTTP API 或 run cleanup implementation。
 
 ## 安裝或重新載入
 

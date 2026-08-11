@@ -102,10 +102,20 @@ path and may bypass graceful instrument cleanup.
 ## Private Desktop Host Integration
 
 `meters_tool_webui._desktop_host` is a private integration boundary for a
-local desktop shell. In a source environment it can be started with:
+local desktop shell. To start or diagnose this private host directly in a
+source environment, use the repository virtual environment:
 
 ```powershell
-python -m meters_tool_webui._desktop_host
+.\.venv\Scripts\python.exe -m meters_tool_webui._desktop_host
+```
+
+This direct command is not a user-facing entry point or another WebUI
+Launcher. For normal Electron Desktop source development, start Electron from
+`desktop/`:
+
+```powershell
+cd desktop
+npm start
 ```
 
 The host binds only to `127.0.0.1` with port `0`, obtains the operating
@@ -122,13 +132,14 @@ the actual local URL; Python and Uvicorn diagnostics use stderr. A
 only after that cleanup succeeds. If cleanup is incomplete, the host emits a
 `shutdown_incomplete` event and remains running.
 
-The Electron shell in `desktop/` consumes this existing JSONL lifecycle. In
-development it starts the host with the repository virtual environment; in a
-packaged Windows portable build it starts the bundled private backend from
-`resources/backend/`. The shell waits for `ready`, loads the loopback URL in a
-sandboxed BrowserWindow, and requests the same graceful shutdown before it
-closes. It does not own another FastAPI application, frontend, HTTP API, or
-run-cleanup implementation.
+The Electron shell in `desktop/` starts this private host and consumes the
+existing JSONL lifecycle. In development it starts the host with the repository
+virtual environment; in a packaged Windows portable build it starts the bundled
+private backend from `resources/backend/`. The shell waits for `ready`, obtains
+the loopback URL from that event, loads the same WebUI in a sandboxed
+BrowserWindow, and requests the same graceful shutdown before it closes. It does
+not own another FastAPI application, frontend, HTTP API, or run-cleanup
+implementation.
 
 ## Install Or Refresh
 
