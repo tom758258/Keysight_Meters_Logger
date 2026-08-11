@@ -17,17 +17,14 @@ WebUI 執行於與儀器連接的同一台 Windows 電腦上。它不是一項�
 
 ## 啟動 WebUI
 
-一般使用情況下，請雙擊發佈版本或本機建置所提供的 WebUI 啟動器：
+使用發佈版本時，請解壓縮 `meters-tool-<version>-windows-x64.zip`，開啟
+`meters-tool-<version>` 資料夾，然後雙擊：
 
 ```text
 meters-tool-webui-launcher.exe
 ```
 
-發佈資料夾可能包含帶有版本號的啟動器名稱，例如：
-
-```text
-meters-tool-webui-launcher-<version>.exe
-```
+版本號位於 bundle 資料夾名稱中；資料夾內的執行檔名稱不含版本號。
 
 Launcher 會自動啟動。它會從 `8767` 開始，必要時最多嘗試 100 個本機
 Port，等待 WebUI ready 後，再以實際成功 bind 的 Port 開啟瀏覽器。其他已

@@ -200,11 +200,11 @@ contract is not satisfied. Do not use this helper for live resources; changing
 `--resource` to a live VISA address such as `USB0::...` does not make it a live
 validation path.
 
-Example from a workspace that contains a `meters-tool*.exe` executable:
+Example from a workspace that contains an extracted Windows release bundle:
 
 ```powershell
 node .agents\skills\meters-tool-cli-orchestration\scripts\run_meter_sim_workflow.mjs `
-  --exe .\meters-tool-<version>.exe `
+  --exe .\meters-tool-<version>\meters-tool.exe `
   --out .tmp_tests\meter_sim_software_trigger `
   --resource SIM::34461A `
   --measurement current-dc `

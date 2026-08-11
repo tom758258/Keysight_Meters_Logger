@@ -182,7 +182,7 @@ Typical executable-only use:
 
 ```powershell
 node .agents\skills\meters-tool-cli-orchestration\scripts\run_meter_sim_workflow.mjs `
-  --exe .\meters-tool-<version>.exe `
+  --exe .\meters-tool-<version>\meters-tool.exe `
   --out .tmp_tests\meter_sim_software_trigger `
   --resource SIM::34461A `
   --measurement current-dc `

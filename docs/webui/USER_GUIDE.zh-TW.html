@@ -230,11 +230,9 @@
         <p>WebUI 執行於與儀器連接的同一台 Windows 電腦上。它不是一項雲端服務。</p>
 
         <h2>啟動 WebUI</h2>
-        <p>一般使用情況下，請雙擊發佈版本或本機建置所提供的 WebUI 啟動器：</p>
+        <p>使用發佈版本時，請解壓縮 <code>meters-tool-&lt;version&gt;-windows-x64.zip</code>，開啟 <code>meters-tool-&lt;version&gt;</code> 資料夾，然後雙擊：</p>
         <div class="code-wrapper"><pre><code class="language-text">meters-tool-webui-launcher.exe</code></pre></div>
-        
-        <p>發佈資料夾可能包含帶有版本號的啟動器名稱，例如：</p>
-        <div class="code-wrapper"><pre><code class="language-text">meters-tool-webui-launcher-&lt;version&gt;.exe</code></pre></div>
+        <p>版本號位於 bundle 資料夾名稱中；資料夾內的執行檔名稱不含版本號。</p>
         
         <p>Launcher 會自動啟動。它會從 <code>8767</code> 開始，必要時最多嘗試 100 個本機 Port，等待 WebUI ready 後，再以實際成功 bind 的 Port 開啟瀏覽器。其他已執行的 Meters Tool WebUI 會被視為 Port 擁有者，不會被重用。</p>
         <p>正常啟動期間不需要 Port 視窗或 Start 操作。啟動後會顯示一個包含實際 URL 與 <code>Quit</code> 的小視窗。使用完畢時請按 <code>Quit</code>，讓作用中 run 的清理完成後再關閉本機伺服器。</p>

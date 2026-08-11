@@ -74,23 +74,47 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-& powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "build_cli_exe.ps1") -DistPath $versionDir -Name "meters-tool-$Version" -WorkRoot $buildRoot -SourceRoot $sourceRoot
+$bundleDist = Join-Path $buildRoot "windows-bundle-dist"
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "build_windows_bundle.ps1") -DistPath $bundleDist -WorkRoot $buildRoot -SourceRoot $sourceRoot
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-& powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "build_webui_exe.ps1") -DistPath $versionDir -Name "meters-tool-webui-launcher-$Version" -WorkRoot $buildRoot -SourceRoot $sourceRoot
-if ($LASTEXITCODE -ne 0) {
-    exit $LASTEXITCODE
-}
+$builtBundleDir = Join-Path $bundleDist "meters-tool"
+$archiveRoot = Join-Path $buildRoot "windows-bundle-archive"
+$versionedBundleDir = Join-Path $archiveRoot "meters-tool-$Version"
+New-Item -ItemType Directory -Force -Path $archiveRoot | Out-Null
+Move-Item -LiteralPath $builtBundleDir -Destination $versionedBundleDir
+
+$windowsZipName = "meters-tool-$Version-windows-x64.zip"
+$windowsZip = Join-Path $versionDir $windowsZipName
+Compress-Archive `
+    -LiteralPath $versionedBundleDir `
+    -DestinationPath $windowsZip `
+    -CompressionLevel Optimal
 
 Remove-Item -LiteralPath $buildRoot -Recurse -Force
 
-$checksums = foreach (
-    $artifact in Get-ChildItem -LiteralPath $versionDir -File |
-        Where-Object { $_.Name -ne "checksums.txt" } |
-        Sort-Object Name
+$expectedArtifactNames = @(
+    $windowsZipName,
+    "meters_tool-$Version-py3-none-any.whl",
+    "meters_tool-$Version.tar.gz"
+)
+$releaseEntries = @(Get-ChildItem -LiteralPath $versionDir -Force)
+$invalidEntries = @(
+    $releaseEntries |
+        Where-Object { $_.PSIsContainer -or $_.Name -notin $expectedArtifactNames }
+)
+if (
+    $releaseEntries.Count -ne $expectedArtifactNames.Count -or
+    $invalidEntries.Count -ne 0
 ) {
+    $found = ($releaseEntries.Name | Sort-Object) -join ", "
+    throw "Release build did not produce exactly the expected artifacts: $found"
+}
+
+$checksums = foreach ($artifactName in ($expectedArtifactNames | Sort-Object)) {
+    $artifact = Get-Item -LiteralPath (Join-Path $versionDir $artifactName)
     $hash = Get-FileHash -Algorithm SHA256 -LiteralPath $artifact.FullName
     "$($hash.Hash.ToLowerInvariant())  $($artifact.Name)"
 }

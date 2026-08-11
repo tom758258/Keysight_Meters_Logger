@@ -123,32 +123,35 @@ uv sync --all-extras --link-mode=copy --reinstall-package meters-tool
 
 如果 PowerShell 因執行原則限制而阻擋啟用，請使用上方顯示的明確 `.\.venv\Scripts\python.exe` 指令。
 
-## 獨立 EXE 建置
+## Windows bundle 建置
 
 安裝的 `.venv\Scripts\meters-tool.exe` 是一個 virtualenv 主控台包裝器。對於沒有專案環境的機器，它並非獨立的執行檔。
 
-若要建置選用的獨立主控台 exe，請在已安裝 `meters-tool` 的環境中使用 PyInstaller。PyInstaller 已包含在根 README 所述的 all-extras 開發環境中，完成標準的 `uv sync --all-extras --link-mode=copy` 後，可直接執行建置腳本：
+若要建置共用 Windows onedir bundle，請使用根 README 所述的 all-extras 開發環境。完成標準的 `uv sync --all-extras --link-mode=copy` 後，執行：
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_cli_exe.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_windows_bundle.ps1
 ```
 
 輸出為：
 
 ```text
-dist\meters-tool.exe
+dist\meters-tool\
+  meters-tool.exe
+  meters-tool-webui-launcher.exe
+  _internal\
 ```
 
 重新建置後執行無硬體的快速功能健檢：
 
 ```powershell
-.\dist\meters-tool.exe --version
-.\dist\meters-tool.exe --help
-.\dist\meters-tool.exe list-resources --dry-run --json
-.\dist\meters-tool.exe start-trigger-record --resource SIM::34461A --simulate --measurement voltage-dc --trigger-mode immediate --max-samples 1 --csv .tmp_tests\cli_exe_smoke.csv --status-format jsonl
+.\dist\meters-tool\meters-tool.exe --version
+.\dist\meters-tool\meters-tool.exe --help
+.\dist\meters-tool\meters-tool.exe list-resources --dry-run --json
+.\dist\meters-tool\meters-tool.exe start-trigger-record --resource SIM::34461A --simulate --measurement voltage-dc --trigger-mode immediate --max-samples 1 --csv .tmp_tests\cli_exe_smoke.csv --status-format jsonl
 ```
 
-PyInstaller 會將產生的檔案寫入本機 `build\` 和 `dist\` 目錄。除非專案刻意切換為簽入的 PyInstaller spec，否則請勿提交產生的 `.spec` 檔案。
+PyInstaller 會將產生的檔案寫入本機 `build\` 和 `dist\` 目錄。維護中的 bundle 定義是 `scripts\meters-tool-windows.spec`。
 
 ## 建置腳本
 
@@ -156,9 +159,8 @@ PyInstaller 會將產生的檔案寫入本機 `build\` 和 `dist\` 目錄。除�
 
 | 腳本 | 目的 |
 | --- | --- |
-| `scripts\build_cli_exe.ps1` | 建置 Windows 導向的 CLI 獨立 EXE。 |
-| `scripts\build_webui_exe.ps1` | 建置 Windows 導向的 WebUI Launcher 獨立 EXE。 |
-| `scripts\build_release.ps1` | 組合版本化 wheel、sdist、獨立 EXE 與 checksums。 |
+| `scripts\build_windows_bundle.ps1` | 建置共用 Windows onedir CLI 與 WebUI Launcher bundle。 |
+| `scripts\build_release.ps1` | 組合 Windows bundle ZIP、wheel、sdist 與 checksums。 |
 
 ## 基本工作流程
 

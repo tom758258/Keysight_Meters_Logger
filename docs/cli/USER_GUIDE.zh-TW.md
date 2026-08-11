@@ -4,19 +4,14 @@
 
 ## 啟動 CLI
 
-在包含 CLI 執行檔的資料夾下開啟 PowerShell，並檢查它：
+使用發佈版本時，請解壓縮 `meters-tool-<version>-windows-x64.zip`，在解壓後的
+`meters-tool-<version>` 資料夾中開啟 PowerShell，並檢查 CLI：
 
 ```powershell
 .\meters-tool.exe --version
 ```
 
-發佈資料夾可能包含帶有版本號的執行檔名稱，例如：
-
-```text
-meters-tool-<version>.exe
-```
-
-如果您的發佈資料夾使用帶有版本號的執行檔，請在下方的指令中使用該檔案名稱。開發人員或從原始碼簽出 (source-checkout) 的使用者，應參閱 [CLI README](README.zh-TW.md) 以取得虛擬環境、模組與建置指令。
+版本號位於 bundle 資料夾名稱中；資料夾內的執行檔名稱不含版本號。開發人員或從原始碼簽出 (source-checkout) 的使用者，應參閱 [CLI README](README.zh-TW.md) 以取得虛擬環境、模組與建置指令。
 
 ## 首次實機執行
 
@@ -159,7 +154,7 @@ CLI 預設使用電腦的 System VISA runtime，例如 Keysight IO Libraries Sui
 
 ## 常見問題
 
-如果缺少 `meters-tool.exe`，請確認您正處於包含 CLI 執行檔的發佈資料夾中。如果您的發佈版本使用帶有版本號的名稱，如 `meters-tool-<version>.exe`，請在指令中使用該檔案名稱。
+如果缺少 `meters-tool.exe`，請確認 ZIP 已完整解壓縮，且 PowerShell 位於同時包含 CLI 執行檔與 `_internal` 目錄的版本化 bundle 資料夾中。
 
 如果 `list-resources` 顯示過期的資源，請使用 `list-resources --verify` 來查看哪些資源有回應，以及其他資源失敗的原因。如果您只想要對 `*IDN?` 做出回應的資源，請使用 `--live-only`。如果 ASRL/RS-232 資源回報了與結束字元相關的過期結果，請使用 `--serial-read-termination` 或 `--serial-write-termination` 重試偵測；這些選項僅影響 ASRL 驗證。
 

@@ -94,6 +94,7 @@ $gitHead = $null
 $finalGitHead = $null
 $finalReleaseDir = $null
 $checksumsPath = $null
+$windowsBundleZip = $null
 $cliExe = $null
 $launcherExe = $null
 $wheel = $null
@@ -323,8 +324,7 @@ try {
     $finalReleaseDir = Join-Path $finalArtifactsRoot $packageVersion
     Assert-UnderTmpRoot -Path $finalReleaseDir
     $expectedArtifactNames = @(
-        "meters-tool-$packageVersion.exe",
-        "meters-tool-webui-launcher-$packageVersion.exe",
+        "meters-tool-$packageVersion-windows-x64.zip",
         "meters_tool-$packageVersion-py3-none-any.whl",
         "meters_tool-$packageVersion.tar.gz"
     )
@@ -347,17 +347,16 @@ try {
         }
     }
 
-    $cliExe = Get-Item -LiteralPath (Join-Path $finalReleaseDir $expectedArtifactNames[0])
-    $launcherExe = Get-Item -LiteralPath (Join-Path $finalReleaseDir $expectedArtifactNames[1])
-    $wheel = Get-Item -LiteralPath (Join-Path $finalReleaseDir $expectedArtifactNames[2])
-    $sdist = Get-Item -LiteralPath (Join-Path $finalReleaseDir $expectedArtifactNames[3])
+    $windowsBundleZip = Get-Item -LiteralPath (Join-Path $finalReleaseDir $expectedArtifactNames[0])
+    $wheel = Get-Item -LiteralPath (Join-Path $finalReleaseDir $expectedArtifactNames[1])
+    $sdist = Get-Item -LiteralPath (Join-Path $finalReleaseDir $expectedArtifactNames[2])
     $checksumsPath = Join-Path $finalReleaseDir "checksums.txt"
 
     $script:currentStep = "validate_checksums"
     $checksumValidation = "failed"
     $checksumLines = @(Get-Content -LiteralPath $checksumsPath)
-    if ($checksumLines.Count -ne 4) {
-        throw "checksums.txt must contain exactly four artifact entries."
+    if ($checksumLines.Count -ne $expectedArtifactNames.Count) {
+        throw "checksums.txt must contain exactly $($expectedArtifactNames.Count) artifact entries."
     }
     $checksumEntries = @{}
     foreach ($line in $checksumLines) {
@@ -381,16 +380,14 @@ try {
         }
     }
 
-    foreach ($artifact in @($cliExe, $launcherExe, $wheel, $sdist)) {
+    foreach ($artifact in @($windowsBundleZip, $wheel, $sdist)) {
         $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $artifact.FullName).Hash.ToLowerInvariant()
         if ($checksumEntries[$artifact.Name] -ne $hash) {
             throw "SHA-256 mismatch for $($artifact.Name)"
         }
         $artifactType = if ($artifact.Name -eq $expectedArtifactNames[0]) {
-            "cli_exe"
+            "windows_bundle_zip"
         } elseif ($artifact.Name -eq $expectedArtifactNames[1]) {
-            "webui_launcher_exe"
-        } elseif ($artifact.Name -eq $expectedArtifactNames[2]) {
             "wheel"
         } else {
             "sdist"
@@ -405,6 +402,53 @@ try {
         }) | Out-Null
     }
     $checksumValidation = "passed"
+
+    $script:currentStep = "extract_windows_bundle"
+    $bundleExtractRoot = Join-Path $runDir "windows-bundle"
+    Assert-UnderTmpRoot -Path $bundleExtractRoot
+    New-Item -ItemType Directory -Force -Path $bundleExtractRoot | Out-Null
+    Expand-Archive `
+        -LiteralPath $windowsBundleZip.FullName `
+        -DestinationPath $bundleExtractRoot
+
+    $expectedBundleDirName = "meters-tool-$packageVersion"
+    $bundleRootEntries = @(Get-ChildItem -LiteralPath $bundleExtractRoot -Force)
+    if (
+        $bundleRootEntries.Count -ne 1 -or
+        -not $bundleRootEntries[0].PSIsContainer -or
+        $bundleRootEntries[0].Name -cne $expectedBundleDirName
+    ) {
+        $found = ($bundleRootEntries.Name | Sort-Object) -join ", "
+        throw "Windows bundle ZIP must contain only $expectedBundleDirName`: $found"
+    }
+
+    $extractedBundleDir = $bundleRootEntries[0].FullName
+    $expectedBundleEntryNames = @(
+        "meters-tool.exe",
+        "meters-tool-webui-launcher.exe",
+        "_internal"
+    )
+    $bundleEntries = @(Get-ChildItem -LiteralPath $extractedBundleDir -Force)
+    $invalidBundleEntries = @(
+        $bundleEntries |
+            Where-Object { $_.Name -notin $expectedBundleEntryNames }
+    )
+    if (
+        $bundleEntries.Count -ne $expectedBundleEntryNames.Count -or
+        $invalidBundleEntries.Count -ne 0
+    ) {
+        $found = ($bundleEntries.Name | Sort-Object) -join ", "
+        throw "Windows bundle root does not contain exactly the expected entries: $found"
+    }
+
+    $cliExe = Get-Item -LiteralPath (Join-Path $extractedBundleDir "meters-tool.exe")
+    $launcherExe = Get-Item -LiteralPath (
+        Join-Path $extractedBundleDir "meters-tool-webui-launcher.exe"
+    )
+    $internalDir = Get-Item -LiteralPath (Join-Path $extractedBundleDir "_internal")
+    if ($cliExe.PSIsContainer -or $launcherExe.PSIsContainer -or -not $internalDir.PSIsContainer) {
+        throw "Windows bundle must contain two executable files and one shared _internal directory."
+    }
 
     Invoke-ArtifactSmoke -Label "wheel" -Artifact $wheel -UvPath $uvCommand.Source
     Invoke-ArtifactSmoke -Label "sdist" -Artifact $sdist -UvPath $uvCommand.Source
@@ -589,13 +633,8 @@ $report = [ordered]@{
         } else {
             $null
         }
-        cli_exe = if ($null -ne $cliExe) {
-            Get-RepoRelativePath -Path $cliExe.FullName
-        } else {
-            $null
-        }
-        webui_launcher_exe = if ($null -ne $launcherExe) {
-            Get-RepoRelativePath -Path $launcherExe.FullName
+        windows_bundle_zip = if ($null -ne $windowsBundleZip) {
+            Get-RepoRelativePath -Path $windowsBundleZip.FullName
         } else {
             $null
         }

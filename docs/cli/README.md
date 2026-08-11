@@ -206,40 +206,41 @@ Optional activation:
 If PowerShell blocks activation because of execution policy, use the explicit
 `.\.venv\Scripts\python.exe` commands shown above.
 
-## Standalone EXE Build
+## Windows Bundle Build
 
 The installed `.venv\Scripts\meters-tool.exe` is a virtualenv console
 wrapper. It is not a standalone executable for machines without the project
 environment.
 
-To build the optional standalone console exe, use PyInstaller from an
-environment that already has `meters-tool` installed. PyInstaller is included
-in the all-extras development environment described in the root README, so
-after the standard `uv sync --all-extras --link-mode=copy`, run the build script
-directly:
+To build the shared Windows onedir bundle, use PyInstaller from the all-extras
+development environment described in the root README. After the standard
+`uv sync --all-extras --link-mode=copy`, run:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_cli_exe.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_windows_bundle.ps1
 ```
 
 The output is:
 
 ```text
-dist\meters-tool.exe
+dist\meters-tool\
+  meters-tool.exe
+  meters-tool-webui-launcher.exe
+  _internal\
 ```
 
 Run no-hardware smoke checks after rebuilding:
 
 ```powershell
-.\dist\meters-tool.exe --version
-.\dist\meters-tool.exe --help
-.\dist\meters-tool.exe list-resources --dry-run --json
-.\dist\meters-tool.exe start-trigger-record --resource SIM::34461A --simulate --measurement voltage-dc --trigger-mode immediate --max-samples 1 --csv .tmp_tests\cli_exe_smoke.csv --status-format jsonl
+.\dist\meters-tool\meters-tool.exe --version
+.\dist\meters-tool\meters-tool.exe --help
+.\dist\meters-tool\meters-tool.exe list-resources --dry-run --json
+.\dist\meters-tool\meters-tool.exe start-trigger-record --resource SIM::34461A --simulate --measurement voltage-dc --trigger-mode immediate --max-samples 1 --csv .tmp_tests\cli_exe_smoke.csv --status-format jsonl
 ```
 
 PyInstaller writes generated files under local `build\` and `dist\`
-directories. Do not commit generated `.spec` files unless the project
-intentionally switches to a checked-in PyInstaller spec.
+directories. The maintained bundle definition is
+`scripts\meters-tool-windows.spec`.
 
 ## Build Scripts
 
@@ -247,9 +248,8 @@ Build scripts:
 
 | Script | Purpose |
 | --- | --- |
-| `scripts\build_cli_exe.ps1` | Build the Windows-oriented CLI standalone EXE. |
-| `scripts\build_webui_exe.ps1` | Build the Windows-oriented WebUI Launcher standalone EXE. |
-| `scripts\build_release.ps1` | Assemble versioned wheel, sdist, standalone EXEs, and checksums. |
+| `scripts\build_windows_bundle.ps1` | Build the shared Windows onedir CLI and WebUI Launcher bundle. |
+| `scripts\build_release.ps1` | Assemble the Windows bundle ZIP, wheel, sdist, and checksums. |
 
 ## Basic Workflow
 

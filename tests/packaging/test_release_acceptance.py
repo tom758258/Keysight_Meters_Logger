@@ -6,8 +6,10 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 RELEASE_ACCEPTANCE = REPO_ROOT / "scripts" / "release-acceptance.ps1"
 BUILD_RELEASE = REPO_ROOT / "scripts" / "build_release.ps1"
-BUILD_CLI_EXE = REPO_ROOT / "scripts" / "build_cli_exe.ps1"
-BUILD_WEBUI_EXE = REPO_ROOT / "scripts" / "build_webui_exe.ps1"
+BUILD_WINDOWS_BUNDLE = REPO_ROOT / "scripts" / "build_windows_bundle.ps1"
+WINDOWS_SPEC = REPO_ROOT / "scripts" / "meters-tool-windows.spec"
+OLD_CLI_BUILDER = REPO_ROOT / "scripts" / "build_cli_exe.ps1"
+OLD_WEBUI_BUILDER = REPO_ROOT / "scripts" / "build_webui_exe.ps1"
 OLD_RELEASE_CHECK = REPO_ROOT / "scripts" / "release-cli-check.ps1"
 
 
@@ -102,13 +104,12 @@ def test_release_acceptance_validates_final_artifacts_and_checksums():
     script = release_acceptance_text()
 
     for contract in (
-        '"meters-tool-$packageVersion.exe"',
-        '"meters-tool-webui-launcher-$packageVersion.exe"',
+        '"meters-tool-$packageVersion-windows-x64.zip"',
         '"meters_tool-$packageVersion-py3-none-any.whl"',
         '"meters_tool-$packageVersion.tar.gz"',
         '"checksums.txt"',
         "$releaseEntries.Count -ne $expectedReleaseNames.Count",
-        "$checksumLines.Count -ne 4",
+        "$checksumLines.Count -ne $expectedArtifactNames.Count",
         "Get-FileHash -Algorithm SHA256",
         "SHA-256 mismatch",
         'Invoke-ArtifactSmoke -Label "wheel"',
@@ -165,13 +166,32 @@ def test_release_acceptance_report_uses_project_release_semantics():
         "failed_step = $failedStep",
         "error = $failureMessage",
         "final_release_dir = $relativeFinalReleaseDir",
-        "cli_exe = if ($null -ne $cliExe)",
-        "webui_launcher_exe = if ($null -ne $launcherExe)",
+        "windows_bundle_zip = if ($null -ne $windowsBundleZip)",
         "checksum_validation = $checksumValidation",
         "standalone_cli_smoke = $standaloneCliSmoke",
         "launcher_self_test = $launcherSelfTest",
         "artifacts = $artifactItems",
         "commands = $commandItems",
+    ):
+        assert contract in script
+
+    assert "cli_exe = if" not in script
+    assert "webui_launcher_exe = if" not in script
+
+
+def test_release_acceptance_extracts_and_validates_shared_windows_bundle():
+    script = release_acceptance_text()
+
+    for contract in (
+        '$script:currentStep = "extract_windows_bundle"',
+        "Expand-Archive",
+        '"meters-tool-$packageVersion"',
+        '"meters-tool.exe"',
+        '"meters-tool-webui-launcher.exe"',
+        '"_internal"',
+        "$bundleRootEntries.Count -ne 1",
+        "$bundleEntries.Count -ne $expectedBundleEntryNames.Count",
+        "two executable files and one shared _internal directory",
     ):
         assert contract in script
 
@@ -204,39 +224,66 @@ def test_release_acceptance_rechecks_final_working_tree_hygiene():
     assert "Git working tree must remain clean after release acceptance." in final_block
 
 
-def test_release_build_passes_one_source_snapshot_to_both_exe_builders():
+def test_release_build_passes_one_source_snapshot_to_windows_bundle_builder():
     script = BUILD_RELEASE.read_text(encoding="utf-8-sig")
 
     assert '$sourceRoot = Join-Path $buildRoot "source"' in script
-    assert script.count("-SourceRoot $sourceRoot") == 2
-    for builder in ("build_cli_exe.ps1", "build_webui_exe.ps1"):
-        invocation = next(line for line in script.splitlines() if builder in line)
-        assert "-SourceRoot $sourceRoot" in invocation
-
-
-def test_exe_builders_use_optional_source_root_for_pyinstaller_inputs():
-    cli_script = BUILD_CLI_EXE.read_text(encoding="utf-8-sig")
-    webui_script = BUILD_WEBUI_EXE.read_text(encoding="utf-8-sig")
-
-    for script in (cli_script, webui_script):
-        assert "[string]$SourceRoot" in script
-        assert "$sourceRootFull = $repoFull" in script
-        assert "SourceRoot directory not found" in script
-        assert "SourceRoot must stay under the repository" in script
-        assert '$sourcePath = Join-Path $sourceRootFull "src"' in script
-        assert "$env:PYTHONPATH = $sourcePath" in script
-        assert "--paths $sourcePath" in script
-
-    assert (
-        '(Join-Path $sourceRootFull "src\\meters_tool_cli\\cli.py")'
-        in cli_script
+    assert script.count("-SourceRoot $sourceRoot") == 1
+    invocation = next(
+        line for line in script.splitlines() if "build_windows_bundle.ps1" in line
     )
-    assert (
-        "$(Join-Path $sourceRootFull "
-        "'src\\meters_tool_webui\\static');meters_tool_webui\\static"
-        in webui_script
-    )
-    assert (
-        '(Join-Path $sourceRootFull "src\\meters_tool_webui\\launcher.py")'
-        in webui_script
-    )
+    assert "-SourceRoot $sourceRoot" in invocation
+    assert "build_cli_exe.ps1" not in script
+    assert "build_webui_exe.ps1" not in script
+
+
+def test_windows_bundle_builder_and_spec_define_shared_onedir_contract():
+    builder = BUILD_WINDOWS_BUNDLE.read_text(encoding="utf-8-sig")
+    spec = WINDOWS_SPEC.read_text(encoding="utf-8-sig")
+
+    assert BUILD_WINDOWS_BUNDLE.exists()
+    assert WINDOWS_SPEC.exists()
+    assert not OLD_CLI_BUILDER.exists()
+    assert not OLD_WEBUI_BUILDER.exists()
+
+    for contract in (
+        "[string]$SourceRoot",
+        "$sourceRootFull = $repoFull",
+        "SourceRoot directory not found",
+        "SourceRoot must stay under the repository",
+        "DistPath must stay under the repository",
+        "WorkRoot must stay under the repository",
+        "meters-tool-windows.spec",
+        "--source-root $sourceRootFull",
+        '$sourcePath = Join-Path $sourceRootFull "src"',
+        "$env:PYTHONPATH = $sourcePath",
+        "$env:PYTHONPATH = $previousPythonPath",
+    ):
+        assert contract in builder
+
+    assert spec.count("Analysis(") == 2
+    assert spec.count("PYZ(") == 2
+    assert spec.count("EXE(") == 2
+    assert spec.count("COLLECT(") == 1
+    assert "MERGE(" not in spec
+    assert 'name="meters-tool"' in spec
+    assert 'name="meters-tool-webui-launcher"' in spec
+    assert "console=True" in spec
+    assert "console=False" in spec
+    assert spec.count('contents_directory="_internal"') == 2
+    assert '"meters_tool_webui/static"' in spec
+    assert '"_internal/meters_tool_webui/static"' not in spec
+
+
+def test_release_build_creates_zip_and_hashes_expected_artifact_set():
+    script = BUILD_RELEASE.read_text(encoding="utf-8-sig")
+
+    for contract in (
+        '"meters-tool-$Version-windows-x64.zip"',
+        '"meters_tool-$Version-py3-none-any.whl"',
+        '"meters_tool-$Version.tar.gz"',
+        "Compress-Archive",
+        "$releaseEntries.Count -ne $expectedArtifactNames.Count",
+        "foreach ($artifactName in ($expectedArtifactNames | Sort-Object))",
+    ):
+        assert contract in script

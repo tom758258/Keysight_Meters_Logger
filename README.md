@@ -191,27 +191,28 @@ dist\meters_tool-<version>-py3-none-any.whl
 dist\meters_tool-<version>.tar.gz
 ```
 
-Standalone executables are Windows-oriented PyInstaller workflows. PyInstaller
-is included in the Windows `dev` dependency set, so the development environment
+The shared Windows bundle is a PyInstaller onedir workflow. PyInstaller is
+included in the Windows `dev` dependency set, so the development environment
 created by `uv sync --all-extras --locked --link-mode=copy` is ready for release
 builds and formal release acceptance.
 
-Build the standalone CLI and WebUI launcher executables:
+Build the CLI and WebUI Launcher into one shared bundle:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_cli_exe.ps1
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_webui_exe.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_windows_bundle.ps1
 ```
 
-By default, these commands produce:
+By default, this produces:
 
 ```text
-dist\meters-tool.exe
-dist\meters-tool-webui-launcher.exe
+dist\meters-tool\
+  meters-tool.exe
+  meters-tool-webui-launcher.exe
+  _internal\
 ```
 
-`build_release.ps1` assembles the wheel, source distribution, CLI standalone EXE,
-WebUI Launcher standalone EXE, and checksums into a versioned release folder:
+`build_release.ps1` assembles the wheel, source distribution, shared Windows
+bundle ZIP, and checksums into a versioned release folder:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_release.ps1
@@ -220,8 +221,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_release.
 This produces versioned release artifacts:
 
 ```text
-release\<version>\meters-tool-<version>.exe
-release\<version>\meters-tool-webui-launcher-<version>.exe
+release\<version>\meters-tool-<version>-windows-x64.zip
 release\<version>\meters_tool-<version>-py3-none-any.whl
 release\<version>\meters_tool-<version>.tar.gz
 release\<version>\checksums.txt
@@ -230,11 +230,11 @@ release\<version>\checksums.txt
 `release-acceptance.ps1` is the formal no-hardware release acceptance for a
 clean committed tree. It runs the complete no-hardware test suite, including
 wrapper tests, invokes `build_release.ps1` once, and validates the final wheel,
-source distribution, standalone CLI EXE, standalone WebUI Launcher EXE, and
-SHA-256 checksums. It then runs clean-install package smokes, minimal standalone
-smokes, selected-target preflight, and the existing PlanOnly validation. A
-passing run prints the versioned directory that can be uploaded directly to a
-GitHub Release.
+source distribution, shared Windows bundle ZIP, and SHA-256 checksums. It
+extracts the bundle and runs the existing CLI and Launcher smokes, followed by
+clean-install package smokes, selected-target preflight, and the existing
+PlanOnly validation. A passing run prints the versioned directory that can be
+uploaded directly to a GitHub Release.
 The final `live-cli-check.ps1` call is `-Suite minimal -PlanOnly -SkipPreflight`;
 it only generates plans and does not open a VISA resource. Each recorded command
 prints `[start]` and `[passed]` or `[failed]` with its duration, while detailed

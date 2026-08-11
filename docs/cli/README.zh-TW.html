@@ -330,18 +330,21 @@ uv sync --all-extras --link-mode=copy
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\Activate.ps1</code></pre></div>
         <p>如果 PowerShell 因執行原則限制而阻擋啟用，請使用上方顯示的明確 <code>.\.venv\Scripts\python.exe</code> 指令。</p>
 
-        <h2>獨立 EXE 建置</h2>
+        <h2>Windows bundle 建置</h2>
         <p>安裝的 <code>.venv\Scripts\meters-tool.exe</code> 是一個 virtualenv 主控台包裝器。對於沒有專案環境的機器，它並非獨立的執行檔。</p>
-        <p>若要建置選用的獨立主控台 exe，請在已安裝 <code>meters-tool</code> 的環境中使用 PyInstaller。PyInstaller 已包含在根 README 所述的 all-extras 開發環境中，完成標準的 <code>uv sync --all-extras --link-mode=copy</code> 後，可直接執行建置腳本：</p>
-        <div class="code-wrapper"><pre><code>powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_cli_exe.ps1</code></pre></div>
+        <p>若要建置共用 Windows onedir bundle，請使用根 README 所述的 all-extras 開發環境。完成標準的 <code>uv sync --all-extras --link-mode=copy</code> 後，執行：</p>
+        <div class="code-wrapper"><pre><code>powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_windows_bundle.ps1</code></pre></div>
         <p>輸出為：</p>
-        <div class="code-wrapper"><pre><code>dist\meters-tool.exe</code></pre></div>
+        <div class="code-wrapper"><pre><code>dist\meters-tool\
+  meters-tool.exe
+  meters-tool-webui-launcher.exe
+  _internal\</code></pre></div>
         <p>重新建置後執行無硬體的快速功能健檢：</p>
-        <div class="code-wrapper"><pre><code>.\dist\meters-tool.exe --version
-.\dist\meters-tool.exe --help
-.\dist\meters-tool.exe list-resources --dry-run --json
-.\dist\meters-tool.exe start-trigger-record --resource SIM::34461A --simulate --measurement voltage-dc --trigger-mode immediate --max-samples 1 --csv .tmp_tests\cli_exe_smoke.csv --status-format jsonl</code></pre></div>
-        <p>PyInstaller 會將產生的檔案寫入本機 <code>build\</code> 和 <code>dist\</code> 目錄。除非專案刻意切換為簽入的 PyInstaller spec，否則請勿提交產生的 <code>.spec</code> 檔案。</p>
+        <div class="code-wrapper"><pre><code>.\dist\meters-tool\meters-tool.exe --version
+.\dist\meters-tool\meters-tool.exe --help
+.\dist\meters-tool\meters-tool.exe list-resources --dry-run --json
+.\dist\meters-tool\meters-tool.exe start-trigger-record --resource SIM::34461A --simulate --measurement voltage-dc --trigger-mode immediate --max-samples 1 --csv .tmp_tests\cli_exe_smoke.csv --status-format jsonl</code></pre></div>
+        <p>PyInstaller 會將產生的檔案寫入本機 <code>build\</code> 和 <code>dist\</code> 目錄。維護中的 bundle 定義是 <code>scripts\meters-tool-windows.spec</code>。</p>
 
 
 
@@ -356,16 +359,12 @@ uv sync --all-extras --link-mode=copy
             </thead>
             <tbody>
                 <tr>
-                    <td><code>scripts\build_cli_exe.ps1</code></td>
-                    <td>建置 Windows 導向的 CLI 獨立 EXE。</td>
-                </tr>
-                <tr>
-                    <td><code>scripts\build_webui_exe.ps1</code></td>
-                    <td>建置 Windows 導向的 WebUI Launcher 獨立 EXE。</td>
+                    <td><code>scripts\build_windows_bundle.ps1</code></td>
+                    <td>建置共用 Windows onedir CLI 與 WebUI Launcher bundle。</td>
                 </tr>
                 <tr>
                     <td><code>scripts\build_release.ps1</code></td>
-                    <td>組合版本化 wheel、sdist、獨立 EXE 與 checksums。</td>
+                    <td>組合 Windows bundle ZIP、wheel、sdist 與 checksums。</td>
                 </tr>
             </tbody>
         </table>

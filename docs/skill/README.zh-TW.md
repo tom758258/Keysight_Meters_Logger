@@ -164,11 +164,11 @@ cp docs/core/supported-models.md "$skill/references/"
 
 此 Skill 也提供 `scripts/run_meter_sim_workflow.mjs`，可在有 Node.js 的環境中進行不需硬體的模擬器 smoke validation。此 helper 會執行一次 dry-run，並另外啟動一次模擬器 `start-trigger-record` 軟體觸發流程，接著輸出可由機器判讀的 artifacts；若證據不符合合約，會以非零結束代碼失敗。請勿將此 helper 用於 live resources；把 `--resource` 改成 `USB0::...` 這類 live VISA address，並不會讓它成為 live validation path。
 
-以下範例適用於包含 `meters-tool*.exe` 執行檔的工作區：
+以下範例適用於包含已解壓縮 Windows 發佈 bundle 的工作區：
 
 ```powershell
 node .agents\skills\meters-tool-cli-orchestration\scripts\run_meter_sim_workflow.mjs `
-  --exe .\meters-tool-<version>.exe `
+  --exe .\meters-tool-<version>\meters-tool.exe `
   --out .tmp_tests\meter_sim_software_trigger `
   --resource SIM::34461A `
   --measurement current-dc `

@@ -21,18 +21,14 @@ It is not a cloud service.
 
 ## Start The WebUI
 
-For normal use, double-click the WebUI launcher provided with the release or
-local build:
+For a release build, extract `meters-tool-<version>-windows-x64.zip`, open the
+`meters-tool-<version>` folder, and double-click:
 
 ```text
 meters-tool-webui-launcher.exe
 ```
 
-Release folders may include a versioned launcher name, such as:
-
-```text
-meters-tool-webui-launcher-<version>.exe
-```
+The executable name remains unversioned inside the versioned bundle folder.
 
 The launcher starts automatically. It begins at port `8767`, tries up to 100
 local ports when needed, waits until the WebUI is ready, and then opens the

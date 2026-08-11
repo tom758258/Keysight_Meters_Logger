@@ -1,6 +1,5 @@
 param(
     [string]$DistPath = "dist",
-    [string]$Name = "meters-tool",
     [string]$WorkRoot = "build",
     [string]$SourceRoot
 )
@@ -10,24 +9,39 @@ $ErrorActionPreference = "Stop"
 
 $RepoRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")).Path
 $Python = Join-Path $RepoRoot ".venv\Scripts\python.exe"
+$SpecPath = Join-Path $PSScriptRoot "meters-tool-windows.spec"
 
 if (-not (Test-Path -LiteralPath $Python)) {
     throw "Python executable not found: $Python"
 }
+if (-not (Test-Path -LiteralPath $SpecPath -PathType Leaf)) {
+    throw "PyInstaller spec not found: $SpecPath"
+}
+
+$pythonBits = (& $Python -c "import struct; print(struct.calcsize('P') * 8)").Trim()
+if ($LASTEXITCODE -ne 0) {
+    exit $LASTEXITCODE
+}
+if ($pythonBits -ne "64") {
+    throw "Windows x64 bundle requires a 64-bit Python environment."
+}
+
+$repoFull = [System.IO.Path]::GetFullPath($RepoRoot)
+$repoPrefix = $repoFull.TrimEnd([System.IO.Path]::DirectorySeparatorChar) +
+    [System.IO.Path]::DirectorySeparatorChar
 
 if ([System.IO.Path]::IsPathRooted($DistPath)) {
     $distFull = [System.IO.Path]::GetFullPath($DistPath)
 } else {
     $distFull = [System.IO.Path]::GetFullPath((Join-Path $RepoRoot $DistPath))
 }
-$repoFull = [System.IO.Path]::GetFullPath($RepoRoot)
-$repoPrefix = $repoFull.TrimEnd([System.IO.Path]::DirectorySeparatorChar) + [System.IO.Path]::DirectorySeparatorChar
 if (-not (
     $distFull.Equals($repoFull, [System.StringComparison]::OrdinalIgnoreCase) -or
     $distFull.StartsWith($repoPrefix, [System.StringComparison]::OrdinalIgnoreCase)
 )) {
     throw "DistPath must stay under the repository: $distFull"
 }
+
 if ([System.IO.Path]::IsPathRooted($WorkRoot)) {
     $workRootFull = [System.IO.Path]::GetFullPath($WorkRoot)
 } else {
@@ -36,6 +50,7 @@ if ([System.IO.Path]::IsPathRooted($WorkRoot)) {
 if (-not $workRootFull.StartsWith($repoPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
     throw "WorkRoot must stay under the repository: $workRootFull"
 }
+
 if ([string]::IsNullOrWhiteSpace($SourceRoot)) {
     $sourceRootFull = $repoFull
 } elseif ([System.IO.Path]::IsPathRooted($SourceRoot)) {
@@ -53,20 +68,20 @@ if (-not (
 )) {
     throw "SourceRoot must stay under the repository: $sourceRootFull"
 }
+
 $sourcePath = Join-Path $sourceRootFull "src"
 $previousPythonPath = $env:PYTHONPATH
+$pyinstallerExitCode = 1
 
 try {
     $env:PYTHONPATH = $sourcePath
     & $Python -m PyInstaller `
-        --onefile `
-        --console `
-        --name $Name `
+        --noconfirm `
         --distpath $distFull `
-        --workpath (Join-Path $workRootFull "pyinstaller-cli") `
-        --specpath (Join-Path $workRootFull "pyinstaller-specs") `
-        --paths $sourcePath `
-        (Join-Path $sourceRootFull "src\meters_tool_cli\cli.py")
+        --workpath (Join-Path $workRootFull "pyinstaller-windows-bundle") `
+        $SpecPath `
+        -- `
+        --source-root $sourceRootFull
     $pyinstallerExitCode = $LASTEXITCODE
 } finally {
     $env:PYTHONPATH = $previousPythonPath

@@ -8,22 +8,16 @@ and automation contracts, see the [CLI README](README.md).
 
 ## Start The CLI
 
-Open PowerShell in the folder that contains the CLI executable and check it:
+For a release build, extract `meters-tool-<version>-windows-x64.zip`, open
+PowerShell in the extracted `meters-tool-<version>` folder, and check the CLI:
 
 ```powershell
 .\meters-tool.exe --version
 ```
 
-Release folders may include a versioned executable name, such as:
-
-```text
-meters-tool-<version>.exe
-```
-
-Use that file name in the commands below if your release folder uses a
-versioned executable. Developers or source-checkout users should use the
-[CLI README](README.md) for virtual environment, module, and build
-commands.
+The executable name remains unversioned inside the versioned bundle folder.
+Developers or source-checkout users should use the [CLI README](README.md) for
+virtual environment, module, and build commands.
 
 ## First Live Run
 
@@ -251,9 +245,9 @@ expected rows.
 
 ## Common Problems
 
-If `meters-tool.exe` is missing, confirm you are in the release folder that
-contains the CLI executable. If your release uses a versioned name such as
-`meters-tool-<version>.exe`, use that file name in the commands.
+If `meters-tool.exe` is missing, confirm that the ZIP was fully extracted and
+that PowerShell is open in the versioned bundle folder containing the CLI
+executable and `_internal` directory.
 
 If `list-resources` shows stale resources, use `list-resources --verify` to see
 which resources answer and why others failed. Use `--live-only` when you only

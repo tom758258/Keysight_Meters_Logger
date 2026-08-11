@@ -162,26 +162,27 @@ dist\meters_tool-<version>-py3-none-any.whl
 dist\meters_tool-<version>.tar.gz
 ```
 
-獨立執行檔採用 Windows 導向的 PyInstaller 工作流程。PyInstaller 已包含在
+共用 Windows bundle 採用 PyInstaller onedir 工作流程。PyInstaller 已包含在
 Windows `dev` 相依套件中，因此透過
 `uv sync --all-extras --locked --link-mode=copy` 建立的開發環境已可用於發布
 建置與正式發布驗收。
 
-建置獨立的 CLI 和 WebUI 啟動器執行檔：
+將 CLI 與 WebUI Launcher 建置到同一個共用 bundle：
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_cli_exe.ps1
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_webui_exe.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_windows_bundle.ps1
 ```
 
-預設情況下，這些命令會產生：
+預設會產生：
 
 ```text
-dist\meters-tool.exe
-dist\meters-tool-webui-launcher.exe
+dist\meters-tool\
+  meters-tool.exe
+  meters-tool-webui-launcher.exe
+  _internal\
 ```
 
-建置包含 wheel、sdist、獨立執行檔與檢查碼 (checksums) 的發佈資料夾：
+建置包含 wheel、sdist、共用 Windows bundle ZIP 與檢查碼 (checksums) 的發佈資料夾：
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_release.ps1
@@ -190,8 +191,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_release.
 這會產生帶有版本號的發佈產物：
 
 ```text
-release\<version>\meters-tool-<version>.exe
-release\<version>\meters-tool-webui-launcher-<version>.exe
+release\<version>\meters-tool-<version>-windows-x64.zip
 release\<version>\meters_tool-<version>-py3-none-any.whl
 release\<version>\meters_tool-<version>.tar.gz
 release\<version>\checksums.txt
@@ -199,9 +199,9 @@ release\<version>\checksums.txt
 
 `release-acceptance.ps1` 是針對乾淨、已提交工作樹的正式無硬體發布驗收。
 它會執行完整無硬體測試（包含 wrapper 測試）、呼叫一次
-`build_release.ps1`，並驗證最終 wheel、source distribution、CLI 獨立 EXE、
-WebUI Launcher 獨立 EXE 與 SHA-256 checksums；接著執行乾淨安裝套件 smoke
-test、最小獨立執行檔 smoke test、指定 target 的 preflight 與既有的
+`build_release.ps1`，並驗證最終 wheel、source distribution、共用 Windows
+bundle ZIP 與 SHA-256 checksums；接著解壓 bundle 並執行既有 CLI 與 Launcher
+smoke test、乾淨安裝套件 smoke test、指定 target 的 preflight 與既有的
 PlanOnly 驗證。通過後會輸出可直接上傳至 GitHub Release 的版本化目錄。
 最後的 `live-cli-check.ps1` 呼叫是 `-Suite minimal -PlanOnly -SkipPreflight`；
 它只產生規劃，不會開啟 VISA 資源。每個 recorded command 會顯示
