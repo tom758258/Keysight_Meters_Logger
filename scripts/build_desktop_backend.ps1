@@ -1,13 +1,29 @@
+param(
+    [string]$SourceRoot
+)
+
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $RepoRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")).Path
 $Python = Join-Path $RepoRoot ".venv\Scripts\python.exe"
-$SourcePath = Join-Path $RepoRoot "src"
+
+if ([string]::IsNullOrWhiteSpace($SourceRoot)) {
+    $sourceRootFull = $RepoRoot
+} elseif ([System.IO.Path]::IsPathRooted($SourceRoot)) {
+    $sourceRootFull = [System.IO.Path]::GetFullPath($SourceRoot)
+} else {
+    $sourceRootFull = [System.IO.Path]::GetFullPath((Join-Path $RepoRoot $SourceRoot))
+}
+if (-not (Test-Path -LiteralPath $sourceRootFull -PathType Container)) {
+    throw "SourceRoot directory not found: $sourceRootFull"
+}
+$sourceRootFull = (Resolve-Path -LiteralPath $sourceRootFull).Path
+$SourcePath = Join-Path $sourceRootFull "src"
 $HostScript = Join-Path $SourcePath "meters_tool_webui\_desktop_host.py"
 $StaticPath = Join-Path $SourcePath "meters_tool_webui\static"
-$DistPath = Join-Path $RepoRoot "build\desktop-backend-dist"
-$WorkPath = Join-Path $RepoRoot "build\pyinstaller-desktop-backend"
+$DistPath = Join-Path $sourceRootFull "build\desktop-backend-dist"
+$WorkPath = Join-Path $sourceRootFull "build\pyinstaller-desktop-backend"
 
 if (-not (Test-Path -LiteralPath $Python -PathType Leaf)) {
     throw "Python executable not found: $Python"

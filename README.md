@@ -238,11 +238,10 @@ dist\desktop\Meters-Tool-Desktop-3.0.0-portable.exe
 ```
 
 The portable application does not require a system Python installation. This
-local Desktop build is not yet part of the formal release acceptance or
-checksum artifact set.
+portable EXE is also included in the formal release artifact and checksum set.
 
 `build_release.ps1` assembles the wheel, source distribution, shared Windows
-bundle ZIP, and checksums into a versioned release folder:
+bundle ZIP, Desktop portable EXE, and checksums into a versioned release folder:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_release.ps1
@@ -252,6 +251,7 @@ This produces versioned release artifacts:
 
 ```text
 release\<version>\meters-tool-<version>-windows-x64.zip
+release\<version>\Meters-Tool-Desktop-<version>-portable.exe
 release\<version>\meters_tool-<version>-py3-none-any.whl
 release\<version>\meters_tool-<version>.tar.gz
 release\<version>\checksums.txt
@@ -260,11 +260,12 @@ release\<version>\checksums.txt
 `release-acceptance.ps1` is the formal no-hardware release acceptance for a
 clean committed tree. It runs the complete no-hardware test suite, including
 wrapper tests, invokes `build_release.ps1` once, and validates the final wheel,
-source distribution, shared Windows bundle ZIP, and SHA-256 checksums. It
-extracts the bundle and runs the existing CLI and Launcher smokes, followed by
-clean-install package smokes, selected-target preflight, and the existing
-PlanOnly validation. A passing run prints the versioned directory that can be
-uploaded directly to a GitHub Release.
+source distribution, shared Windows bundle ZIP, Desktop portable EXE, and all
+four SHA-256 checksums. It extracts the bundle and runs the existing CLI and
+Launcher smokes, followed by clean-install package smokes, selected-target
+preflight, and the existing PlanOnly validation. It does not automate an
+Electron GUI runtime smoke. A passing run prints the versioned directory that
+can be uploaded directly to a GitHub Release.
 The final `live-cli-check.ps1` call is `-Suite minimal -PlanOnly -SkipPreflight`;
 it only generates plans and does not open a VISA resource. Each recorded command
 prints `[start]` and `[passed]` or `[failed]` with its duration, while detailed

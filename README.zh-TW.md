@@ -208,10 +208,11 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_desktop.
 dist\desktop\Meters-Tool-Desktop-3.0.0-portable.exe
 ```
 
-Portable application 不需要系統預先安裝 Python。此本機 Desktop build 尚未
-納入正式 release acceptance 或 checksum artifact set。
+Portable application 不需要系統預先安裝 Python。此 portable EXE 也會納入
+正式 release artifact 與 checksum set。
 
-建置包含 wheel、sdist、共用 Windows bundle ZIP 與檢查碼 (checksums) 的發佈資料夾：
+建置包含 wheel、sdist、共用 Windows bundle ZIP、Desktop portable EXE 與
+檢查碼 (checksums) 的發佈資料夾：
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_release.ps1
@@ -221,6 +222,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_release.
 
 ```text
 release\<version>\meters-tool-<version>-windows-x64.zip
+release\<version>\Meters-Tool-Desktop-<version>-portable.exe
 release\<version>\meters_tool-<version>-py3-none-any.whl
 release\<version>\meters_tool-<version>.tar.gz
 release\<version>\checksums.txt
@@ -229,9 +231,11 @@ release\<version>\checksums.txt
 `release-acceptance.ps1` 是針對乾淨、已提交工作樹的正式無硬體發布驗收。
 它會執行完整無硬體測試（包含 wrapper 測試）、呼叫一次
 `build_release.ps1`，並驗證最終 wheel、source distribution、共用 Windows
-bundle ZIP 與 SHA-256 checksums；接著解壓 bundle 並執行既有 CLI 與 Launcher
-smoke test、乾淨安裝套件 smoke test、指定 target 的 preflight 與既有的
-PlanOnly 驗證。通過後會輸出可直接上傳至 GitHub Release 的版本化目錄。
+bundle ZIP、Desktop portable EXE 與全部四筆 SHA-256 checksums；接著解壓
+bundle 並執行既有 CLI 與 Launcher smoke test、乾淨安裝套件 smoke test、
+指定 target 的 preflight 與既有的 PlanOnly 驗證。此流程不會自動執行
+Electron GUI runtime smoke。通過後會輸出可直接上傳至 GitHub Release 的
+版本化目錄。
 最後的 `live-cli-check.ps1` 呼叫是 `-Suite minimal -PlanOnly -SkipPreflight`；
 它只產生規劃，不會開啟 VISA 資源。每個 recorded command 會顯示
 `[start]` 以及含執行時間的 `[passed]` 或 `[failed]`，詳細的 child-process

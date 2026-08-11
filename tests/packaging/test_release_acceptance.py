@@ -6,8 +6,11 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 RELEASE_ACCEPTANCE = REPO_ROOT / "scripts" / "release-acceptance.ps1"
 BUILD_RELEASE = REPO_ROOT / "scripts" / "build_release.ps1"
+BUILD_DESKTOP = REPO_ROOT / "scripts" / "build_desktop.ps1"
+BUILD_DESKTOP_BACKEND = REPO_ROOT / "scripts" / "build_desktop_backend.ps1"
 BUILD_WINDOWS_BUNDLE = REPO_ROOT / "scripts" / "build_windows_bundle.ps1"
 WINDOWS_SPEC = REPO_ROOT / "scripts" / "meters-tool-windows.spec"
+TESTS_WORKFLOW = REPO_ROOT / ".github" / "workflows" / "tests.yml"
 OLD_CLI_BUILDER = REPO_ROOT / "scripts" / "build_cli_exe.ps1"
 OLD_WEBUI_BUILDER = REPO_ROOT / "scripts" / "build_webui_exe.ps1"
 OLD_RELEASE_CHECK = REPO_ROOT / "scripts" / "release-cli-check.ps1"
@@ -44,7 +47,11 @@ def test_release_acceptance_checks_tools_lock_and_clean_git_tree():
     for contract in (
         'Get-Command -Name "git"',
         'Get-Command -Name "uv"',
+        'Get-Command -Name "node"',
+        'Get-Command -Name "npm.cmd"',
         "Project Python executable not found",
+        '$script:currentStep = "node_version"',
+        '$script:currentStep = "npm_version"',
         '@("-m", "PyInstaller", "--version")',
         '@("lock", "--check")',
         '@("-C", $RepoRoot, "status", "--porcelain")',
@@ -105,6 +112,7 @@ def test_release_acceptance_validates_final_artifacts_and_checksums():
 
     for contract in (
         '"meters-tool-$packageVersion-windows-x64.zip"',
+        '"Meters-Tool-Desktop-$packageVersion-portable.exe"',
         '"meters_tool-$packageVersion-py3-none-any.whl"',
         '"meters_tool-$packageVersion.tar.gz"',
         '"checksums.txt"',
@@ -167,6 +175,7 @@ def test_release_acceptance_report_uses_project_release_semantics():
         "error = $failureMessage",
         "final_release_dir = $relativeFinalReleaseDir",
         "windows_bundle_zip = if ($null -ne $windowsBundleZip)",
+        "desktop_portable_exe = if ($null -ne $desktopPortableExe)",
         "checksum_validation = $checksumValidation",
         "standalone_cli_smoke = $standaloneCliSmoke",
         "launcher_self_test = $launcherSelfTest",
@@ -224,15 +233,22 @@ def test_release_acceptance_rechecks_final_working_tree_hygiene():
     assert "Git working tree must remain clean after release acceptance." in final_block
 
 
-def test_release_build_passes_one_source_snapshot_to_windows_bundle_builder():
+def test_release_build_passes_one_source_snapshot_to_windows_and_desktop_builders():
     script = BUILD_RELEASE.read_text(encoding="utf-8-sig")
 
     assert '$sourceRoot = Join-Path $buildRoot "source"' in script
-    assert script.count("-SourceRoot $sourceRoot") == 1
-    invocation = next(
+    assert script.count("-SourceRoot $sourceRoot") == 2
+    windows_invocation = next(
         line for line in script.splitlines() if "build_windows_bundle.ps1" in line
     )
-    assert "-SourceRoot $sourceRoot" in invocation
+    desktop_invocation = next(
+        line for line in script.splitlines() if "build_desktop.ps1" in line
+    )
+    assert "-SourceRoot $sourceRoot" in windows_invocation
+    assert "-SourceRoot $sourceRoot" in desktop_invocation
+    assert r'Join-Path $sourceRoot "desktop\package.json"' in script
+    assert "Desktop package version" in script
+    assert "does not match release version" in script
     assert "build_cli_exe.ps1" not in script
     assert "build_webui_exe.ps1" not in script
 
@@ -280,6 +296,7 @@ def test_release_build_creates_zip_and_hashes_expected_artifact_set():
 
     for contract in (
         '"meters-tool-$Version-windows-x64.zip"',
+        '"Meters-Tool-Desktop-$Version-portable.exe"',
         '"meters_tool-$Version-py3-none-any.whl"',
         '"meters_tool-$Version.tar.gz"',
         "Compress-Archive",
@@ -287,3 +304,21 @@ def test_release_build_creates_zip_and_hashes_expected_artifact_set():
         "foreach ($artifactName in ($expectedArtifactNames | Sort-Object))",
     ):
         assert contract in script
+
+
+def test_desktop_build_accepts_formal_release_source_snapshot():
+    script = BUILD_DESKTOP.read_text(encoding="utf-8-sig")
+    backend_script = BUILD_DESKTOP_BACKEND.read_text(encoding="utf-8-sig")
+
+    assert "[string]$SourceRoot" in script
+    assert "[string]$SourceRoot" in backend_script
+    assert "-SourceRoot $sourceRootFull" in script
+
+
+def test_windows_python_313_builds_formal_release_with_node_22():
+    workflow = TESTS_WORKFLOW.read_text(encoding="utf-8")
+
+    assert 'node-version: "22"' in workflow
+    assert "matrix.python-version == '3.13'" in workflow
+    assert ".\\scripts\\build_release.ps1" in workflow
+    assert ".tmp_tests\\ci-release" in workflow

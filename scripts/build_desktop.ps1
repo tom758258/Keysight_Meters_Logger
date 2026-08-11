@@ -1,11 +1,27 @@
+param(
+    [string]$SourceRoot
+)
+
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $RepoRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")).Path
-$DesktopRoot = Join-Path $RepoRoot "desktop"
 $BackendBuild = Join-Path $PSScriptRoot "build_desktop_backend.ps1"
 
-& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $BackendBuild
+if ([string]::IsNullOrWhiteSpace($SourceRoot)) {
+    $sourceRootFull = $RepoRoot
+} elseif ([System.IO.Path]::IsPathRooted($SourceRoot)) {
+    $sourceRootFull = [System.IO.Path]::GetFullPath($SourceRoot)
+} else {
+    $sourceRootFull = [System.IO.Path]::GetFullPath((Join-Path $RepoRoot $SourceRoot))
+}
+if (-not (Test-Path -LiteralPath $sourceRootFull -PathType Container)) {
+    throw "SourceRoot directory not found: $sourceRootFull"
+}
+$sourceRootFull = (Resolve-Path -LiteralPath $sourceRootFull).Path
+$DesktopRoot = Join-Path $sourceRootFull "desktop"
+
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $BackendBuild -SourceRoot $sourceRootFull
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
@@ -34,7 +50,7 @@ try {
 
 $Package = Get-Content -Raw -LiteralPath (Join-Path $DesktopRoot "package.json") |
     ConvertFrom-Json
-$Artifact = Join-Path $RepoRoot (
+$Artifact = Join-Path $sourceRootFull (
     "dist\desktop\Meters-Tool-Desktop-{0}-portable.exe" -f $Package.version
 )
 if (-not (Test-Path -LiteralPath $Artifact -PathType Leaf)) {

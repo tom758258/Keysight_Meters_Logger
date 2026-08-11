@@ -95,6 +95,7 @@ $finalGitHead = $null
 $finalReleaseDir = $null
 $checksumsPath = $null
 $windowsBundleZip = $null
+$desktopPortableExe = $null
 $cliExe = $null
 $launcherExe = $null
 $wheel = $null
@@ -223,6 +224,8 @@ try {
     }
     $gitCommand = Get-Command -Name "git" -CommandType Application -ErrorAction Stop
     $uvCommand = Get-Command -Name "uv" -CommandType Application -ErrorAction Stop
+    $nodeCommand = Get-Command -Name "node" -CommandType Application -ErrorAction Stop
+    $npmCommand = Get-Command -Name "npm.cmd" -CommandType Application -ErrorAction Stop
 
     $script:currentStep = "git_version"
     [void](Invoke-RecordedCommand `
@@ -240,6 +243,18 @@ try {
     [void](Invoke-RecordedCommand `
         -Name $script:currentStep `
         -FilePath $Python `
+        -Arguments @("--version"))
+
+    $script:currentStep = "node_version"
+    [void](Invoke-RecordedCommand `
+        -Name $script:currentStep `
+        -FilePath $nodeCommand.Source `
+        -Arguments @("--version"))
+
+    $script:currentStep = "npm_version"
+    [void](Invoke-RecordedCommand `
+        -Name $script:currentStep `
+        -FilePath $npmCommand.Source `
         -Arguments @("--version"))
 
     $script:currentStep = "pyinstaller_version"
@@ -325,6 +340,7 @@ try {
     Assert-UnderTmpRoot -Path $finalReleaseDir
     $expectedArtifactNames = @(
         "meters-tool-$packageVersion-windows-x64.zip",
+        "Meters-Tool-Desktop-$packageVersion-portable.exe",
         "meters_tool-$packageVersion-py3-none-any.whl",
         "meters_tool-$packageVersion.tar.gz"
     )
@@ -348,8 +364,9 @@ try {
     }
 
     $windowsBundleZip = Get-Item -LiteralPath (Join-Path $finalReleaseDir $expectedArtifactNames[0])
-    $wheel = Get-Item -LiteralPath (Join-Path $finalReleaseDir $expectedArtifactNames[1])
-    $sdist = Get-Item -LiteralPath (Join-Path $finalReleaseDir $expectedArtifactNames[2])
+    $desktopPortableExe = Get-Item -LiteralPath (Join-Path $finalReleaseDir $expectedArtifactNames[1])
+    $wheel = Get-Item -LiteralPath (Join-Path $finalReleaseDir $expectedArtifactNames[2])
+    $sdist = Get-Item -LiteralPath (Join-Path $finalReleaseDir $expectedArtifactNames[3])
     $checksumsPath = Join-Path $finalReleaseDir "checksums.txt"
 
     $script:currentStep = "validate_checksums"
@@ -380,7 +397,7 @@ try {
         }
     }
 
-    foreach ($artifact in @($windowsBundleZip, $wheel, $sdist)) {
+    foreach ($artifact in @($windowsBundleZip, $desktopPortableExe, $wheel, $sdist)) {
         $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $artifact.FullName).Hash.ToLowerInvariant()
         if ($checksumEntries[$artifact.Name] -ne $hash) {
             throw "SHA-256 mismatch for $($artifact.Name)"
@@ -388,6 +405,8 @@ try {
         $artifactType = if ($artifact.Name -eq $expectedArtifactNames[0]) {
             "windows_bundle_zip"
         } elseif ($artifact.Name -eq $expectedArtifactNames[1]) {
+            "desktop_portable_exe"
+        } elseif ($artifact.Name -eq $expectedArtifactNames[2]) {
             "wheel"
         } else {
             "sdist"
@@ -635,6 +654,11 @@ $report = [ordered]@{
         }
         windows_bundle_zip = if ($null -ne $windowsBundleZip) {
             Get-RepoRelativePath -Path $windowsBundleZip.FullName
+        } else {
+            $null
+        }
+        desktop_portable_exe = if ($null -ne $desktopPortableExe) {
+            Get-RepoRelativePath -Path $desktopPortableExe.FullName
         } else {
             $null
         }

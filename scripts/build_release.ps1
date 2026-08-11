@@ -69,6 +69,12 @@ foreach ($relativePath in $trackedFiles) {
     Copy-Item -LiteralPath $sourcePath -Destination $destinationPath
 }
 
+$desktopPackagePath = Join-Path $sourceRoot "desktop\package.json"
+$desktopPackage = Get-Content -Raw -LiteralPath $desktopPackagePath | ConvertFrom-Json
+if ($desktopPackage.version -ne $Version) {
+    throw "Desktop package version $($desktopPackage.version) does not match release version $Version"
+}
+
 & $Python -m build $sourceRoot --outdir $versionDir
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
@@ -93,10 +99,23 @@ Compress-Archive `
     -DestinationPath $windowsZip `
     -CompressionLevel Optimal
 
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "build_desktop.ps1") -SourceRoot $sourceRoot
+if ($LASTEXITCODE -ne 0) {
+    exit $LASTEXITCODE
+}
+
+$desktopArtifactName = "Meters-Tool-Desktop-$Version-portable.exe"
+$desktopArtifact = Join-Path $sourceRoot "dist\desktop\$desktopArtifactName"
+if (-not (Test-Path -LiteralPath $desktopArtifact -PathType Leaf)) {
+    throw "Desktop build did not produce release artifact: $desktopArtifact"
+}
+Copy-Item -LiteralPath $desktopArtifact -Destination (Join-Path $versionDir $desktopArtifactName)
+
 Remove-Item -LiteralPath $buildRoot -Recurse -Force
 
 $expectedArtifactNames = @(
     $windowsZipName,
+    $desktopArtifactName,
     "meters_tool-$Version-py3-none-any.whl",
     "meters_tool-$Version.tar.gz"
 )

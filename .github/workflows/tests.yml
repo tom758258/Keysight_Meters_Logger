@@ -115,6 +115,12 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Set up Node.js
+        if: matrix.python-version == '3.13'
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
       - name: Install uv
         run: python -m pip install --upgrade uv
 
@@ -132,6 +138,10 @@ jobs:
 
       - name: Run fast tests
         run: .\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider --ignore=tests\cli\test_cli_wrappers.py
+
+      - name: Build formal release artifacts
+        if: matrix.python-version == '3.13'
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_release.ps1 -ReleaseRoot .tmp_tests\ci-release
 
   wrapper-contracts:
     name: Windows wrapper contracts
