@@ -284,6 +284,155 @@ function Invoke-ReadinessClientChecks {
     }
 }
 
+function Invoke-CapturedStartProcess {
+    param(
+        [Parameter(Mandatory = $true)][string]$Name,
+        [Parameter(Mandatory = $true)][string[]]$Arguments,
+        [Parameter(Mandatory = $true)][string]$StdOutPath,
+        [Parameter(Mandatory = $true)][string]$StdErrPath,
+        [int]$TimeoutSeconds = 30,
+        [int]$SoftTriggerCount = 0,
+        [int]$SoftTriggerPort = 0,
+        [Parameter(Mandatory = $true)][string]$OutDir,
+        [Parameter(Mandatory = $true)][int]$SoftTriggerRetryCount,
+        [Parameter(Mandatory = $true)][int]$SoftTriggerRetryDelayMs,
+        [Parameter(Mandatory = $true)][int]$InterTriggerDelayMs,
+        [Parameter(Mandatory = $true)][int]$StopGracePeriodMs
+    )
+
+    $psi = [System.Diagnostics.ProcessStartInfo]::new()
+    $psi.FileName = $Python
+    $psi.WorkingDirectory = $RepoRoot
+    $psi.UseShellExecute = $false
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
+    $psi.Arguments = Join-ProcessArguments -Arguments $Arguments
+
+    $startedAt = Get-Date
+    $process = [System.Diagnostics.Process]::Start($psi)
+    $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+    $stderrTask = $process.StandardError.ReadToEndAsync()
+    $clientResults = [System.Collections.Generic.List[object]]::new()
+    $clientFailure = $null
+    $timedOut = $false
+
+    if ($SoftTriggerCount -gt 0) {
+        $readinessResult = Invoke-ReadinessClientChecks `
+            -Name $Name `
+            -Port $SoftTriggerPort `
+            -OutDir $OutDir
+        foreach ($clientCommand in $readinessResult.commands) {
+            $clientResults.Add($clientCommand) | Out-Null
+        }
+        if (-not $readinessResult.success) {
+            $clientFailure = "readiness/status check failed"
+        }
+        for ($index = 1; $index -le $SoftTriggerCount; $index++) {
+            if ($null -ne $clientFailure) {
+                break
+            }
+            $triggerResult = Invoke-SoftTriggerWithRetry `
+                -Name "$Name`_soft_trigger_$index" `
+                -Port $SoftTriggerPort `
+                -CaseName $Name `
+                -Index $index `
+                -OutDir $OutDir `
+                -RetryCount $SoftTriggerRetryCount `
+                -RetryDelayMs $SoftTriggerRetryDelayMs
+            $clientResults.Add([pscustomobject]$triggerResult) | Out-Null
+            if (-not $triggerResult.success) {
+                $clientFailure = "send-command $index failed"
+                break
+            }
+            Start-Sleep -Milliseconds $InterTriggerDelayMs
+        }
+    }
+
+    $exited = $process.WaitForExit($TimeoutSeconds * 1000)
+    if (-not $exited) {
+        $timedOut = $true
+        if ($SoftTriggerPort -gt 0) {
+            $stopOut = Join-Path $OutDir "$Name`_timeout_soft_stop.json"
+            $stopErr = Join-Path $OutDir "$Name`_timeout_soft_stop.stderr.txt"
+            $stopResult = Invoke-CapturedCommand `
+                -Name "$Name`_timeout_soft_stop" `
+                -FilePath $Python `
+                -Arguments @("-m", "meters_tool_cli", "stop", "--format", "json", "--port", [string]$SoftTriggerPort) `
+                -StdOutPath $stopOut `
+                -StdErrPath $stopErr
+            $clientResults.Add([pscustomobject]$stopResult) | Out-Null
+            $exited = $process.WaitForExit($StopGracePeriodMs)
+        }
+    }
+    if (-not $exited) {
+        $process.Kill()
+        $process.WaitForExit()
+    }
+    $process.WaitForExit()
+    $finishedAt = Get-Date
+    $stdout = $stdoutTask.GetAwaiter().GetResult()
+    $stderr = $stderrTask.GetAwaiter().GetResult()
+    Write-Utf8NoBomText -LiteralPath $StdOutPath -Text $stdout
+    Write-Utf8NoBomText -LiteralPath $StdErrPath -Text $stderr
+
+    return [ordered]@{
+        name = $Name
+        command = $Python
+        arguments = $Arguments
+        exit_code = $process.ExitCode
+        duration_seconds = [math]::Round(($finishedAt - $startedAt).TotalSeconds, 3)
+        stdout = $StdOutPath
+        stderr = $StdErrPath
+        success = (($process.ExitCode -eq 0) -and (-not $timedOut) -and ($null -eq $clientFailure))
+        timed_out = $timedOut
+        client_failure = $clientFailure
+        client_commands = @($clientResults.ToArray())
+    }
+}
+
+function Invoke-SoftTriggerWithRetry {
+    param(
+        [Parameter(Mandatory = $true)][string]$Name,
+        [Parameter(Mandatory = $true)][int]$Port,
+        [Parameter(Mandatory = $true)][string]$CaseName,
+        [Parameter(Mandatory = $true)][int]$Index,
+        [Parameter(Mandatory = $true)][string]$OutDir,
+        [Parameter(Mandatory = $true)][int]$RetryCount,
+        [Parameter(Mandatory = $true)][int]$RetryDelayMs
+    )
+
+    $meta = [ordered]@{ case = $CaseName; index = "$Index" } | ConvertTo-Json -Compress
+    $lastResult = $null
+    for ($attempt = 1; $attempt -le $RetryCount; $attempt++) {
+        $stdoutPath = Join-Path $OutDir "$Name`_attempt_$attempt.json"
+        $stderrPath = Join-Path $OutDir "$Name`_attempt_$attempt.stderr.txt"
+        $lastResult = Invoke-CapturedCommand `
+            -Name "$Name`_attempt_$attempt" `
+            -FilePath $Python `
+            -Arguments @(
+                "-m", "meters_tool_cli",
+                "send-command",
+                "--format", "json",
+                "--port", [string]$Port,
+                "--arguments-json", $meta
+            ) `
+            -StdOutPath $stdoutPath `
+            -StdErrPath $stderrPath
+        if ($lastResult.success) {
+            try {
+                $event = Get-Content -LiteralPath $stdoutPath -Raw | ConvertFrom-Json -ErrorAction Stop
+                if ($event.event -eq "send-command" -and $event.status -eq "accepted") {
+                    return $lastResult
+                }
+            } catch {
+                # Retry until the trigger endpoint is ready and emits valid JSON.
+            }
+        }
+        Start-Sleep -Milliseconds $RetryDelayMs
+    }
+    return $lastResult
+}
+
 function Read-JsonLines {
     param([Parameter(Mandatory = $true)][string]$Path)
     $events = @()
