@@ -3,7 +3,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const readline = require("node:readline");
 
-const { app, BrowserWindow, dialog } = require("electron");
+const { app, BrowserWindow, dialog, screen } = require("electron");
 
 const SHUTDOWN_COMMAND = `${JSON.stringify({ command: "shutdown" })}\n`;
 
@@ -107,9 +107,11 @@ function navigationIsAllowed(targetUrl) {
 }
 
 async function createMainWindow(readyUrl) {
+  const { width: workWidth, height: workHeight } =
+    screen.getPrimaryDisplay().workAreaSize;
   const window = new BrowserWindow({
-    width: 1280,
-    height: 900,
+    width: Math.min(1920, workWidth),
+    height: Math.min(1080, workHeight),
     show: false,
     webPreferences: {
       nodeIntegration: false,
