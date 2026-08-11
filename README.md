@@ -61,6 +61,7 @@ src/
   meters_tool_core/
   meters_tool_cli/
   meters_tool_webui/
+desktop/
 tests/
   core/
   cli/
@@ -167,6 +168,18 @@ The launcher binds only to local loopback. With no arguments it starts at port
 capabilities identity, and then opens the browser. Use `--port 9000` for one
 fixed port, or `--port 9000 --auto-port` to search from port `9000`.
 
+For Desktop shell development, install the locked Node dependencies and start
+Electron from `desktop/`:
+
+```powershell
+cd desktop
+npm ci
+npm start
+```
+
+Development mode starts the same private WebUI host through the repository
+`.venv`; Electron is only a shell around the existing FastAPI and static WebUI.
+
 See the [CLI README](docs/cli/README.md) and [WebUI README](docs/webui/README.md)
 for detailed options and workflows.
 
@@ -210,6 +223,23 @@ dist\meters-tool\
   meters-tool-webui-launcher.exe
   _internal\
 ```
+
+Build the Windows x64 portable Desktop application separately:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_desktop.ps1
+```
+
+This builds a private PyInstaller onedir backend, packages it inside the
+Electron shell, and produces:
+
+```text
+dist\desktop\Meters-Tool-Desktop-3.0.0-portable.exe
+```
+
+The portable application does not require a system Python installation. This
+local Desktop build is not yet part of the formal release acceptance or
+checksum artifact set.
 
 `build_release.ps1` assembles the wheel, source distribution, shared Windows
 bundle ZIP, and checksums into a versioned release folder:

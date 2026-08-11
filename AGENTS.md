@@ -36,6 +36,11 @@ planning, simple and surgical changes, and text-file hygiene.
   `meters_tool_webui`.
 - Core must not import CLI or WebUI. CLI and WebUI may depend on Core, but must
   not depend on each other.
+- Keep `desktop/` as a thin Node/Electron shell, not a Python namespace or
+  import package. It must reuse the existing WebUI static application and must
+  not own or copy Core, instrument, acquisition, or cleanup behavior.
+- Keep the Desktop renderer sandboxed without Node or Electron APIs. Do not
+  add a preload bridge unless a future approved requirement needs one.
 
 ## 3. Multi-Vendor Extension Boundary
 

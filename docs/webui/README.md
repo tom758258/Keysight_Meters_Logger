@@ -122,6 +122,14 @@ the actual local URL; Python and Uvicorn diagnostics use stderr. A
 only after that cleanup succeeds. If cleanup is incomplete, the host emits a
 `shutdown_incomplete` event and remains running.
 
+The Electron shell in `desktop/` consumes this existing JSONL lifecycle. In
+development it starts the host with the repository virtual environment; in a
+packaged Windows portable build it starts the bundled private backend from
+`resources/backend/`. The shell waits for `ready`, loads the loopback URL in a
+sandboxed BrowserWindow, and requests the same graceful shutdown before it
+closes. It does not own another FastAPI application, frontend, HTTP API, or
+run-cleanup implementation.
+
 ## Install Or Refresh
 
 For the primary project setup, follow the root [README Install](../../README.md#install)

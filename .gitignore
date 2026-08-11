@@ -36,6 +36,7 @@ target/
 # Dependency cache
 .mypy_cache/
 .pytest_cache/
+desktop/node_modules/
 
 #NoteBook file
 .obsidian

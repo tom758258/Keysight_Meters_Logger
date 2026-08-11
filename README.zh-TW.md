@@ -38,6 +38,7 @@ src/
   meters_tool_core/
   meters_tool_cli/
   meters_tool_webui/
+desktop/
 tests/
   core/
   cli/
@@ -140,6 +141,18 @@ Launcher 只會繫結本機 loopback。未提供參數時會從 `8767` 開始，
 後開啟瀏覽器。使用 `--port 9000` 可固定只嘗試一個 Port；使用
 `--port 9000 --auto-port` 則會從 `9000` 開始自動搜尋。
 
+開發 Desktop shell 時，請在 `desktop/` 安裝 lockfile 固定的 Node 相依套件並
+啟動 Electron：
+
+```powershell
+cd desktop
+npm ci
+npm start
+```
+
+Development mode 會透過 repository `.venv` 啟動同一個私有 WebUI host；
+Electron 只包覆既有 FastAPI 與 static WebUI，不是另一套 frontend。
+
 詳細選項與工作流程請參閱 [CLI README](docs/cli/README.zh-TW.md) 和
 [WebUI README](docs/webui/README.zh-TW.md)。
 
@@ -181,6 +194,22 @@ dist\meters-tool\
   meters-tool-webui-launcher.exe
   _internal\
 ```
+
+另外建置 Windows x64 portable Desktop application：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_desktop.ps1
+```
+
+此流程會建置私有 PyInstaller onedir backend，將它封裝進 Electron shell，並
+產生：
+
+```text
+dist\desktop\Meters-Tool-Desktop-3.0.0-portable.exe
+```
+
+Portable application 不需要系統預先安裝 Python。此本機 Desktop build 尚未
+納入正式 release acceptance 或 checksum artifact set。
 
 建置包含 wheel、sdist、共用 Windows bundle ZIP 與檢查碼 (checksums) 的發佈資料夾：
 

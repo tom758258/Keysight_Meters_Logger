@@ -5,6 +5,7 @@ src/
   meters_tool_core/
   meters_tool_cli/
   meters_tool_webui/
+desktop/
 tests/
   core/
   cli/
@@ -16,6 +17,12 @@ docs/
   contracts/
 scripts/
 ```
+
+`desktop/` is the Node/Electron packaging shell for the local Desktop
+application. It is not a fourth Python import package and is not part of the
+root Python distribution metadata. It launches the private WebUI Desktop host,
+reuses the existing FastAPI/static WebUI, and does not own Core or instrument
+behavior.
 
 ## Package Names
 

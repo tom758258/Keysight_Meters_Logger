@@ -97,6 +97,13 @@ message 時，會先執行既有的 `WebRunManager.shutdown()` cleanup。只有 
 成功後才停止 Uvicorn 並關閉已繫結的 socket；若 cleanup 未完成，host 會輸出
 `shutdown_incomplete` event 並保持執行。
 
+`desktop/` 中的 Electron shell 直接使用這個既有 JSONL lifecycle。Development
+mode 透過 repository virtual environment 啟動 host；Windows portable build 則
+從 `resources/backend/` 啟動內含的私有 backend。Shell 會等待 `ready`、在
+sandboxed BrowserWindow 載入 loopback URL，並在關閉前要求同一套 graceful
+shutdown。它不擁有另一套 FastAPI application、frontend、HTTP API 或 run
+cleanup implementation。
+
 ## 安裝或重新載入
 
 主要專案設定請遵循根目錄 [README 安裝](../../README.zh-TW.md#安裝) 章節。

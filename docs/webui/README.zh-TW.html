@@ -290,6 +290,7 @@
         <div class="code-wrapper"><pre><code>python -m meters_tool_webui._desktop_host</code></pre></div>
         <p>此 host 僅繫結至 <code>127.0.0.1</code> 並使用 Port <code>0</code>，從已繫結的 socket 取得作業系統配置的 ephemeral port，再將同一個 socket 傳給 Uvicorn。它重用既有的 FastAPI application、WebUI static assets、HTTP API 與 <code>WebRunManager</code>，沒有另一套 WebUI implementation，也不會開啟 system browser 或使用 Tkinter。</p>
         <p>此 host 透過 stdin/stdout JSONL 提供私有 lifecycle boundary。Stdout 僅供 lifecycle events 使用，包括帶有實際本機 URL 的 <code>ready</code> event；Python 與 Uvicorn diagnostics 一律使用 stderr。收到 <code>{&quot;command&quot;:&quot;shutdown&quot;}</code> stdin message 時，會先執行既有的 <code>WebRunManager.shutdown()</code> cleanup。只有 cleanup 成功後才停止 Uvicorn 並關閉已繫結的 socket；若 cleanup 未完成，host 會輸出 <code>shutdown_incomplete</code> event 並保持執行。</p>
+        <p><code>desktop/</code> 中的 Electron shell 直接使用這個既有 JSONL lifecycle。Development mode 透過 repository virtual environment 啟動 host；Windows portable build 則從 <code>resources/backend/</code> 啟動內含的私有 backend。Shell 會等待 <code>ready</code>、在 sandboxed BrowserWindow 載入 loopback URL，並在關閉前要求同一套 graceful shutdown。它不擁有另一套 FastAPI application、frontend、HTTP API 或 run cleanup implementation。</p>
 
         <h2>安裝或重新載入</h2>
         <p>主要專案設定請遵循根目錄 <a href="../../README.zh-TW.md#安裝">README 安裝</a> 章節。該流程會建立專案虛擬環境，並使用 copy link mode 同步 all-extras 環境。</p>
