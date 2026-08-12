@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
-import signal
+import signal  # noqa: F401  # compatibility patch path
 import sys
 from datetime import datetime, timezone
 
@@ -87,8 +87,8 @@ except ImportError:  # pragma: no cover - PyInstaller script entry point
     )
     from meters_tool_cli._start_controls import (
         CliStartRunControls,
-        WindowsConsoleStopHandler,
-        WindowsKeyboardStopPoller,
+        WindowsConsoleStopHandler,  # noqa: F401  # compatibility import
+        WindowsKeyboardStopPoller,  # noqa: F401  # compatibility import
     )
 
 __all__ = [
