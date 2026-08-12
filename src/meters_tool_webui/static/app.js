@@ -36,6 +36,8 @@ import {
   timerTriggerCheckbox,
   triggerModeSelect,
   triggerRunButton,
+  themeToggle,
+  themeToggleLabel,
 } from "./dom.js";
 import {
   initializeLiveDataUi,
@@ -66,6 +68,7 @@ import {
   startStatusUpdates,
 } from "./status.js";
 import { resourceStatusPresentation } from "./presentation_i18n.js";
+import { initializeThemeUi } from "./theme_ui.js";
 
 function setTranslatedText(element, key, params = {}) {
   element.setAttribute("data-i18n", key);
@@ -445,6 +448,7 @@ openCsvButton.addEventListener("click", async () => {
 
 function refreshLocalizedPresentation() {
   applyStaticTranslations(document);
+  themeUi.refresh();
   refreshRunFormPresentation();
   refreshResourcesPresentation();
   refreshStatusPresentation();
@@ -473,6 +477,20 @@ initializeLocaleUi({
   storage: browserStorage(),
   navigatorLike: browserNavigator(),
   onLocaleChange: refreshLocalizedPresentation,
+});
+
+const themeUi = initializeThemeUi({
+  button: themeToggle,
+  label: themeToggleLabel,
+  documentElement: document.documentElement,
+  storage: browserStorage(),
+  mediaQuery: (() => {
+    try {
+      return window.matchMedia?.("(prefers-color-scheme: dark)") || null;
+    } catch (_error) {
+      return null;
+    }
+  })(),
 });
 
 applyStaticTranslations(document);

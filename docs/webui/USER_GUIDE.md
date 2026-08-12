@@ -87,6 +87,14 @@ In Traditional Chinese, the Measurement options control displays
 stay beside their field titles at ordinary desktop widths, including AC filter
 and Current terminal, and wrap naturally on very narrow screens.
 
+## Browser Theme
+
+Use the theme button beside the language button to cycle through `System`,
+`Light`, and `Dark`. `System` follows the browser or operating-system color
+scheme and updates when that setting changes. The selected preference is saved
+in the browser and restored on later visits. Switching theme is immediate and
+does not reload the page or reset the current form, run, Live data, or status.
+
 ## First Run
 
 Use this flow for a basic immediate measurement:

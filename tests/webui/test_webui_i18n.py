@@ -594,7 +594,12 @@ class _StaticTextBindingParser(HTMLParser):
         text = data.strip()
         if self.stack:
             self.stack[-1]["text"].append(data)
-        if text and self.stack and "data-i18n" not in self.stack[-1]["attributes"]:
+        if (
+            text
+            and self.stack
+            and self.stack[-1]["tag"] not in {"script", "style"}
+            and "data-i18n" not in self.stack[-1]["attributes"]
+        ):
             self.unbound_text.append(text)
 
 
