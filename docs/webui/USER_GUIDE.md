@@ -94,6 +94,9 @@ Use the theme button beside the language button to cycle through `System`,
 scheme and updates when that setting changes. The selected preference is saved
 in the browser and restored on later visits. Switching theme is immediate and
 does not reload the page or reset the current form, run, Live data, or status.
+In Electron Desktop, `System` also keeps the native window UI aligned with the
+operating-system appearance. Selecting `Light` or `Dark` applies that preference
+to the native window UI as well, and Desktop restores it on later starts.
 
 ## First Run
 

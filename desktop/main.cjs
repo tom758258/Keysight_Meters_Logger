@@ -3,13 +3,17 @@ const fs = require("node:fs");
 const path = require("node:path");
 const readline = require("node:readline");
 
-const { app, BrowserWindow, dialog, screen } = require("electron");
+const { app, BrowserWindow, dialog, nativeTheme, screen, session } = require("electron");
 
 const SHUTDOWN_COMMAND = `${JSON.stringify({ command: "shutdown" })}\n`;
+const THEME_COOKIE_NAME = "meters-tool.webui.theme";
+const THEME_COOKIE_URL = "http://127.0.0.1/";
+const THEME_PREFERENCES = new Set(["system", "light", "dark"]);
 
 let backendProcess = null;
 let mainWindow = null;
 let allowedOrigin = null;
+let initialThemeSync = Promise.resolve();
 let backendReady = false;
 let shutdownPending = false;
 let allowAppExit = false;
@@ -106,6 +110,47 @@ function navigationIsAllowed(targetUrl) {
   }
 }
 
+function applyNativeThemePreference(preference) {
+  try {
+    nativeTheme.themeSource = THEME_PREFERENCES.has(preference) ? preference : "system";
+  } catch {
+    try {
+      nativeTheme.themeSource = "system";
+    } catch {
+      // Continue with Electron's current native theme if it cannot be changed.
+    }
+  }
+}
+
+async function syncNativeThemePreference(cookies) {
+  let preference = "system";
+  try {
+    const savedCookies = await cookies.get({
+      url: THEME_COOKIE_URL,
+      name: THEME_COOKIE_NAME,
+    });
+    preference = savedCookies[0]?.value;
+  } catch {
+    // Native theme synchronization must not prevent Desktop startup.
+  }
+  applyNativeThemePreference(preference);
+}
+
+function initializeNativeThemeSynchronization() {
+  try {
+    const cookies = session.defaultSession.cookies;
+    cookies.on("changed", (_event, cookie) => {
+      if (cookie.name !== THEME_COOKIE_NAME) {
+        return;
+      }
+      void syncNativeThemePreference(cookies);
+    });
+    initialThemeSync = syncNativeThemePreference(cookies);
+  } catch {
+    applyNativeThemePreference("system");
+  }
+}
+
 async function createMainWindow(readyUrl) {
   const { width: workWidth, height: workHeight } =
     screen.getPrimaryDisplay().workAreaSize;
@@ -146,6 +191,7 @@ async function createMainWindow(readyUrl) {
 
   try {
     await window.loadURL(readyUrl.href);
+    await initialThemeSync;
     if (!window.isDestroyed()) {
       window.show();
     }
@@ -294,6 +340,9 @@ app.on("window-all-closed", () => {
   }
 });
 
-app.whenReady().then(startBackend).catch((error) => {
+app.whenReady().then(() => {
+  initializeNativeThemeSynchronization();
+  startBackend();
+}).catch((error) => {
   handleElectronFatalError(`Desktop startup failed: ${error.message}`);
 });

@@ -353,6 +353,37 @@ def test_desktop_build_assembles_shared_onedir_into_electron_directory():
     assert '"portable"' not in package
 
 
+def test_desktop_native_theme_tracks_the_host_scoped_webui_cookie():
+    main = DESKTOP_MAIN.read_text(encoding="utf-8-sig")
+
+    assert 'const THEME_COOKIE_NAME = "meters-tool.webui.theme";' in main
+    assert 'const THEME_COOKIE_URL = "http://127.0.0.1/";' in main
+    assert 'new Set(["system", "light", "dark"])' in main
+    assert "THEME_PREFERENCES.has(preference) ? preference : \"system\"" in main
+    assert 'let preference = "system";' in main
+    assert 'nativeTheme.themeSource = "system";' in main
+    assert 'cookies.on("changed", (_event, cookie) =>' in main
+    assert "cookie.name !== THEME_COOKIE_NAME" in main
+    assert "cookie.domain" not in main
+    assert "syncNativeThemePreference(cookies)" in main
+    assert "await initialThemeSync;" in main
+
+    for setting in (
+        "nodeIntegration: false",
+        "contextIsolation: true",
+        "sandbox: true",
+        "webSecurity: true",
+    ):
+        assert setting in main
+    for unsupported_window_option in (
+        "titleBarStyle",
+        "titleBarOverlay",
+        "frame: false",
+        "preload:",
+    ):
+        assert unsupported_window_option not in main
+
+
 def test_windows_python_313_builds_desktop_directory_with_node_22():
     workflow = TESTS_WORKFLOW.read_text(encoding="utf-8")
 
