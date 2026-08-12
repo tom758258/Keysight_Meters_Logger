@@ -1979,6 +1979,45 @@ class WebUiApiTests(unittest.TestCase):
         self.assertEqual("on", on_request.auto_zero)
         self.assertEqual("off", off_request.auto_zero)
 
+    def test_api_normalizes_web_request_values_before_core_resolution(self):
+        client, csv_path = self.make_client()
+        captured_requests = []
+
+        def capture_request(request):
+            captured_requests.append(request)
+            raise ValueError("normalization captured")
+
+        with patch(
+            "meters_tool_webui._run_manager.resolve_start_profile",
+            side_effect=capture_request,
+        ):
+            response = client.post(
+                "/api/runs",
+                json={
+                    "resource": "  USB::FAKE  ",
+                    "csv": f"  {csv_path}  ",
+                    "instrument_model": "  34461A  ",
+                    "trigger_mode": "  IMMEDIATE  ",
+                    "hw_trigger_slope": "  POS  ",
+                    "vm_comp_slope": "  NEG  ",
+                    "dcv_input_impedance": "  AUTO  ",
+                    "auto_zero": "  TRUE  ",
+                },
+            )
+
+        self.assertEqual(422, response.status_code)
+        self.assertEqual("normalization captured", response.json()["detail"])
+        self.assertEqual(1, len(captured_requests))
+        normalized = captured_requests[0]
+        self.assertEqual("USB::FAKE", normalized.resource)
+        self.assertEqual(str(csv_path), normalized.csv)
+        self.assertEqual("34461A", normalized.instrument_model)
+        self.assertEqual("immediate", normalized.trigger_mode)
+        self.assertEqual("pos", normalized.hw_trigger_slope)
+        self.assertEqual("neg", normalized.vm_comp_slope)
+        self.assertEqual("auto", normalized.dcv_input_impedance)
+        self.assertEqual("on", normalized.auto_zero)
+
     def test_webui_version_flag_uses_project_version(self):
         output = io.StringIO()
 
