@@ -10,8 +10,9 @@
 - Integrates the Windows x64 Desktop portable executable into the tracked-source
   formal release build, acceptance report, and four-artifact SHA-256 checksum set.
 - Replaces the two versioned Windows onefile executables with one versioned
-  Windows x64 ZIP containing unversioned CLI and WebUI Launcher executables
-  that share one PyInstaller onedir `_internal` directory.
+  Windows x64 ZIP containing unversioned CLI, WebUI Launcher, and private
+  Desktop host executables that share one PyInstaller onedir `_internal`
+  directory.
 - Adds CLI `--no-csv` support for orchestrator-owned JSONL sample persistence
   while preserving CSV as the default output.
 - Adds a default-enabled WebUI `CSV output` control so a run can opt out of CSV

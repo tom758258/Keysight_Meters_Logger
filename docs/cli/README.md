@@ -226,6 +226,7 @@ The output is:
 dist\meters-tool\
   meters-tool.exe
   meters-tool-webui-launcher.exe
+  meters-tool-webui-host.exe
   _internal\
 ```
 
@@ -248,7 +249,7 @@ Build scripts:
 
 | Script | Purpose |
 | --- | --- |
-| `scripts\build_windows_bundle.ps1` | Build the shared Windows onedir CLI and WebUI Launcher bundle. |
+| `scripts\build_windows_bundle.ps1` | Build the shared Windows onedir CLI, WebUI Launcher, and private Desktop host bundle. |
 | `scripts\build_release.ps1` | Assemble the Windows bundle ZIP, wheel, sdist, and checksums. |
 
 ## Basic Workflow

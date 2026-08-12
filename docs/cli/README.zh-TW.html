@@ -338,6 +338,7 @@ uv sync --all-extras --link-mode=copy
         <div class="code-wrapper"><pre><code>dist\meters-tool\
   meters-tool.exe
   meters-tool-webui-launcher.exe
+  meters-tool-webui-host.exe
   _internal\</code></pre></div>
         <p>重新建置後執行無硬體的快速功能健檢：</p>
         <div class="code-wrapper"><pre><code>.\dist\meters-tool\meters-tool.exe --version
@@ -360,7 +361,7 @@ uv sync --all-extras --link-mode=copy
             <tbody>
                 <tr>
                     <td><code>scripts\build_windows_bundle.ps1</code></td>
-                    <td>建置共用 Windows onedir CLI 與 WebUI Launcher bundle。</td>
+                    <td>建置共用 Windows onedir CLI、WebUI Launcher 與 private Desktop host bundle。</td>
                 </tr>
                 <tr>
                     <td><code>scripts\build_release.ps1</code></td>

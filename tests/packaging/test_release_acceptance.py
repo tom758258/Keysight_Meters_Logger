@@ -197,10 +197,11 @@ def test_release_acceptance_extracts_and_validates_shared_windows_bundle():
         '"meters-tool-$packageVersion"',
         '"meters-tool.exe"',
         '"meters-tool-webui-launcher.exe"',
+        '"meters-tool-webui-host.exe"',
         '"_internal"',
         "$bundleRootEntries.Count -ne 1",
         "$bundleEntries.Count -ne $expectedBundleEntryNames.Count",
-        "two executable files and one shared _internal directory",
+        "three executable files and one shared _internal directory",
     ):
         assert contract in script
 
@@ -277,18 +278,30 @@ def test_windows_bundle_builder_and_spec_define_shared_onedir_contract():
     ):
         assert contract in builder
 
-    assert spec.count("Analysis(") == 2
-    assert spec.count("PYZ(") == 2
-    assert spec.count("EXE(") == 2
+    assert spec.count("Analysis(") == 3
+    assert spec.count("PYZ(") == 3
+    assert spec.count("EXE(") == 3
     assert spec.count("COLLECT(") == 1
     assert "MERGE(" not in spec
     assert 'name="meters-tool"' in spec
     assert 'name="meters-tool-webui-launcher"' in spec
+    assert 'name="meters-tool-webui-host"' in spec
+    assert 'source_path / "meters_tool_webui" / "_desktop_host.py"' in spec
     assert "console=True" in spec
     assert "console=False" in spec
-    assert spec.count('contents_directory="_internal"') == 2
+    assert spec.count('contents_directory="_internal"') == 3
     assert '"meters_tool_webui/static"' in spec
     assert '"_internal/meters_tool_webui/static"' not in spec
+
+    collect = spec[spec.index("bundle = COLLECT(") :]
+    for entry in (
+        "cli_exe",
+        "launcher_exe",
+        "host_exe",
+        "host_analysis.binaries",
+        "host_analysis.datas",
+    ):
+        assert entry in collect
 
 
 def test_release_build_creates_zip_and_hashes_expected_artifact_set():

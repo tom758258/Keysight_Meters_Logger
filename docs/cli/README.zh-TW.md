@@ -139,6 +139,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_windows_
 dist\meters-tool\
   meters-tool.exe
   meters-tool-webui-launcher.exe
+  meters-tool-webui-host.exe
   _internal\
 ```
 
@@ -159,7 +160,7 @@ PyInstaller 會將產生的檔案寫入本機 `build\` 和 `dist\` 目錄。維�
 
 | 腳本 | 目的 |
 | --- | --- |
-| `scripts\build_windows_bundle.ps1` | 建置共用 Windows onedir CLI 與 WebUI Launcher bundle。 |
+| `scripts\build_windows_bundle.ps1` | 建置共用 Windows onedir CLI、WebUI Launcher 與 private Desktop host bundle。 |
 | `scripts\build_release.ps1` | 組合 Windows bundle ZIP、wheel、sdist 與 checksums。 |
 
 ## 基本工作流程

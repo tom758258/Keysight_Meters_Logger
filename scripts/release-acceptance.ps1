@@ -445,6 +445,7 @@ try {
     $expectedBundleEntryNames = @(
         "meters-tool.exe",
         "meters-tool-webui-launcher.exe",
+        "meters-tool-webui-host.exe",
         "_internal"
     )
     $bundleEntries = @(Get-ChildItem -LiteralPath $extractedBundleDir -Force)
@@ -464,9 +465,17 @@ try {
     $launcherExe = Get-Item -LiteralPath (
         Join-Path $extractedBundleDir "meters-tool-webui-launcher.exe"
     )
+    $hostExe = Get-Item -LiteralPath (
+        Join-Path $extractedBundleDir "meters-tool-webui-host.exe"
+    )
     $internalDir = Get-Item -LiteralPath (Join-Path $extractedBundleDir "_internal")
-    if ($cliExe.PSIsContainer -or $launcherExe.PSIsContainer -or -not $internalDir.PSIsContainer) {
-        throw "Windows bundle must contain two executable files and one shared _internal directory."
+    if (
+        $cliExe.PSIsContainer -or
+        $launcherExe.PSIsContainer -or
+        $hostExe.PSIsContainer -or
+        -not $internalDir.PSIsContainer
+    ) {
+        throw "Windows bundle must contain three executable files and one shared _internal directory."
     }
 
     Invoke-ArtifactSmoke -Label "wheel" -Artifact $wheel -UvPath $uvCommand.Source

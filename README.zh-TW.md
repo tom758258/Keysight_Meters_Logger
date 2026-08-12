@@ -180,7 +180,7 @@ Windows `dev` 相依套件中，因此透過
 `uv sync --all-extras --locked --link-mode=copy` 建立的開發環境已可用於發布
 建置與正式發布驗收。
 
-將 CLI 與 WebUI Launcher 建置到同一個共用 bundle：
+將 CLI、WebUI Launcher 與 private Desktop host 建置到同一個共用 bundle：
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_windows_bundle.ps1
@@ -192,8 +192,12 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_windows_
 dist\meters-tool\
   meters-tool.exe
   meters-tool-webui-launcher.exe
+  meters-tool-webui-host.exe
   _internal\
 ```
+
+Private host 已納入 bundle，供後續 Desktop 包裝整合使用。下方的 portable
+Desktop build 目前仍會另外包裝既有的 private backend。
 
 另外建置 Windows x64 portable Desktop application：
 

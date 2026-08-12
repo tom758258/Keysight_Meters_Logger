@@ -209,7 +209,7 @@ included in the Windows `dev` dependency set, so the development environment
 created by `uv sync --all-extras --locked --link-mode=copy` is ready for release
 builds and formal release acceptance.
 
-Build the CLI and WebUI Launcher into one shared bundle:
+Build the CLI, WebUI Launcher, and private Desktop host into one shared bundle:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_windows_bundle.ps1
@@ -221,8 +221,13 @@ By default, this produces:
 dist\meters-tool\
   meters-tool.exe
   meters-tool-webui-launcher.exe
+  meters-tool-webui-host.exe
   _internal\
 ```
+
+The private host is included for later Desktop packaging integration. The
+portable Desktop build below still packages its existing private backend
+separately.
 
 Build the Windows x64 portable Desktop application separately:
 

@@ -82,13 +82,54 @@ launcher_exe = EXE(
     contents_directory="_internal",
 )
 
+host_analysis = Analysis(
+    [str(source_path / "meters_tool_webui" / "_desktop_host.py")],
+    pathex=[str(source_path)],
+    binaries=[],
+    datas=[
+        (
+            str(source_path / "meters_tool_webui" / "static"),
+            "meters_tool_webui/static",
+        )
+    ],
+    hiddenimports=[],
+    hookspath=[],
+    hooksconfig={},
+    runtime_hooks=[],
+    excludes=[],
+    noarchive=False,
+    optimize=0,
+)
+host_pyz = PYZ(host_analysis.pure)
+host_exe = EXE(
+    host_pyz,
+    host_analysis.scripts,
+    [],
+    exclude_binaries=True,
+    name="meters-tool-webui-host",
+    debug=False,
+    bootloader_ignore_signals=False,
+    strip=False,
+    upx=True,
+    console=True,
+    disable_windowed_traceback=False,
+    argv_emulation=False,
+    target_arch=None,
+    codesign_identity=None,
+    entitlements_file=None,
+    contents_directory="_internal",
+)
+
 bundle = COLLECT(
     cli_exe,
     launcher_exe,
+    host_exe,
     cli_analysis.binaries,
     cli_analysis.datas,
     launcher_analysis.binaries,
     launcher_analysis.datas,
+    host_analysis.binaries,
+    host_analysis.datas,
     strip=False,
     upx=True,
     upx_exclude=[],
