@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v3.0.0
+
 - Adds a private Desktop WebUI host and thin Electron shell for a Windows x64
   portable build while reusing the existing FastAPI application, static WebUI,
   and graceful WebRunManager cleanup.
