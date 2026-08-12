@@ -95,7 +95,6 @@ $finalGitHead = $null
 $finalReleaseDir = $null
 $checksumsPath = $null
 $windowsBundleZip = $null
-$desktopPortableExe = $null
 $cliExe = $null
 $launcherExe = $null
 $wheel = $null
@@ -340,7 +339,6 @@ try {
     Assert-UnderTmpRoot -Path $finalReleaseDir
     $expectedArtifactNames = @(
         "meters-tool-$packageVersion-windows-x64.zip",
-        "Meters-Tool-Desktop-$packageVersion-portable.exe",
         "meters_tool-$packageVersion-py3-none-any.whl",
         "meters_tool-$packageVersion.tar.gz"
     )
@@ -364,9 +362,8 @@ try {
     }
 
     $windowsBundleZip = Get-Item -LiteralPath (Join-Path $finalReleaseDir $expectedArtifactNames[0])
-    $desktopPortableExe = Get-Item -LiteralPath (Join-Path $finalReleaseDir $expectedArtifactNames[1])
-    $wheel = Get-Item -LiteralPath (Join-Path $finalReleaseDir $expectedArtifactNames[2])
-    $sdist = Get-Item -LiteralPath (Join-Path $finalReleaseDir $expectedArtifactNames[3])
+    $wheel = Get-Item -LiteralPath (Join-Path $finalReleaseDir $expectedArtifactNames[1])
+    $sdist = Get-Item -LiteralPath (Join-Path $finalReleaseDir $expectedArtifactNames[2])
     $checksumsPath = Join-Path $finalReleaseDir "checksums.txt"
 
     $script:currentStep = "validate_checksums"
@@ -397,7 +394,7 @@ try {
         }
     }
 
-    foreach ($artifact in @($windowsBundleZip, $desktopPortableExe, $wheel, $sdist)) {
+    foreach ($artifact in @($windowsBundleZip, $wheel, $sdist)) {
         $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $artifact.FullName).Hash.ToLowerInvariant()
         if ($checksumEntries[$artifact.Name] -ne $hash) {
             throw "SHA-256 mismatch for $($artifact.Name)"
@@ -405,8 +402,6 @@ try {
         $artifactType = if ($artifact.Name -eq $expectedArtifactNames[0]) {
             "windows_bundle_zip"
         } elseif ($artifact.Name -eq $expectedArtifactNames[1]) {
-            "desktop_portable_exe"
-        } elseif ($artifact.Name -eq $expectedArtifactNames[2]) {
             "wheel"
         } else {
             "sdist"
@@ -442,23 +437,23 @@ try {
     }
 
     $extractedBundleDir = $bundleRootEntries[0].FullName
-    $expectedBundleEntryNames = @(
+    $requiredBundleFiles = @(
+        "Meters Tool.exe",
         "meters-tool.exe",
         "meters-tool-webui-launcher.exe",
-        "meters-tool-webui-host.exe",
-        "_internal"
+        "meters-tool-webui-host.exe"
     )
-    $bundleEntries = @(Get-ChildItem -LiteralPath $extractedBundleDir -Force)
-    $invalidBundleEntries = @(
-        $bundleEntries |
-            Where-Object { $_.Name -notin $expectedBundleEntryNames }
-    )
-    if (
-        $bundleEntries.Count -ne $expectedBundleEntryNames.Count -or
-        $invalidBundleEntries.Count -ne 0
-    ) {
-        $found = ($bundleEntries.Name | Sort-Object) -join ", "
-        throw "Windows bundle root does not contain exactly the expected entries: $found"
+    foreach ($requiredFile in $requiredBundleFiles) {
+        $requiredPath = Join-Path $extractedBundleDir $requiredFile
+        if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
+            throw "Unified Windows bundle is missing required file: $requiredFile"
+        }
+    }
+    foreach ($requiredDirectory in @("_internal", "resources")) {
+        $requiredPath = Join-Path $extractedBundleDir $requiredDirectory
+        if (-not (Test-Path -LiteralPath $requiredPath -PathType Container)) {
+            throw "Unified Windows bundle is missing required directory: $requiredDirectory"
+        }
     }
 
     $cliExe = Get-Item -LiteralPath (Join-Path $extractedBundleDir "meters-tool.exe")
@@ -468,14 +463,28 @@ try {
     $hostExe = Get-Item -LiteralPath (
         Join-Path $extractedBundleDir "meters-tool-webui-host.exe"
     )
-    $internalDir = Get-Item -LiteralPath (Join-Path $extractedBundleDir "_internal")
-    if (
-        $cliExe.PSIsContainer -or
-        $launcherExe.PSIsContainer -or
-        $hostExe.PSIsContainer -or
-        -not $internalDir.PSIsContainer
-    ) {
-        throw "Windows bundle must contain three executable files and one shared _internal directory."
+    $internalDirectories = @(
+        Get-ChildItem -LiteralPath $extractedBundleDir -Directory -Recurse -Force |
+            Where-Object { $_.Name -eq "_internal" }
+    )
+    if ($internalDirectories.Count -ne 1) {
+        throw "Unified Windows bundle must contain exactly one _internal directory."
+    }
+    if (-not $internalDirectories[0].FullName.Equals(
+        (Join-Path $extractedBundleDir "_internal"),
+        [System.StringComparison]::OrdinalIgnoreCase
+    )) {
+        throw "Unified Windows bundle _internal directory must be at the application root."
+    }
+    if (Test-Path -LiteralPath (Join-Path $extractedBundleDir "resources\backend")) {
+        throw "Unified Windows bundle must not contain resources\backend."
+    }
+    $portableExecutables = @(
+        Get-ChildItem -LiteralPath $extractedBundleDir `
+            -Filter "*-portable.exe" -File -Recurse
+    )
+    if ($portableExecutables.Count -ne 0) {
+        throw "Unified Windows bundle must not contain a portable executable."
     }
 
     Invoke-ArtifactSmoke -Label "wheel" -Artifact $wheel -UvPath $uvCommand.Source
@@ -666,11 +675,7 @@ $report = [ordered]@{
         } else {
             $null
         }
-        desktop_portable_exe = if ($null -ne $desktopPortableExe) {
-            Get-RepoRelativePath -Path $desktopPortableExe.FullName
-        } else {
-            $null
-        }
+        desktop_portable_exe = $null
         wheel = if ($null -ne $wheel) { Get-RepoRelativePath -Path $wheel.FullName } else { $null }
         sdist = if ($null -ne $sdist) { Get-RepoRelativePath -Path $sdist.FullName } else { $null }
     }

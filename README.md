@@ -252,12 +252,8 @@ and uses the same `_internal` directory as the CLI and Launcher. It does not
 require a system Python installation or unpack a portable Electron executable on
 each launch.
 
-The formal release tooling below still uses the previous portable Desktop
-artifact contract. It is not synchronized with this development layout and
-remains pending future release-artifact work.
-
-`build_release.ps1` assembles the wheel, source distribution, shared Windows
-bundle ZIP, Desktop portable EXE, and checksums into a versioned release folder:
+`build_release.ps1` assembles the wheel, source distribution, unified Windows
+ZIP, and checksums into a versioned release folder:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_release.ps1
@@ -267,19 +263,23 @@ This produces versioned release artifacts:
 
 ```text
 release\<version>\meters-tool-<version>-windows-x64.zip
-release\<version>\Meters-Tool-Desktop-<version>-portable.exe
 release\<version>\meters_tool-<version>-py3-none-any.whl
 release\<version>\meters_tool-<version>.tar.gz
 release\<version>\checksums.txt
 ```
 
+The Windows ZIP contains one `meters-tool-<version>` application directory with
+`Meters Tool.exe`, the CLI, the WebUI Launcher, the private Desktop host, one
+shared `_internal`, and the Electron runtime. Extract it once, then launch the
+Desktop, browser WebUI, or CLI from that directory.
+
 `release-acceptance.ps1` is the formal no-hardware release acceptance for a
 clean committed tree. It runs the complete no-hardware test suite, including
 wrapper tests, invokes `build_release.ps1` once, and validates the final wheel,
-source distribution, shared Windows bundle ZIP, Desktop portable EXE, and all
-four SHA-256 checksums. It extracts the bundle and runs the existing CLI and
-Launcher smokes, followed by clean-install package smokes, selected-target
-preflight, and the existing PlanOnly validation. It does not automate an
+source distribution, unified Windows ZIP, and all three SHA-256 checksums. It
+extracts the bundle and runs the existing CLI and Launcher smokes, followed by
+clean-install package smokes, selected-target preflight, and the existing
+PlanOnly validation. It does not automate an
 Electron GUI runtime smoke. A passing run prints the versioned directory that
 can be uploaded directly to a GitHub Release.
 The final `live-cli-check.ps1` call is `-Suite minimal -PlanOnly -SkipPreflight`;

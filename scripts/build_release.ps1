@@ -80,17 +80,22 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-$bundleDist = Join-Path $buildRoot "windows-bundle-dist"
-& powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "build_windows_bundle.ps1") -DistPath $bundleDist -WorkRoot $buildRoot -SourceRoot $sourceRoot
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "build_desktop.ps1") -SourceRoot $sourceRoot
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-$builtBundleDir = Join-Path $bundleDist "meters-tool"
+$desktopDirectory = Join-Path $sourceRoot "dist\desktop\win-unpacked"
+if (-not (Test-Path -LiteralPath $desktopDirectory -PathType Container)) {
+    throw "Desktop build did not produce release directory: $desktopDirectory"
+}
+
 $archiveRoot = Join-Path $buildRoot "windows-bundle-archive"
 $versionedBundleDir = Join-Path $archiveRoot "meters-tool-$Version"
-New-Item -ItemType Directory -Force -Path $archiveRoot | Out-Null
-Move-Item -LiteralPath $builtBundleDir -Destination $versionedBundleDir
+New-Item -ItemType Directory -Force -Path $versionedBundleDir | Out-Null
+foreach ($entry in Get-ChildItem -LiteralPath $desktopDirectory -Force) {
+    Copy-Item -LiteralPath $entry.FullName -Destination $versionedBundleDir -Recurse -Force
+}
 
 $windowsZipName = "meters-tool-$Version-windows-x64.zip"
 $windowsZip = Join-Path $versionDir $windowsZipName
@@ -99,23 +104,10 @@ Compress-Archive `
     -DestinationPath $windowsZip `
     -CompressionLevel Optimal
 
-& powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "build_desktop.ps1") -SourceRoot $sourceRoot
-if ($LASTEXITCODE -ne 0) {
-    exit $LASTEXITCODE
-}
-
-$desktopArtifactName = "Meters-Tool-Desktop-$Version-portable.exe"
-$desktopArtifact = Join-Path $sourceRoot "dist\desktop\$desktopArtifactName"
-if (-not (Test-Path -LiteralPath $desktopArtifact -PathType Leaf)) {
-    throw "Desktop build did not produce release artifact: $desktopArtifact"
-}
-Copy-Item -LiteralPath $desktopArtifact -Destination (Join-Path $versionDir $desktopArtifactName)
-
 Remove-Item -LiteralPath $buildRoot -Recurse -Force
 
 $expectedArtifactNames = @(
     $windowsZipName,
-    $desktopArtifactName,
     "meters_tool-$Version-py3-none-any.whl",
     "meters_tool-$Version.tar.gz"
 )

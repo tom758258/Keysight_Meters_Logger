@@ -6,14 +6,12 @@
 
 - Adds a private Desktop WebUI host and thin Electron shell while reusing the
   existing FastAPI application, static WebUI, and graceful WebRunManager cleanup.
-- Changes the Windows x64 Desktop development build from a portable executable
-  to an unpacked Electron directory that launches the shared Windows onedir host
-  and uses its single `_internal` tree. Formal release artifact integration
-  remains pending.
-- Replaces the two versioned Windows onefile executables with one versioned
-  Windows x64 ZIP containing unversioned CLI, WebUI Launcher, and private
-  Desktop host executables that share one PyInstaller onedir `_internal`
-  directory.
+- Changes the Windows x64 Desktop build from a portable executable to an
+  unpacked Electron directory that launches the shared Windows onedir host and
+  uses its single `_internal` tree.
+- Replaces the separate Windows executable artifacts with one versioned Windows
+  x64 ZIP containing the Electron Desktop, CLI, WebUI Launcher, private Desktop
+  host, shared PyInstaller onedir `_internal`, and Electron runtime files.
 - Adds CLI `--no-csv` support for orchestrator-owned JSONL sample persistence
   while preserving CSV as the default output.
 - Adds a default-enabled WebUI `CSV output` control so a run can opt out of CSV

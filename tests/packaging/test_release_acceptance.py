@@ -114,7 +114,6 @@ def test_release_acceptance_validates_final_artifacts_and_checksums():
 
     for contract in (
         '"meters-tool-$packageVersion-windows-x64.zip"',
-        '"Meters-Tool-Desktop-$packageVersion-portable.exe"',
         '"meters_tool-$packageVersion-py3-none-any.whl"',
         '"meters_tool-$packageVersion.tar.gz"',
         '"checksums.txt"',
@@ -138,6 +137,9 @@ def test_release_acceptance_validates_final_artifacts_and_checksums():
         '${Label}_launcher_entry_point',
     ):
         assert contract in script
+
+    assert "Meters-Tool-Desktop-$packageVersion-portable.exe" not in script
+    assert "foreach ($artifact in @($windowsBundleZip, $wheel, $sdist))" in script
 
 
 def test_release_acceptance_runs_minimal_standalone_smokes_and_existing_preflight():
@@ -170,6 +172,7 @@ def test_release_acceptance_report_uses_project_release_semantics():
     script = release_acceptance_text()
 
     for contract in (
+        "schema_version = 1",
         'kind = "release_acceptance"',
         'name = "Meters Tool Release Acceptance"',
         'validation_mode = "release_acceptance_no_hardware"',
@@ -177,7 +180,7 @@ def test_release_acceptance_report_uses_project_release_semantics():
         "error = $failureMessage",
         "final_release_dir = $relativeFinalReleaseDir",
         "windows_bundle_zip = if ($null -ne $windowsBundleZip)",
-        "desktop_portable_exe = if ($null -ne $desktopPortableExe)",
+        "desktop_portable_exe = $null",
         "checksum_validation = $checksumValidation",
         "standalone_cli_smoke = $standaloneCliSmoke",
         "launcher_self_test = $launcherSelfTest",
@@ -190,22 +193,28 @@ def test_release_acceptance_report_uses_project_release_semantics():
     assert "webui_launcher_exe = if" not in script
 
 
-def test_release_acceptance_extracts_and_validates_shared_windows_bundle():
+def test_release_acceptance_extracts_and_validates_unified_windows_bundle():
     script = release_acceptance_text()
 
     for contract in (
         '$script:currentStep = "extract_windows_bundle"',
         "Expand-Archive",
         '"meters-tool-$packageVersion"',
+        '"Meters Tool.exe"',
         '"meters-tool.exe"',
         '"meters-tool-webui-launcher.exe"',
         '"meters-tool-webui-host.exe"',
         '"_internal"',
+        '"resources"',
         "$bundleRootEntries.Count -ne 1",
-        "$bundleEntries.Count -ne $expectedBundleEntryNames.Count",
-        "three executable files and one shared _internal directory",
+        "exactly one _internal directory",
+        "_internal directory must be at the application root",
+        'Join-Path $extractedBundleDir "resources\\backend"',
+        'Filter "*-portable.exe"',
     ):
         assert contract in script
+
+    assert "$expectedBundleEntryNames" not in script
 
 
 def test_release_acceptance_keeps_output_under_tmp_tests():
@@ -236,19 +245,17 @@ def test_release_acceptance_rechecks_final_working_tree_hygiene():
     assert "Git working tree must remain clean after release acceptance." in final_block
 
 
-def test_release_build_passes_one_source_snapshot_to_windows_and_desktop_builders():
+def test_release_build_passes_one_source_snapshot_to_desktop_builder_only():
     script = BUILD_RELEASE.read_text(encoding="utf-8-sig")
 
     assert '$sourceRoot = Join-Path $buildRoot "source"' in script
-    assert script.count("-SourceRoot $sourceRoot") == 2
-    windows_invocation = next(
-        line for line in script.splitlines() if "build_windows_bundle.ps1" in line
-    )
+    assert script.count("-SourceRoot $sourceRoot") == 1
     desktop_invocation = next(
         line for line in script.splitlines() if "build_desktop.ps1" in line
     )
-    assert "-SourceRoot $sourceRoot" in windows_invocation
     assert "-SourceRoot $sourceRoot" in desktop_invocation
+    assert "build_windows_bundle.ps1" not in script
+    assert r'Join-Path $sourceRoot "dist\desktop\win-unpacked"' in script
     assert r'Join-Path $sourceRoot "desktop\package.json"' in script
     assert "Desktop package version" in script
     assert "does not match release version" in script
@@ -311,14 +318,16 @@ def test_release_build_creates_zip_and_hashes_expected_artifact_set():
 
     for contract in (
         '"meters-tool-$Version-windows-x64.zip"',
-        '"Meters-Tool-Desktop-$Version-portable.exe"',
         '"meters_tool-$Version-py3-none-any.whl"',
         '"meters_tool-$Version.tar.gz"',
         "Compress-Archive",
+        '$versionedBundleDir = Join-Path $archiveRoot "meters-tool-$Version"',
         "$releaseEntries.Count -ne $expectedArtifactNames.Count",
         "foreach ($artifactName in ($expectedArtifactNames | Sort-Object))",
     ):
         assert contract in script
+
+    assert "Meters-Tool-Desktop-$Version-portable.exe" not in script
 
 
 def test_desktop_build_assembles_shared_onedir_into_electron_directory():

@@ -221,11 +221,7 @@ Desktop application 會啟動與 `Meters Tool.exe` 位於同一目錄的共用 p
 host，並與 CLI 和 Launcher 使用同一個 `_internal`。它不需要系統預先安裝
 Python，也不會在每次啟動時解壓 portable Electron executable。
 
-下方正式 release tooling 仍使用先前的 portable Desktop artifact contract，
-尚未與此 development layout 同步，需留待後續 release artifact 工作處理。
-
-建置包含 wheel、sdist、共用 Windows bundle ZIP、Desktop portable EXE 與
-檢查碼 (checksums) 的發佈資料夾：
+建置包含 wheel、sdist、統一 Windows ZIP 與檢查碼 (checksums) 的發佈資料夾：
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_release.ps1
@@ -235,16 +231,20 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_release.
 
 ```text
 release\<version>\meters-tool-<version>-windows-x64.zip
-release\<version>\Meters-Tool-Desktop-<version>-portable.exe
 release\<version>\meters_tool-<version>-py3-none-any.whl
 release\<version>\meters_tool-<version>.tar.gz
 release\<version>\checksums.txt
 ```
 
+Windows ZIP 內含單一 `meters-tool-<version>` application directory，其中有
+`Meters Tool.exe`、CLI、WebUI Launcher、private Desktop host、唯一共用的
+`_internal` 與 Electron runtime。解壓一次後，即可從該目錄啟動 Desktop、
+browser WebUI 或 CLI。
+
 `release-acceptance.ps1` 是針對乾淨、已提交工作樹的正式無硬體發布驗收。
 它會執行完整無硬體測試（包含 wrapper 測試）、呼叫一次
-`build_release.ps1`，並驗證最終 wheel、source distribution、共用 Windows
-bundle ZIP、Desktop portable EXE 與全部四筆 SHA-256 checksums；接著解壓
+`build_release.ps1`，並驗證最終 wheel、source distribution、統一 Windows
+ZIP 與全部三筆 SHA-256 checksums；接著解壓
 bundle 並執行既有 CLI 與 Launcher smoke test、乾淨安裝套件 smoke test、
 指定 target 的 preflight 與既有的 PlanOnly 驗證。此流程不會自動執行
 Electron GUI runtime smoke。通過後會輸出可直接上傳至 GitHub Release 的
