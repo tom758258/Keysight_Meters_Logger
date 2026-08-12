@@ -196,24 +196,33 @@ dist\meters-tool\
   _internal\
 ```
 
-Private host 已納入 bundle，供後續 Desktop 包裝整合使用。下方的 portable
-Desktop build 目前仍會另外包裝既有的 private backend。
-
-另外建置 Windows x64 portable Desktop application：
+Desktop build 也會直接使用這個 private host。建置 Windows x64 Desktop
+application directory：
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_desktop.ps1
 ```
 
-此流程會建置私有 PyInstaller onedir backend，將它封裝進 Electron shell，並
-產生：
+此流程會建置共用 Windows onedir、以 directory mode 建置 Electron，再組合成：
 
 ```text
-dist\desktop\Meters-Tool-Desktop-3.0.0-portable.exe
+dist\desktop\win-unpacked\
+  Meters Tool.exe
+  meters-tool.exe
+  meters-tool-webui-launcher.exe
+  meters-tool-webui-host.exe
+  _internal\
+  resources\
+  locales\
+  ... Electron runtime files
 ```
 
-Portable application 不需要系統預先安裝 Python。此 portable EXE 也會納入
-正式 release artifact 與 checksum set。
+Desktop application 會啟動與 `Meters Tool.exe` 位於同一目錄的共用 private
+host，並與 CLI 和 Launcher 使用同一個 `_internal`。它不需要系統預先安裝
+Python，也不會在每次啟動時解壓 portable Electron executable。
+
+下方正式 release tooling 仍使用先前的 portable Desktop artifact contract，
+尚未與此 development layout 同步，需留待後續 release artifact 工作處理。
 
 建置包含 wheel、sdist、共用 Windows bundle ZIP、Desktop portable EXE 與
 檢查碼 (checksums) 的發佈資料夾：

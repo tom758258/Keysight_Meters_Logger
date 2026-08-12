@@ -225,25 +225,36 @@ dist\meters-tool\
   _internal\
 ```
 
-The private host is included for later Desktop packaging integration. The
-portable Desktop build below still packages its existing private backend
-separately.
-
-Build the Windows x64 portable Desktop application separately:
+The private host is also consumed by the Desktop build. Build the Windows x64
+Desktop application directory:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_desktop.ps1
 ```
 
-This builds a private PyInstaller onedir backend, packages it inside the
-Electron shell, and produces:
+This builds the shared Windows onedir, builds Electron in directory mode, and
+combines them as:
 
 ```text
-dist\desktop\Meters-Tool-Desktop-3.0.0-portable.exe
+dist\desktop\win-unpacked\
+  Meters Tool.exe
+  meters-tool.exe
+  meters-tool-webui-launcher.exe
+  meters-tool-webui-host.exe
+  _internal\
+  resources\
+  locales\
+  ... Electron runtime files
 ```
 
-The portable application does not require a system Python installation. This
-portable EXE is also included in the formal release artifact and checksum set.
+The Desktop application launches the shared private host beside `Meters Tool.exe`
+and uses the same `_internal` directory as the CLI and Launcher. It does not
+require a system Python installation or unpack a portable Electron executable on
+each launch.
+
+The formal release tooling below still uses the previous portable Desktop
+artifact contract. It is not synchronized with this development layout and
+remains pending future release-artifact work.
 
 `build_release.ps1` assembles the wheel, source distribution, shared Windows
 bundle ZIP, Desktop portable EXE, and checksums into a versioned release folder:

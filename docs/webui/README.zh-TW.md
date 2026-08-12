@@ -108,10 +108,11 @@ message 時，會先執行既有的 `WebRunManager.shutdown()` cleanup。只有 
 
 `desktop/` 中的 Electron shell 會啟動這個 private host 並使用既有 JSONL
 lifecycle。Development mode 透過 repository virtual environment 啟動 host；
-Windows portable build 則從 `resources/backend/` 啟動內含的私有 backend。
-Shell 會等待 `ready`、從該 event 取得 loopback URL、在 sandboxed BrowserWindow
-載入同一套既有 WebUI，並在關閉前要求同一套 graceful shutdown。它不擁有另一
-套 FastAPI application、frontend、HTTP API 或 run cleanup implementation。
+packaged Windows directory 則啟動與 Electron executable 位於同一目錄的共用
+`meters-tool-webui-host.exe`。Shell 會等待 `ready`、從該 event 取得 loopback
+URL、在 sandboxed BrowserWindow 載入同一套既有 WebUI，並在關閉前要求同一套
+graceful shutdown。它不擁有另一套 FastAPI application、frontend、HTTP API、
+Python runtime 或 run cleanup implementation。
 
 ## 安裝或重新載入
 

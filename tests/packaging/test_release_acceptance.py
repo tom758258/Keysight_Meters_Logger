@@ -10,6 +10,8 @@ BUILD_DESKTOP = REPO_ROOT / "scripts" / "build_desktop.ps1"
 BUILD_DESKTOP_BACKEND = REPO_ROOT / "scripts" / "build_desktop_backend.ps1"
 BUILD_WINDOWS_BUNDLE = REPO_ROOT / "scripts" / "build_windows_bundle.ps1"
 WINDOWS_SPEC = REPO_ROOT / "scripts" / "meters-tool-windows.spec"
+DESKTOP_MAIN = REPO_ROOT / "desktop" / "main.cjs"
+DESKTOP_PACKAGE = REPO_ROOT / "desktop" / "package.json"
 TESTS_WORKFLOW = REPO_ROOT / ".github" / "workflows" / "tests.yml"
 OLD_CLI_BUILDER = REPO_ROOT / "scripts" / "build_cli_exe.ps1"
 OLD_WEBUI_BUILDER = REPO_ROOT / "scripts" / "build_webui_exe.ps1"
@@ -319,19 +321,34 @@ def test_release_build_creates_zip_and_hashes_expected_artifact_set():
         assert contract in script
 
 
-def test_desktop_build_accepts_formal_release_source_snapshot():
+def test_desktop_build_assembles_shared_onedir_into_electron_directory():
     script = BUILD_DESKTOP.read_text(encoding="utf-8-sig")
-    backend_script = BUILD_DESKTOP_BACKEND.read_text(encoding="utf-8-sig")
+    main = DESKTOP_MAIN.read_text(encoding="utf-8-sig")
+    package = DESKTOP_PACKAGE.read_text(encoding="utf-8-sig")
 
     assert "[string]$SourceRoot" in script
-    assert "[string]$SourceRoot" in backend_script
+    assert not BUILD_DESKTOP_BACKEND.exists()
+    assert "build_windows_bundle.ps1" in script
     assert "-SourceRoot $sourceRootFull" in script
+    assert '"win-unpacked"' in script
+    assert '"meters-tool-webui-host.exe"' in script
+    assert '"resources\\backend"' in script
+    assert "exactly one _internal directory" in script
+    assert "desktop-backend-dist" in script
+    assert "pyinstaller-desktop-backend" in script
+
+    assert 'path.dirname(process.execPath), "meters-tool-webui-host.exe"' in main
+    assert "process.resourcesPath" not in main
+    assert '"dist:win": "electron-builder --dir --win --x64"' in package
+    assert '"extraResources"' not in package
+    assert '"portable"' not in package
 
 
-def test_windows_python_313_builds_formal_release_with_node_22():
+def test_windows_python_313_builds_desktop_directory_with_node_22():
     workflow = TESTS_WORKFLOW.read_text(encoding="utf-8")
 
     assert 'node-version: "22"' in workflow
     assert "matrix.python-version == '3.13'" in workflow
-    assert ".\\scripts\\build_release.ps1" in workflow
-    assert ".tmp_tests\\ci-release" in workflow
+    assert ".\\scripts\\build_desktop.ps1" in workflow
+    assert ".\\scripts\\build_release.ps1" not in workflow
+    assert ".tmp_tests\\ci-release" not in workflow

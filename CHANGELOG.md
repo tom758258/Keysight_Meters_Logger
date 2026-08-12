@@ -4,11 +4,12 @@
 
 ## v3.0.0
 
-- Adds a private Desktop WebUI host and thin Electron shell for a Windows x64
-  portable build while reusing the existing FastAPI application, static WebUI,
-  and graceful WebRunManager cleanup.
-- Integrates the Windows x64 Desktop portable executable into the tracked-source
-  formal release build, acceptance report, and four-artifact SHA-256 checksum set.
+- Adds a private Desktop WebUI host and thin Electron shell while reusing the
+  existing FastAPI application, static WebUI, and graceful WebRunManager cleanup.
+- Changes the Windows x64 Desktop development build from a portable executable
+  to an unpacked Electron directory that launches the shared Windows onedir host
+  and uses its single `_internal` tree. Formal release artifact integration
+  remains pending.
 - Replaces the two versioned Windows onefile executables with one versioned
   Windows x64 ZIP containing unversioned CLI, WebUI Launcher, and private
   Desktop host executables that share one PyInstaller onedir `_internal`

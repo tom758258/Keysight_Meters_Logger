@@ -7,7 +7,7 @@
   "scripts": {
     "start": "electron .",
     "check": "node --check main.cjs",
-    "dist:win": "electron-builder --win --x64"
+    "dist:win": "electron-builder --dir --win --x64"
   },
   "devDependencies": {
     "electron": "43.3.0",
@@ -19,26 +19,6 @@
     },
     "files": [
       "main.cjs"
-    ],
-    "extraResources": [
-      {
-        "from": "../build/desktop-backend-dist/meters-tool-webui-host",
-        "to": "backend",
-        "filter": [
-          "**/*"
-        ]
-      }
-    ],
-    "win": {
-      "target": [
-        {
-          "target": "portable",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
-      "artifactName": "Meters-Tool-Desktop-${version}-portable.${ext}"
-    }
+    ]
   }
 }

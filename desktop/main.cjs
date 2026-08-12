@@ -189,7 +189,7 @@ function backendCommand() {
   const repositoryRoot = path.resolve(__dirname, "..");
   if (app.isPackaged) {
     return {
-      command: path.join(process.resourcesPath, "backend", "meters-tool-webui-host.exe"),
+      command: path.join(path.dirname(process.execPath), "meters-tool-webui-host.exe"),
       args: [],
       cwd: undefined,
     };

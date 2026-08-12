@@ -134,12 +134,12 @@ only after that cleanup succeeds. If cleanup is incomplete, the host emits a
 
 The Electron shell in `desktop/` starts this private host and consumes the
 existing JSONL lifecycle. In development it starts the host with the repository
-virtual environment; in a packaged Windows portable build it starts the bundled
-private backend from `resources/backend/`. The shell waits for `ready`, obtains
-the loopback URL from that event, loads the same WebUI in a sandboxed
-BrowserWindow, and requests the same graceful shutdown before it closes. It does
-not own another FastAPI application, frontend, HTTP API, or run-cleanup
-implementation.
+virtual environment; in the packaged Windows directory it starts the shared
+`meters-tool-webui-host.exe` beside the Electron executable. The shell waits for
+`ready`, obtains the loopback URL from that event, loads the same WebUI in a
+sandboxed BrowserWindow, and requests the same graceful shutdown before it
+closes. It does not own another FastAPI application, frontend, HTTP API, Python
+runtime, or run-cleanup implementation.
 
 ## Install Or Refresh
 
