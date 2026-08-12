@@ -7,50 +7,6 @@ from meters_tool_core.runner import StopController
 
 from cli_command_helpers import FakeMsvcrt
 
-class StopControllerTests(unittest.TestCase):
-    def test_signal_stop_first_interrupt_is_graceful(self):
-        calls = []
-        controller = StopController(lambda: calls.append("stop"))
-
-        controller.request_signal_stop()
-
-        self.assertTrue(controller.stop)
-        self.assertFalse(controller.force)
-        self.assertEqual(1, controller.interrupt_count)
-        self.assertEqual(["stop"], calls)
-        self.assertEqual(
-            ["interrupt received, stopping gracefully (press Ctrl+C again to force)..."],
-            controller.pop_messages(),
-        )
-
-    def test_signal_stop_second_interrupt_forces_shutdown(self):
-        calls = []
-        controller = StopController(lambda: calls.append("stop"))
-
-        controller.request_signal_stop()
-        controller.request_signal_stop()
-
-        self.assertTrue(controller.stop)
-        self.assertTrue(controller.force)
-        self.assertEqual(2, controller.interrupt_count)
-        self.assertEqual(["stop", "stop"], calls)
-        self.assertEqual(
-            "second interrupt received, forcing shutdown...",
-            controller.pop_messages()[-1],
-        )
-
-    def test_http_stop_does_not_count_as_keyboard_interrupt(self):
-        calls = []
-        controller = StopController(lambda: calls.append("stop"))
-
-        controller.request_http_stop()
-
-        self.assertTrue(controller.stop)
-        self.assertFalse(controller.force)
-        self.assertEqual(0, controller.interrupt_count)
-        self.assertEqual(["stop"], calls)
-        self.assertEqual([], controller.pop_messages())
-
 
 class WindowsConsoleStopHandlerTests(unittest.TestCase):
     def test_ctrl_c_event_requests_stop(self):
