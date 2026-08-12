@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import ctypes
 import json
 import signal
 import sys
@@ -10,10 +9,8 @@ from datetime import datetime, timezone
 from meters_tool_core import (
     SUPPORT_POLICY_MODE_PRODUCT,
     SUPPORT_POLICY_MODE_VALIDATION,
-    StartPlan,
     StartRequest,
     StartRunEvent,
-    StopController,
     build_start_plan,
     generate_buffer_overflow_warnings,
     get_core_capabilities,
@@ -65,6 +62,12 @@ try:
         parse_dcv_input_impedance,
         parse_on_off,
     )
+    from ._runtime_output import CliEventEmitter, CliStartRunEventSink, _emit_start_plan
+    from ._start_controls import (
+        CliStartRunControls,
+        WindowsConsoleStopHandler,
+        WindowsKeyboardStopPoller,
+    )
 except ImportError:  # pragma: no cover - PyInstaller script entry point
     from meters_tool_cli._constants import CLI_EVENT_SCHEMA_VERSION
     from meters_tool_cli._client_commands import (
@@ -76,6 +79,16 @@ except ImportError:  # pragma: no cover - PyInstaller script entry point
     )
     from meters_tool_cli._parser import (
         build_parser as _build_parser,
+    )
+    from meters_tool_cli._runtime_output import (
+        CliEventEmitter,
+        CliStartRunEventSink,
+        _emit_start_plan,
+    )
+    from meters_tool_cli._start_controls import (
+        CliStartRunControls,
+        WindowsConsoleStopHandler,
+        WindowsKeyboardStopPoller,
     )
 
 __all__ = [
@@ -98,371 +111,6 @@ def get_cli_version() -> str:
         fallback=FALLBACK_CLI_VERSION,
     )
 
-
-class WindowsConsoleStopHandler:
-    _CTRL_C_EVENT = 0
-    _CTRL_BREAK_EVENT = 1
-    _STD_INPUT_HANDLE = -10
-    _ENABLE_PROCESSED_INPUT = 0x0001
-
-    def __init__(self, stop_controller: StopController):
-        self._stop_controller = stop_controller
-        self._kernel32 = None
-        self._handler = None
-        self._stdin_handle = None
-        self._previous_input_mode = None
-        self.installed = False
-        self.input_mode_configured = False
-
-    def install(self) -> bool:
-        if sys.platform != "win32":
-            return False
-        try:
-            from ctypes import wintypes
-
-            self._kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
-            callback_type = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.DWORD)
-            self._kernel32.SetConsoleCtrlHandler.argtypes = (callback_type, wintypes.BOOL)
-            self._kernel32.SetConsoleCtrlHandler.restype = wintypes.BOOL
-            self._kernel32.GetStdHandle.argtypes = (wintypes.DWORD,)
-            self._kernel32.GetStdHandle.restype = wintypes.HANDLE
-            self._kernel32.GetConsoleMode.argtypes = (wintypes.HANDLE, ctypes.POINTER(wintypes.DWORD))
-            self._kernel32.GetConsoleMode.restype = wintypes.BOOL
-            self._kernel32.SetConsoleMode.argtypes = (wintypes.HANDLE, wintypes.DWORD)
-            self._kernel32.SetConsoleMode.restype = wintypes.BOOL
-            self._configure_input_mode(wintypes)
-            self._handler = callback_type(self._handle)
-            if not self._kernel32.SetConsoleCtrlHandler(self._handler, True):
-                return False
-        except (AttributeError, OSError):
-            return False
-        self.installed = True
-        return True
-
-    def uninstall(self) -> None:
-        if not self.installed or self._kernel32 is None or self._handler is None:
-            return
-        self._restore_input_mode()
-        self._kernel32.SetConsoleCtrlHandler(self._handler, False)
-        self.installed = False
-
-    def _handle(self, ctrl_type: int) -> bool:
-        if ctrl_type not in (self._CTRL_C_EVENT, self._CTRL_BREAK_EVENT):
-            return False
-        self._stop_controller.request_signal_stop()
-        return True
-
-    def _configure_input_mode(self, wintypes) -> None:  # noqa: ANN001
-        if self._kernel32 is None:
-            return
-        handle = self._kernel32.GetStdHandle(self._STD_INPUT_HANDLE)
-        if not handle:
-            return
-        mode = wintypes.DWORD()
-        if not self._kernel32.GetConsoleMode(handle, ctypes.byref(mode)):
-            return
-        self._stdin_handle = handle
-        self._previous_input_mode = int(mode.value)
-        desired_mode = int(mode.value) | self._ENABLE_PROCESSED_INPUT
-        if self._kernel32.SetConsoleMode(handle, desired_mode):
-            self.input_mode_configured = True
-
-    def _restore_input_mode(self) -> None:
-        if (
-            self._kernel32 is None
-            or self._stdin_handle is None
-            or self._previous_input_mode is None
-            or not self.input_mode_configured
-        ):
-            return
-        self._kernel32.SetConsoleMode(self._stdin_handle, self._previous_input_mode)
-        self.input_mode_configured = False
-
-class WindowsKeyboardStopPoller:
-    def __init__(self):
-        self._msvcrt = None
-        if sys.platform == "win32":
-            try:
-                import msvcrt
-
-                self._msvcrt = msvcrt
-            except ImportError:
-                self._msvcrt = None
-
-    def poll_stop_requested(self) -> bool:
-        if self._msvcrt is None:
-            return False
-        requested = False
-        while self._msvcrt.kbhit():
-            ch = self._msvcrt.getwch()
-            if ch in ("\x00", "\xe0"):
-                if self._msvcrt.kbhit():
-                    self._msvcrt.getwch()
-                continue
-            if ch in ("\x03", "q", "Q"):
-                requested = True
-        return requested
-
-class CliStartRunControls:
-    def __init__(
-        self,
-        console_handler_factory=WindowsConsoleStopHandler,  # noqa: ANN001
-        keyboard_poller_factory=WindowsKeyboardStopPoller,  # noqa: ANN001
-    ) -> None:
-        self._console_handler_factory = console_handler_factory
-        self._keyboard_poller_factory = keyboard_poller_factory
-        self._stop_controller: StopController | None = None
-        self._previous_signal_handlers = []
-        self._windows_console_stop_handler = None
-        self._keyboard_stop_poller = None
-
-    def install(self, stop_controller: StopController) -> None:
-        self._stop_controller = stop_controller
-
-        def handle_stop_signal(signum, frame):  # noqa: ARG001
-            stop_controller.request_signal_stop()
-
-        self._previous_signal_handlers.append(
-            (signal.SIGINT, signal.signal(signal.SIGINT, handle_stop_signal))
-        )
-        if hasattr(signal, "SIGTERM"):
-            self._previous_signal_handlers.append(
-                (signal.SIGTERM, signal.signal(signal.SIGTERM, handle_stop_signal))
-            )
-        if hasattr(signal, "SIGBREAK"):
-            self._previous_signal_handlers.append(
-                (signal.SIGBREAK, signal.signal(signal.SIGBREAK, handle_stop_signal))
-            )
-        self._windows_console_stop_handler = self._console_handler_factory(stop_controller)
-        self._keyboard_stop_poller = self._keyboard_poller_factory()
-
-    def after_connect(self, event_sink, run_id: str) -> None:  # noqa: ANN001
-        if self._windows_console_stop_handler is None:
-            return
-        if self._windows_console_stop_handler.install():
-            event_sink.emit(
-                StartRunEvent.message_event(
-                    run_id,
-                    "windows console stop handler: installed "
-                    f"processed_input={self._windows_console_stop_handler.input_mode_configured}",
-                )
-            )
-        elif sys.platform == "win32":
-            event_sink.emit(
-                StartRunEvent.error_event(run_id, "windows console stop handler: unavailable")
-            )
-
-    def poll_stop_requested(self) -> bool:
-        if self._keyboard_stop_poller is None:
-            return False
-        return bool(self._keyboard_stop_poller.poll_stop_requested())
-
-    def uninstall(self) -> None:
-        if self._windows_console_stop_handler is not None:
-            self._windows_console_stop_handler.uninstall()
-        for sig, previous_handler in self._previous_signal_handlers:
-            signal.signal(sig, previous_handler)
-        self._previous_signal_handlers = []
-
-class CliEventEmitter:
-    def __init__(self, print_fn=print, output_format: str = "text") -> None:  # noqa: ANN001
-        self._print = print_fn
-        self._output_format = output_format
-
-    @property
-    def output_format(self) -> str:
-        return self._output_format
-
-    def _emit_json(self, payload: dict) -> None:
-        self._print(json.dumps(payload, sort_keys=True))
-
-    def status(self, message: str, **fields) -> None:  # noqa: ANN003
-        if self._output_format == "jsonl":
-            payload = {
-                "event": "status",
-                "message": message,
-                "schema_version": CLI_EVENT_SCHEMA_VERSION,
-                "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-            }
-            payload.update(fields)
-            self._emit_json(payload)
-            return
-        self._print(f"[status] {message}")
-
-    def sample(self, sample, captured: int, **fields) -> None:  # noqa: ANN001, ANN003
-        if self._output_format == "jsonl":
-            payload = {
-                "captured": captured,
-                "event": "sample",
-                "measurement_type": sample.measurement_type,
-                "measurement_metadata": sample.measurement_metadata,
-                "message": f"value={sample.value:g} {sample.unit}",
-                "resource_id": sample.resource_id,
-                "schema_version": CLI_EVENT_SCHEMA_VERSION,
-                "status": sample.status,
-                "timestamp_utc": sample.timestamp_utc.isoformat(),
-                "trigger_id": sample.trigger_id,
-                "trigger_metadata": sample.trigger_metadata,
-                "trigger_source": sample.trigger_source,
-                "unit": sample.unit,
-                "value": sample.value,
-            }
-            payload.update(fields)
-            self._emit_json(payload)
-
-    def summary(
-        self,
-        captured: int,
-        errors: int,
-        fatal_error: str | None = None,
-        **fields,  # noqa: ANN003
-    ) -> None:
-        if self._output_format == "jsonl":
-            payload = {
-                "captured": captured,
-                "errors": errors,
-                "event": "summary",
-                "ok": fatal_error is None,
-                "schema_version": CLI_EVENT_SCHEMA_VERSION,
-                "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-            }
-            if fatal_error is not None:
-                payload["fatal_error"] = fatal_error
-            payload.update(fields)
-            self._emit_json(payload)
-            return
-        self._print(f"captured={captured} errors={errors}")
-
-    def ready(self, host: str, port: int, **fields) -> None:  # noqa: ANN003
-        if self._output_format != "jsonl":
-            return
-        base_url = f"http://{host}:{port}"
-        payload = {
-            "event": "ready",
-            "host": host,
-            "port": port,
-            "schema_version": CLI_EVENT_SCHEMA_VERSION,
-            "service": "keysight-meter",
-            "status_url": f"{base_url}/status",
-            "stop_url": f"{base_url}/stop",
-            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-            "command_url": f"{base_url}/command",
-        }
-        payload.update(fields)
-        self._emit_json(payload)
-
-    def line(self, message: str, **fields) -> None:  # noqa: ANN003
-        if self._output_format == "jsonl":
-            payload = {
-                "event": "message",
-                "message": message,
-                "schema_version": CLI_EVENT_SCHEMA_VERSION,
-                "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-            }
-            payload.update(fields)
-            self._emit_json(payload)
-            return
-        self._print(message)
-
-    def error(self, message: str, rc: int = 3, **fields) -> None:  # noqa: ANN003
-        if self._output_format == "jsonl":
-            payload = {
-                "event": "error",
-                "message": message,
-                "schema_version": CLI_EVENT_SCHEMA_VERSION,
-                "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-                "exit_code": rc,
-            }
-            payload.update(fields)
-            self._emit_json(payload)
-            return
-        self._print(message, file=sys.stderr)
-
-class CliStartRunEventSink:
-    def __init__(self, emitter: CliEventEmitter) -> None:
-        self._emitter = emitter
-
-    def _runtime_fields(self, event: StartRunEvent) -> dict[str, object]:
-        return {"run_id": event.run_id} if event.run_id is not None else {}
-
-    def emit(self, event: StartRunEvent) -> None:
-        fields = self._runtime_fields(event)
-        if event.event == "status":
-            fields.update(event.fields)
-            self._emitter.status(event.message or "", **fields)
-            return
-        if event.event == "sample":
-            self._emitter.sample(event.sample, int(event.captured or 0), **fields)
-            return
-        if event.event == "summary":
-            self._emitter.summary(
-                int(event.captured or 0),
-                int(event.errors or 0),
-                event.fatal_error,
-                **fields,
-            )
-            return
-        if event.event == "ready":
-            if event.host is not None and event.port is not None:
-                ready_fields = dict(fields)
-                if event.command_url is not None:
-                    ready_fields["command_url"] = event.command_url
-                if event.stop_url is not None:
-                    ready_fields["stop_url"] = event.stop_url
-                if event.status_url is not None:
-                    ready_fields["status_url"] = event.status_url
-                self._emitter.ready(event.host, event.port, **ready_fields)
-            return
-        if event.event == "error":
-            self._emitter.error(event.message or "", rc=3, **fields)
-            return
-        self._emitter.line(event.message or "", **fields)
-
-def _emit_start_plan(plan: StartPlan, emitter: CliEventEmitter) -> None:
-    if emitter.output_format == "jsonl":
-        emitter._emit_json(
-            {
-                "dry_run_performs_visa_io": False,
-                "dry_run_starts_http_server": False,
-                "dry_run_writes_csv": False,
-                "event": "dry_run",
-                "schema_version": CLI_EVENT_SCHEMA_VERSION,
-                "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-                "trigger_mode": plan.trigger_mode,
-                "measurement_type": plan.measurement_type,
-                "measurement_cli_name": plan.measurement_name,
-                "measurement_unit": plan.measurement_unit,
-                "csv_enabled": plan.csv_enabled,
-                "csv_path": plan.csv_path,
-                "resource": plan.resource,
-                "simulate": plan.simulate,
-                "dry_run": plan.dry_run,
-                "scpi_commands": plan.scpi_commands,
-                "read_path": plan.read_path,
-                "cleanup_steps": plan.cleanup_steps,
-                "notes": plan.notes,
-            }
-        )
-        return
-    emitter.line("dry-run plan:")
-    emitter.line("  performs VISA I/O: false")
-    emitter.line("  writes CSV: false")
-    emitter.line("  starts HTTP server: false")
-    emitter.line(f"  resource: {plan.resource}")
-    emitter.line(f"  measurement: {plan.measurement_name} ({plan.measurement_unit})")
-    emitter.line(f"  trigger_mode: {plan.trigger_mode}")
-    if plan.csv_enabled:
-        emitter.line(f"  csv_path: {plan.csv_path}")
-    else:
-        emitter.line("  CSV output for real run: disabled")
-    emitter.line(f"  simulate: {plan.simulate}")
-    emitter.line("  scpi:")
-    for command in plan.scpi_commands:
-        emitter.line(f"    {command}")
-    emitter.line(f"  read_path: {plan.read_path}")
-    emitter.line(f"  cleanup: {', '.join(plan.cleanup_steps)}")
-    for note in plan.notes:
-        emitter.line(f"  note: {note}")
 
 def _optional_text(value: object) -> str | None:
     if value is None:
