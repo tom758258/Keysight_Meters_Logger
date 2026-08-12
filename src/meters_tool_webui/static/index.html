@@ -8,7 +8,12 @@
       (() => {
         let preference = "system";
         try {
-          const saved = localStorage.getItem("meters-tool.webui.theme");
+          const prefix = "meters-tool.webui.theme=";
+          const saved = document.cookie
+            .split(";")
+            .map((part) => part.trim())
+            .find((part) => part.startsWith(prefix))
+            ?.slice(prefix.length);
           if (["system", "light", "dark"].includes(saved)) preference = saved;
         } catch (_error) {}
         let dark = preference === "dark";

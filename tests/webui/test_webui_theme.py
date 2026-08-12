@@ -14,12 +14,16 @@ NODE = shutil.which("node")
 
 def test_theme_control_and_initial_render_bootstrap_are_present():
     index = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
+    theme_source = (STATIC_DIR / "theme_ui.js").read_text(encoding="utf-8")
 
     assert 'id="theme-toggle"' in index
     assert 'id="theme-toggle-label"' in index
     assert 'data-i18n="theme.system"' in index
     assert 'aria-hidden="true"' in index
+    assert index.index("document.cookie") < index.index("/static/styles.css")
     assert index.index("meters-tool.webui.theme") < index.index("/static/styles.css")
+    assert 'localStorage.getItem("meters-tool.webui.theme")' not in index
+    assert "localStorage" not in theme_source
 
 
 @pytest.mark.skipif(NODE is None, reason="Node.js is required for theme runtime tests")
@@ -43,22 +47,21 @@ class FakeElement {
   click() { this.listeners.get("click")?.(); }
 }
 
-class Storage {
-  constructor(value = null, readFails = false, writeFails = false) {
+class CookieDocument {
+  constructor(value = "", readFails = false, writeFails = false) {
     this.value = value;
     this.readFails = readFails;
     this.writeFails = writeFails;
     this.writes = [];
   }
-  getItem(key) {
-    assert.equal(key, "meters-tool.webui.theme");
+  get cookie() {
     if (this.readFails) throw new Error("read failed");
     return this.value;
   }
-  setItem(key, value) {
+  set cookie(value) {
     if (this.writeFails) throw new Error("write failed");
-    this.writes.push([key, value]);
-    this.value = value;
+    this.writes.push(value);
+    this.value = value.split(";", 1)[0];
   }
 }
 
@@ -79,9 +82,18 @@ assert.equal(theme.isSupportedThemePreference("contrast"), false);
 assert.equal(theme.nextThemePreference("system"), "light");
 assert.equal(theme.nextThemePreference("light"), "dark");
 assert.equal(theme.nextThemePreference("dark"), "system");
-assert.equal(theme.readSavedThemePreference(new Storage("contrast")), null);
-assert.equal(theme.readSavedThemePreference(new Storage(null, true)), null);
-assert.equal(theme.persistThemePreference(new Storage(null, false, true), "dark"), false);
+assert.equal(
+  theme.readSavedThemePreference(
+    new CookieDocument("other=value; meters-tool.webui.theme=dark; another=value")
+  ),
+  "dark",
+);
+assert.equal(theme.readSavedThemePreference(new CookieDocument()), null);
+assert.equal(
+  theme.readSavedThemePreference(new CookieDocument("meters-tool.webui.theme=contrast")),
+  null,
+);
+assert.equal(theme.readSavedThemePreference(new CookieDocument("", true)), null);
 assert.equal(theme.effectiveTheme("system", new MediaQuery(false)), "light");
 assert.equal(theme.effectiveTheme("system", new MediaQuery(true)), "dark");
 assert.equal(theme.effectiveTheme("light", new MediaQuery(true)), "light");
@@ -90,9 +102,15 @@ assert.equal(theme.effectiveTheme("dark", new MediaQuery(false)), "dark");
 const button = new FakeElement();
 const label = new FakeElement();
 const documentElement = new FakeElement();
-const storage = new Storage("dark");
+const cookieDocument = new CookieDocument("meters-tool.webui.theme=dark");
 const media = new MediaQuery(false);
-const ui = theme.initializeThemeUi({ button, label, documentElement, storage, mediaQuery: media });
+const ui = theme.initializeThemeUi({
+  button,
+  label,
+  documentElement,
+  cookieDocument,
+  mediaQuery: media,
+});
 
 assert.equal(ui.getPreference(), "dark");
 assert.equal(documentElement.dataset.theme, "dark");
@@ -104,7 +122,12 @@ assert.equal(documentElement.dataset.theme, "dark");
 button.click();
 assert.equal(ui.getPreference(), "system");
 assert.equal(documentElement.dataset.theme, "dark");
-assert.deepEqual(storage.writes.at(-1), ["meters-tool.webui.theme", "system"]);
+const persistedCookie = cookieDocument.writes.at(-1);
+assert.match(persistedCookie, /^meters-tool\.webui\.theme=system;/);
+assert.match(persistedCookie, /(?:^|; )Max-Age=([1-9][0-9]*)(?:;|$)/);
+assert.match(persistedCookie, /(?:^|; )Path=\/(?:;|$)/);
+assert.match(persistedCookie, /(?:^|; )SameSite=Lax(?:;|$)/);
+assert.doesNotMatch(persistedCookie, /(?:^|; )Domain=/i);
 media.change(false);
 assert.equal(documentElement.dataset.theme, "light");
 
@@ -125,11 +148,24 @@ const fallbackUi = theme.initializeThemeUi({
   button: new FakeElement(),
   label: new FakeElement(),
   documentElement: fallbackDocument,
-  storage: new Storage("invalid"),
+  cookieDocument: new CookieDocument("meters-tool.webui.theme=invalid"),
   mediaQuery: new MediaQuery(true),
 });
 assert.equal(fallbackUi.getPreference(), "system");
 assert.equal(fallbackDocument.dataset.theme, "dark");
+
+const unsavedButton = new FakeElement();
+const unsavedDocument = new FakeElement();
+const unsavedUi = theme.initializeThemeUi({
+  button: unsavedButton,
+  label: new FakeElement(),
+  documentElement: unsavedDocument,
+  cookieDocument: new CookieDocument("", false, true),
+  mediaQuery: new MediaQuery(false),
+});
+unsavedButton.click();
+assert.equal(unsavedUi.getPreference(), "light");
+assert.equal(unsavedDocument.dataset.theme, "light");
 
 process.stdout.write(JSON.stringify({ ok: true }));
 '''

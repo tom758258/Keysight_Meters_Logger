@@ -483,7 +483,7 @@ const themeUi = initializeThemeUi({
   button: themeToggle,
   label: themeToggleLabel,
   documentElement: document.documentElement,
-  storage: browserStorage(),
+  cookieDocument: document,
   mediaQuery: (() => {
     try {
       return window.matchMedia?.("(prefers-color-scheme: dark)") || null;

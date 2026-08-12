@@ -1,30 +1,38 @@
 import { t } from "./i18n.js";
 
-export const THEME_STORAGE_KEY = "meters-tool.webui.theme";
+export const THEME_COOKIE_NAME = "meters-tool.webui.theme";
 export const SUPPORTED_THEME_PREFERENCES = Object.freeze(["system", "light", "dark"]);
 
 export function isSupportedThemePreference(value) {
   return SUPPORTED_THEME_PREFERENCES.includes(value);
 }
 
-export function readSavedThemePreference(storage) {
+export function readSavedThemePreference(cookieDocument) {
   try {
-    const saved = storage?.getItem?.(THEME_STORAGE_KEY);
+    const cookie = cookieDocument?.cookie;
+    if (typeof cookie !== "string") {
+      return null;
+    }
+    const prefix = `${THEME_COOKIE_NAME}=`;
+    const saved = cookie
+      .split(";")
+      .map((part) => part.trim())
+      .find((part) => part.startsWith(prefix))
+      ?.slice(prefix.length);
     return isSupportedThemePreference(saved) ? saved : null;
   } catch (_error) {
     return null;
   }
 }
 
-export function persistThemePreference(storage, preference) {
-  if (!isSupportedThemePreference(preference) || typeof storage?.setItem !== "function") {
-    return false;
+export function persistThemePreference(cookieDocument, preference) {
+  if (!cookieDocument || !isSupportedThemePreference(preference)) {
+    return;
   }
   try {
-    storage.setItem(THEME_STORAGE_KEY, preference);
-    return true;
+    cookieDocument.cookie = `${THEME_COOKIE_NAME}=${preference}; Max-Age=31536000; Path=/; SameSite=Lax`;
   } catch (_error) {
-    return false;
+    // Theme switching remains usable when the cookie cannot be saved.
   }
 }
 
@@ -63,14 +71,14 @@ export function initializeThemeUi({
   button,
   label,
   documentElement,
-  storage,
+  cookieDocument,
   mediaQuery,
 } = {}) {
   if (!button || !label || !documentElement) {
     throw new TypeError("button, label, and documentElement are required");
   }
 
-  let preference = readSavedThemePreference(storage) || "system";
+  let preference = readSavedThemePreference(cookieDocument) || "system";
 
   const apply = () => {
     documentElement.dataset.theme = effectiveTheme(preference, mediaQuery);
@@ -82,7 +90,7 @@ export function initializeThemeUi({
 
   button.addEventListener("click", () => {
     preference = nextThemePreference(preference);
-    persistThemePreference(storage, preference);
+    persistThemePreference(cookieDocument, preference);
     apply();
     refresh();
   });
