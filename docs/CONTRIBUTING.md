@@ -41,7 +41,8 @@ Meters Tool is one distribution with three independent import packages:
 
 Core must not import CLI or WebUI. CLI must not import WebUI. Adapter UI state
 is not a safety boundary: Core enforces the product support gate for CLI,
-WebUI, and direct Core starts.
+WebUI, and direct Core starts. See [Monorepo Layout](architecture/monorepo-layout.md)
+for full component boundaries and architecture ownership rules.
 
 ## Testing Expectations
 

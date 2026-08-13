@@ -143,10 +143,10 @@ PowerShell examples, set `$env:METER_RESOURCE` once and pass
 the selected instrument.
 
 `--visa-library` is an advanced CLI PyVISA backend selector. Omit it for normal
-use. In an installed Python environment, use `--visa-library "@py"` for the
-Product-open optional pyvisa-py acquisition scope, 34461A LAN/TCPIP, only when
-pyvisa-py is installed and loadable. This option does not make the optional
-backend available in the standalone executable.
+use. In an installed Python environment, `--visa-library "@py"` can be used for
+optional pyvisa-py acquisition scopes only when pyvisa-py is installed, loadable,
+and the target scope is registered as Product-open in [Supported Models](../core/supported-models.md).
+This option does not make optional backends available in the standalone executable.
 
 `list-resources --verify` opens discovered VISA resources and queries `*IDN?`.
 `list-resources --live-only` implies verification and hides stale entries.

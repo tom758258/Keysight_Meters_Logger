@@ -26,9 +26,10 @@ the value unset.
 For support-policy matching, an unset or blank selector maps to `system_visa`,
 `@py` maps to `pyvisa_py`, `@bt` is reserved as the distinct `pyvisa_bt`
 identity, and other selectors map to `custom_visa`. A backend identity does not
-itself grant Product support. No Meters Product-open live scope is currently
-registered for `pyvisa_bt`, so Product-mode live requests using `@bt` fail
-closed. The WebUI remains System-VISA-only and exposes no backend override.
+itself grant Product support; live acquisition requires an exact registered
+Product-open scope in [Supported Models](supported-models.md). Unregistered backend
+selectors fail closed under generic support-policy rules. The WebUI remains
+System-VISA-only and exposes no backend override.
 
 ## Request Admission And Adapter Boundary
 

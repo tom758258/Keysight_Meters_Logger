@@ -328,10 +328,9 @@ resource. It does not alter Product support metadata, treat missing metadata as
 pending, or bypass unsupported-by-model workflows and hard profile limits. The
 34460A base profile still rejects external/external-custom workflows, the 10 A/current-
 terminal path, and buffer drain sizes above the profile reading-memory limit.
-Validation mode does not alter the Product-open 34460A DCV Ratio
-USB/system-VISA scope or open either 34460A LAN scope. The Product-open
-measurement combines with the immediate, software, immediate-custom, and
-software-custom trigger modes in that exact scope.
+Validation mode does not alter registered Product-open or pending connection
+scopes (see [Supported Models](supported-models.md)) or bypass support policy checks for
+unregistered scopes.
 
 The runner has the same final gate:
 

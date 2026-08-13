@@ -117,19 +117,19 @@ Important limitations:
 The CLI can pass optional backend selectors such as `@py` or `@bt` in a
 development or installed Python environment when the corresponding backend is
 installed and loadable. That makes the selector available to PyVISA; live
-acquisition also requires an exact registered Product-open support scope.
-`@py` has registered support for the documented Product-open scopes. `@bt`
-currently has no registered Product-open Meters live acquisition scope, so
-installing a corresponding backend package alone does not enable
-`start-trigger-record` live execution. For pyvisa-py testing, install the
-optional packages only when needed:
+acquisition separately requires an exact registered Product-open support scope
+(see [Supported Models](../core/supported-models.md)). Installing a backend package
+alone does not enable `start-trigger-record` live execution if the target connection
+scope is not registered as Product-open for that backend. Backend selection does not
+alter SCPI setup or Core validation. For pyvisa-py testing, install the optional
+packages only when needed:
 
 ```powershell
 uv pip install pyvisa-py pyserial psutil zeroconf
 ```
 
-The Product-open optional pyvisa-py support-policy scope is 34461A over
-LAN/TCPIP. 34460A LAN/TCPIP and 34460A LAN/`@py` are not currently supported.
+Current Product-open connection scopes under System VISA (such as USB/system-VISA or LAN/TCPIP)
+and optional backends are documented in [Supported Models](../core/supported-models.md).
 Support-policy validation status does not imply that a distribution bundles
 the backend package. The current official standalone Meters Tool executable
 supports the default System VISA path only; `@py` and `@bt` are not bundled or
@@ -301,12 +301,10 @@ system VISA runtime, such as Keysight IO Libraries Suite or NI-VISA.
 In a source checkout, virtual environment, or installed Python environment,
 the CLI can pass an optional selector when its backend is installed and
 loadable. Live acquisition separately requires an exact registered
-Product-open support scope. `@py` has registered support for the documented
-Product-open scopes; `@bt` currently has no registered Product-open Meters live
-acquisition scope, so installing its backend alone does not enable
-`start-trigger-record`. For advanced pyvisa-py testing, install its optional
-packages and pass `--visa-library "@py"` to CLI commands that open VISA
-resources:
+Product-open support scope (see [Supported Models](../core/supported-models.md)).
+Installing a backend package alone does not enable `start-trigger-record`.
+For advanced pyvisa-py testing, install its optional packages and pass
+`--visa-library "@py"` to CLI commands that open VISA resources:
 
 ```powershell
 uv pip install pyvisa-py pyserial psutil zeroconf
@@ -328,9 +326,9 @@ backend checks. The current official standalone CLI executable supports only
 the default System VISA path and does not bundle `@py` or `@bt`. The WebUI also
 uses the fixed default System VISA runtime and accepts no backend override.
 
-LAN/TCPIP is the Product-open 34461A pyvisa-py support-policy scope when that
-backend is available. This validation metadata does not indicate that a given
-distribution contains pyvisa-py. USBTMC on Windows may need
+Exact Product-open scopes for pyvisa-py are documented in [Supported Models](../core/supported-models.md).
+Validation metadata does not indicate that a given distribution contains pyvisa-py.
+USBTMC on Windows may need
 WinUSB/libusb setup and is often not simpler than Keysight IO Libraries Suite
 or NI-VISA. RS-232/ASRL with pyvisa-py and pyserial is usually straightforward
 when a supported instrument uses serial I/O, but the current Meters profiles

@@ -339,21 +339,19 @@ model from `Device options` after scanning.
 
 The WebUI uses the fixed default System VISA runtime through Core. The browser
 exposes no optional PyVISA backend selector, and the WebUI API accepts no
-backend override for resource scans or live runs. 34461A LAN/TCPIP is supported
-through this System VISA path. In a source or installed Python environment, CLI
-live acquisition with `@py` is limited to its registered Product-open scopes.
-The CLI can carry an installed, loadable `@bt` selector through the backend
-abstraction, but Meters currently registers no Product-open `@bt` live
-acquisition scope.
-The official standalone WebUI supports neither optional backend. Do not attempt
-to supply one through an undocumented API payload.
+backend override for resource scans or live runs. Current Product-open connection
+scopes (such as USB/system-VISA or LAN/TCPIP) are documented in
+[Supported Models](../core/supported-models.md). In a source or installed Python
+environment, CLI live acquisition with optional backends (`@py`, `@bt`) is limited to
+registered Product-open scopes. The official standalone WebUI supports neither optional
+backend; do not attempt to supply one through an undocumented API payload.
 
-The WebUI does not expose validation mode. Transport/backend scopes and
-measurement or trigger-mode features that are not Product-open remain blocked
-for browser starts. The browser disables product-unavailable feature options,
+The WebUI does not expose validation mode. Transport/backend scopes (whether `live_validated_full_suite`
+or `transport_pending`) and measurement or trigger-mode features that are not Product-open
+remain blocked for browser starts. The browser disables product-unavailable feature options,
 but that state is UX only; Core validation, the support policy gate, and the
 `run_start_session()` final gate remain the safety boundary for forged or stale
-requests. 34460A LAN/TCPIP is not currently supported in the WebUI.
+requests.
 
 ## Measurement Modes
 
@@ -457,8 +455,8 @@ runner final gate remain the safety boundary for WebUI backend submissions.
 The current WebUI exposes no optional backend selector; System VISA remains the
 supported WebUI runtime. Optional `@py` or `@bt` backend work remains outside
 the current WebUI product surface. CLI development/installed-environment use
-still requires a loadable backend and an exact registered Product-open scope;
-`@bt` currently has no such live acquisition scope.
+still requires a loadable backend and an exact registered Product-open scope in
+[Supported Models](../core/supported-models.md).
 
 Currently surfaced measurement modes include:
 
@@ -493,9 +491,9 @@ Measurement-specific UI behavior:
 - With the 34460A profile selected, current ranges exclude 10 A and current
   terminal selection is hidden because the base 34460A profile has no 10 A
   terminal/path. Custom-mode reading memory is limited to 1000 readings.
-- With the 34460A USB/system-VISA scope, `voltage-dc-ratio` is enabled from
-  capability metadata and direct Product-mode WebUI starts accept it. This does
-  not open Ratio on 34460A LAN scopes or expose a pyvisa-py selector.
+- With the 34460A profile selected, `voltage-dc-ratio` availability depends on
+  registered Product-open support scopes (see [Supported Models](../core/supported-models.md)).
+  The WebUI does not expose a pyvisa-py selector.
 - DCV Input Z appears only for `voltage-dc` and `voltage-dc-ratio`.
 - VM Comp remains a measurement option where supported by Core.
 - Auto Zero Once is available for supported DC/resistance measurements through

@@ -10,7 +10,7 @@ CLI 與 WebUI 負責各自的輸入解析、顯示文字、在地化、終端機
 
 Core 可以透過 `StartRequest` 與 `InstrumentConfig` 傳遞選用的 `visa_library` 值。未設定時，live VISA 工作階段會使用 `pyvisa.ResourceManager()`，也就是系統預設的 VISA 執行階段。CLI 診斷可以傳入像 `@py` 這類明確值；一般 WebUI 執行則會保持未設定。
 
-進行支援政策比對時，未設定或空白 selector 對應 `system_visa`，`@py` 對應 `pyvisa_py`，`@bt` 則保留為獨立的 `pyvisa_bt` identity，其他 selector 仍對應 `custom_visa`。Backend identity 本身不代表 Product support。目前沒有已註冊的 `pyvisa_bt` Meters Product-open live scope，因此使用 `@bt` 的 Product-mode live 請求仍會 fail closed。WebUI 維持僅使用 System VISA，且不提供 backend override。
+進行支援政策比對時，未設定或空白 selector 對應 `system_visa`，`@py` 對應 `pyvisa_py`，`@bt` 則保留為獨立的 `pyvisa_bt` identity，其他 selector 仍對應 `custom_visa`。Backend identity 本身不代表 Product support；實機擷取需要符合 [Supported Models](supported-models.md) 中已註冊的 Product-open scope。未註冊的 backend selector 會在一般支援政策規則下 fail closed。WebUI 維持僅使用 System VISA，且不提供 backend override。
 
 ## 請求准入與配接器邊界
 

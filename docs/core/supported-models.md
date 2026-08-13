@@ -13,10 +13,10 @@ are documented in [Contributing](../CONTRIBUTING.md).
 
 Core currently provides these instrument profiles:
 
-| Model ID | Instrument | Reading memory | Current max | External trigger | Product support |
-| --- | --- | ---: | ---: | --- | --- |
-| `keysight-34461a` | Keysight 34461A | 10000 | 10 A with 10A terminal | supported | Product-open for currently supported profile workflows |
-| `keysight-34460a` | Keysight 34460A | 1000 | 3 A | base profile disabled; optional LAN/external trigger not assumed | Product-open on USB/system-VISA for currently supported profile workflows |
+| Model ID | Instrument | Reading memory | Current max | External trigger |
+| --- | --- | ---: | ---: | --- |
+| `keysight-34461a` | Keysight 34461A | 10000 | 10 A with 10A terminal | supported |
+| `keysight-34460a` | Keysight 34460A | 1000 | 3 A | base profile disabled; optional LAN/external trigger not assumed |
 
 Core distinguishes stable profile identity from instrument and presentation
 text:
@@ -96,9 +96,9 @@ do not query live hardware.
 
 ### Exact-Scope Details
 
-- **Keysight 34461A**: Product-open for USB/system-VISA, LAN/system-VISA, and LAN/pyvisa-py @py (optional and CLI-only) scopes across all profile workflows (including simple/custom external triggers, DCV Ratio, and the 10 A current terminal path with operator-confirmed wiring).
-- **Keysight 34460A**: Product-open ONLY on USB/system-VISA across its supported workflows (immediate, software, software-timer, custom buffered, Frequency, Period, and DCV Ratio). The base profile does not support external triggers or the 10 A current-terminal path, and is subject to a 1000-reading memory limit. LAN/system-VISA and LAN/pyvisa-py @py scopes are not currently supported (pending).
-- **Fail-Closed Policy**: Any connection, measurement, trigger mode, or model combination not explicitly listed in the capability table above is unsupported and fails closed (see [Core Integration](integration.md#validation-flow)).
+- **Wiring Safety & 10 A Path**: Selecting the 10 A current terminal requires manual operator confirmation of physical lead wiring to prevent hardware damage.
+- **Reading Memory Limits**: 34461A custom runs above 10,000 readings and 34460A custom runs above 1,000 readings require explicit `--allow-buffer-overflow-risk`. `--buffer-drain-size` remains capped at the profile reading memory limit.
+- **Fail-Closed Policy**: Any model, transport, backend, measurement, or trigger combination not explicitly marked as open in the matrix above is unsupported and fails closed (see [Core Integration](integration.md#validation-flow)).
 
 ## VISA Backend Selection
 
@@ -116,11 +116,10 @@ USBTMC on Windows may require WinUSB/libusb setup. The `PYVISA_LIBRARY`
 environment variable remains PyVISA-level behavior, but explicit CLI
 `--visa-library "@py"` is preferred for reproducible tests.
 
-LAN/TCPIP and pyvisa-py `@py` remain separate support scopes. USB/system-VISA
-support does not open those scopes. The current supported optional backend
-scope is 34461A LAN/TCPIP with CLI-only pyvisa-py `@py`; pyvisa-py is not
-required for normal system VISA usage, and the WebUI does not expose a backend
-selector.
+LAN/TCPIP and pyvisa-py `@py` remain separate support scopes evaluated against
+the exact-scope matrix above. USB/system-VISA support does not automatically open
+optional backend scopes. pyvisa-py is not required for normal system VISA usage,
+and the WebUI does not expose a backend selector.
 
 ## Measurement Capability
 
