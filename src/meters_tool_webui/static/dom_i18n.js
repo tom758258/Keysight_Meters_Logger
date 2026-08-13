@@ -59,3 +59,23 @@ export function applyStaticTranslations(root, translate = t) {
   }
   return pending.length;
 }
+
+export function setTranslatedText(element, key, params = {}) {
+  element.setAttribute("data-i18n", key);
+  if (Object.keys(params).length > 0) {
+    element.setAttribute("data-i18n-params", JSON.stringify(params));
+  } else {
+    element.removeAttribute("data-i18n-params");
+  }
+  element.textContent = t(key, params);
+}
+
+export function setTranslatedAriaLabel(element, key, params = {}) {
+  element.setAttribute("data-i18n-aria-label", key);
+  if (Object.keys(params).length > 0) {
+    element.setAttribute("data-i18n-params", JSON.stringify(params));
+  } else {
+    element.removeAttribute("data-i18n-params");
+  }
+  element.setAttribute("aria-label", t(key, params));
+}

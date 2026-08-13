@@ -1,4 +1,4 @@
-import { api } from "./api.js";
+﻿import { api } from "./api.js";
 import {
   cleanupStatus,
   dryRunPlan,
@@ -20,6 +20,7 @@ import {
   triggerModeSelect,
 } from "./dom.js";
 import { refreshLiveDataPresentation, renderLiveData } from "./live_data.js";
+import { setTranslatedText } from "./dom_i18n.js";
 import { t } from "./i18n.js";
 import {
   browserErrorPresentation,
@@ -53,16 +54,6 @@ const EMPTY_PLAN_LIVE_DATA = Object.freeze({
 function clearTranslationBinding(element, binding = "data-i18n") {
   element.removeAttribute(binding);
   element.removeAttribute("data-i18n-params");
-}
-
-function setTranslatedText(element, key, params = {}) {
-  element.setAttribute("data-i18n", key);
-  if (Object.keys(params).length > 0) {
-    element.setAttribute("data-i18n-params", JSON.stringify(params));
-  } else {
-    element.removeAttribute("data-i18n-params");
-  }
-  element.textContent = t(key, params);
 }
 
 function setRawText(element, text) {

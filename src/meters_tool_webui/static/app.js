@@ -1,5 +1,5 @@
-import { api } from "./api.js";
-import { applyStaticTranslations } from "./dom_i18n.js";
+﻿import { api } from "./api.js";
+import { applyStaticTranslations, setTranslatedText, setTranslatedAriaLabel } from "./dom_i18n.js";
 import { t } from "./i18n.js";
 import { initializeLocaleUi } from "./locale_ui.js";
 import {
@@ -79,26 +79,6 @@ import {
 } from "./status.js";
 import { resourceStatusPresentation } from "./presentation_i18n.js";
 import { initializeThemeUi } from "./theme_ui.js";
-
-function setTranslatedText(element, key, params = {}) {
-  element.setAttribute("data-i18n", key);
-  if (Object.keys(params).length > 0) {
-    element.setAttribute("data-i18n-params", JSON.stringify(params));
-  } else {
-    element.removeAttribute("data-i18n-params");
-  }
-  element.textContent = t(key, params);
-}
-
-function setTranslatedAriaLabel(element, key, params = {}) {
-  element.setAttribute("data-i18n-aria-label", key);
-  if (Object.keys(params).length > 0) {
-    element.setAttribute("data-i18n-params", JSON.stringify(params));
-  } else {
-    element.removeAttribute("data-i18n-params");
-  }
-  element.setAttribute("aria-label", t(key, params));
-}
 
 function setPanelExpanded(button, expanded) {
   const panel = button.closest(".collapsible-panel");

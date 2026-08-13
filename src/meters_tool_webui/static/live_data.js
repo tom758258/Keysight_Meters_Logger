@@ -1,4 +1,4 @@
-import {
+﻿import {
   autoRangeCheckbox,
   closeLiveSampleDetailsButton,
   liveChartContent,
@@ -30,6 +30,7 @@ import {
   toggleLiveSamplesButton,
   toggleLiveStatsButton,
 } from "./dom.js";
+import { setTranslatedText, setTranslatedAriaLabel } from "./dom_i18n.js";
 import { t } from "./i18n.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -46,30 +47,10 @@ let liveChartScaleNoticeKey = "";
 let lastLiveChartSamples = [];
 let latestLiveStatus = null;
 
-function setTranslatedText(element, key, params = {}) {
-  element.setAttribute("data-i18n", key);
-  if (Object.keys(params).length > 0) {
-    element.setAttribute("data-i18n-params", JSON.stringify(params));
-  } else {
-    element.removeAttribute("data-i18n-params");
-  }
-  element.textContent = t(key, params);
-}
-
 function setRawText(element, text) {
   element.removeAttribute("data-i18n");
   element.removeAttribute("data-i18n-params");
   element.textContent = String(text ?? "");
-}
-
-function setTranslatedAriaLabel(element, key, params = {}) {
-  element.setAttribute("data-i18n-aria-label", key);
-  if (Object.keys(params).length > 0) {
-    element.setAttribute("data-i18n-params", JSON.stringify(params));
-  } else {
-    element.removeAttribute("data-i18n-params");
-  }
-  element.setAttribute("aria-label", t(key, params));
 }
 
 function setScaleInfo(presentation) {
