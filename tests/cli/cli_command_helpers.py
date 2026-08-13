@@ -4,6 +4,7 @@ import io
 import json
 import socket
 from contextlib import ExitStack, redirect_stderr, redirect_stdout
+from datetime import datetime
 from unittest.mock import patch
 
 from meters_tool_cli.cli import cmd_start
@@ -321,3 +322,43 @@ class CliCommandHarnessMixin:
 
         FakeResponse.status = status
         return FakeResponse()
+    def _assert_parseable_timestamp(self, payload):
+        self.assertIn("timestamp_utc", payload)
+        parsed = datetime.fromisoformat(payload["timestamp_utc"])
+        self.assertIsNotNone(parsed)
+
+    def _assert_client_contract(
+        self,
+        payload,
+        *,
+        event,
+        client_command,
+        ok,
+        port=8765,
+        request_sent,
+    ):
+        self._assert_parseable_timestamp(payload)
+        self.assertEqual(event, payload["event"])
+        self.assertEqual(client_command, payload["client_command"])
+        self.assertEqual(ok, payload["ok"])
+        self.assertEqual(port, payload["port"])
+        self.assertEqual(request_sent, payload["request_sent"])
+        self.assertEqual(2, payload["schema_version"])
+        for key in ("method", "url", "endpoint"):
+            self.assertIn(key, payload)
+        if request_sent:
+            self.assertIn("timeout_ms", payload)
+            self.assertIn("elapsed_ms", payload)
+
+    def _assert_error_contract(self, payload, *, client_command, error_phase, exit_code, port=8765):
+        self._assert_client_contract(
+            payload,
+            event="error",
+            client_command=client_command,
+            ok=False,
+            port=port,
+            request_sent=error_phase == "request",
+        )
+        self.assertEqual(error_phase, payload["error_phase"])
+        self.assertEqual(exit_code, payload["exit_code"])
+        self.assertIn("reachable", payload)
