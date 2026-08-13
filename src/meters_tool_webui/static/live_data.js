@@ -1,4 +1,4 @@
-﻿import {
+import {
   autoRangeCheckbox,
   closeLiveSampleDetailsButton,
   liveChartContent,

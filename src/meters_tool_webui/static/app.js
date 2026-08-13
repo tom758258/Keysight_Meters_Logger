@@ -1,4 +1,4 @@
-﻿import { api } from "./api.js";
+import { api } from "./api.js";
 import { applyStaticTranslations, setTranslatedText, setTranslatedAriaLabel } from "./dom_i18n.js";
 import { t } from "./i18n.js";
 import { initializeLocaleUi } from "./locale_ui.js";
