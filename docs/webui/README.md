@@ -806,6 +806,12 @@ unit scaling.
 
 Treat all instrument-affecting changes as high risk.
 
+A WebUI live run assumes that the selected physical instrument is not
+simultaneously controlled by another Meters CLI, WebUI, logger, test process,
+or external VISA application. Concurrent control can interfere with SCPI
+responses or instrument state. This is an operator prerequisite, not an
+automatic lock enforced by Meters Tool.
+
 Do not change any of the following without explicit user approval:
 
 - SCPI commands or command ordering.
@@ -893,6 +899,9 @@ Live panel has no samples:
 - Confirm the SSE status stream is active, or that fallback polling is working.
 - The panel uses Core sample events only; it does not query the instrument or
   parse CSV files independently.
+- If live readings or instrument behavior appear inexplicably inconsistent,
+  first check whether another Meters CLI, WebUI, logger, test process, or
+  external VISA application is accessing the same physical instrument.
 
 ## Documentation Map
 

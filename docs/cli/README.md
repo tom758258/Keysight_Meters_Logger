@@ -342,6 +342,12 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\live-cli-check
 
 `-SkipPreflight` is intentionally rejected for a real live run.
 
+Before starting real live validation, ensure that no other Meters CLI, WebUI,
+logger, test process, or external VISA application is actively using the same
+physical instrument. Independent concurrent clients can interfere with SCPI
+command/response ordering or instrument state. This is an operator prerequisite;
+Meters Tool does not enforce it with an automatic lock.
+
 After reviewing the plan, run the real minimal suite by removing `-PlanOnly`:
 
 ```powershell
@@ -1866,6 +1872,12 @@ CSV fields:
   commands instead of activating the environment.
 - If no VISA resources appear, confirm the VISA runtime is installed and the
   instrument is visible in the vendor connection utility.
+- If a measurement or query receives an unexpected identity-like response,
+  responses appear mismatched or shifted between commands, or instrument state
+  changes unexpectedly during a run, first check whether another Meters CLI,
+  WebUI, logger, test process, or external VISA application is accessing the
+  same physical instrument. Stop the competing controller before investigating
+  other causes.
 - If `list-resources` shows stale cached resources, run `list-resources --live-only`
   to hide stale entries. Use `list-resources --verify` when you need to inspect
   stale-resource errors.

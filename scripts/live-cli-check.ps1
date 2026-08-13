@@ -819,6 +819,10 @@ if ($stdinRedirected) {
 }
 
 Write-Host ""
+Write-Host "WARNING: Single-client instrument access required."
+Write-Host "Ensure no other Meters WebUI, CLI, logger, test process, or external VISA application"
+Write-Host "is using the same physical instrument during this live test."
+Write-Host "Concurrent control may interfere with SCPI command/response ordering or instrument state."
 [void](Read-Host "Press Enter to run suite '$Suite', or Ctrl+C to cancel")
 
 $liveExecuted = $true

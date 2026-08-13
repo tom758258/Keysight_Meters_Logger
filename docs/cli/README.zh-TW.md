@@ -254,6 +254,11 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\live-cli-check
 
 `-SkipPreflight` 刻意不允許用於真正的實機執行。
 
+開始真正的實機驗證前，請確認沒有其他 Meters CLI、WebUI、logger、測試程序或
+外部 VISA 應用程式正在使用同一個實體儀器。獨立的並行 client 可能干擾 SCPI
+指令/回應順序或儀器狀態。這是操作人員的前置條件；Meters Tool 不會以自動
+lock 強制執行此條件。
+
 檢查 plan 後，移除 `-PlanOnly` 即可執行真正的 minimal suite：
 
 ```powershell
@@ -1539,6 +1544,10 @@ CSV 欄位：
   這會重建 console wrapper，不需要 pip。
 - 如果 PowerShell 啟用受阻，請繼續使用明確的 `.\.venv\Scripts\python.exe` 或 `.\.venv\Scripts\meters-tool.exe` 指令，而非啟用虛擬環境。
 - 如果未出現 VISA 資源，請確認 VISA 執行階段已安裝，且儀器在廠商連線工具中是可見的。
+- 如果量測或 query 收到預期外的 identity-like 回應、回應在不同指令之間看起來
+  錯配或錯位，或執行期間儀器狀態非預期地改變，請先確認是否有其他 Meters CLI、
+  WebUI、logger、測試程序或外部 VISA 應用程式正在存取同一個實體儀器。先停止
+  競爭中的 controller，再調查其他原因。
 - 如果 `list-resources` 顯示過期的快取資源，請執行 `list-resources --live-only` 來隱藏過期的項目。當需要檢查過期資源錯誤時，請使用 `list-resources --verify`。
 - 如果 CLI 指示無法開啟 CSV 輸出檔案，請關閉 Excel 或任何其他程序中的該檔案，或選擇不同的 `--csv` 路徑。
 - 如果使用 `--auto-range off`，則必須提供 `--range` 或 `--current-range`。

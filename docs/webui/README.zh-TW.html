@@ -662,6 +662,7 @@ pending_keys</code></pre></div>
 
         <h2>安全規則</h2>
         <p>將所有影響儀器的變更視為高風險。</p>
+        <p>WebUI 實機執行的前提是，選定的實體儀器沒有同時受到其他 Meters CLI、WebUI、logger、測試程序或外部 VISA 應用程式控制。並行控制可能干擾 SCPI 回應或儀器狀態。這是操作人員的前置條件，不是 Meters Tool 自動強制的 lock。</p>
         <p>未經使用者明確核准，請勿變更以下任何內容：</p>
         <ul>
             <li>SCPI 指令或指令順序。</li>
@@ -741,6 +742,7 @@ pending_keys</code></pre></div>
             <li>確認執行已擷取到樣本。</li>
             <li>確認 SSE 狀態串流正常，或輪詢備援正在運作。</li>
             <li>面板僅使用 Core 取樣事件；它不獨立查詢儀器或解析 CSV 檔案。</li>
+            <li>如果即時讀值或儀器行為看起來無法解釋地不一致，請先確認是否有其他 Meters CLI、WebUI、logger、測試程序或外部 VISA 應用程式正在存取同一個實體儀器。</li>
         </ul>
 
         <h2>說明文件地圖</h2>
