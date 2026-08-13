@@ -346,12 +346,12 @@ environment, CLI live acquisition with optional backends (`@py`, `@bt`) is limit
 registered Product-open scopes. The official standalone WebUI supports neither optional
 backend; do not attempt to supply one through an undocumented API payload.
 
-The WebUI does not expose validation mode. Transport/backend scopes (whether `live_validated_full_suite`
-or `transport_pending`) and measurement or trigger-mode features that are not Product-open
-remain blocked for browser starts. The browser disables product-unavailable feature options,
-but that state is UX only; Core validation, the support policy gate, and the
-`run_start_session()` final gate remain the safety boundary for forged or stale
-requests.
+`live_validated_full_suite` and `transport_pending` are Core-owned machine-readable
+statuses. The WebUI does not expose validation mode; normal browser starts only allow
+Product-open scopes and features, while non-Product-open scopes and features remain
+blocked. The browser disables product-unavailable feature options, but that state is
+UX only; Core validation, the support policy gate, and the `run_start_session()` final
+gate remain the safety boundary for forged or stale requests.
 
 ## Measurement Modes
 

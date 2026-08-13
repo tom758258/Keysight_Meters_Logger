@@ -331,7 +331,7 @@ npm start</code></pre></div>
             <li>用於裝置/資源設定、執行設定 (run configuration)、量測設定、觸發設定、即時資料 (Live data) 與狀態詳細資料的可摺疊設定面板。</li>
             <li>即時資料面板包含最新讀值、取樣時間、觸發來源、趨勢圖表、統計資料、最近取樣表格以及所選取樣的 metadata。</li>
         </ul>
-        <p><code>支援裝置</code> 彈出視窗顯示目前 WebUI 正式支援的連線方式（由 Core 能力 metadata 衍生）。如需操作人員所見之連線清單，請參閱 <a href= USER_GUIDE.zh-TW.html>WebUI 使用者指南</a>；確切的產品支援型號與連線範圍請參閱 <a href=../core/supported-models.md>支援型號</a>。</p>
+        <p><code>支援裝置</code> 彈出視窗顯示目前 WebUI 正式支援的連線方式（由 Core 能力 metadata 衍生）。如需操作人員所見之連線清單，請參閱 <a href= USER_GUIDE.zh-TW.html>WebUI 使用者指南</a>；確切的產品支援型號與連線範圍請參閱 <a href="../core/supported-models.md">支援型號</a>。</p>
 
         <h3>瀏覽器語言</h3>
         <p>右上角永久顯示的地球與文字按鈕可在 English 與繁體中文之間切換。在 English 中，目的地標籤為 <code>繁體中文</code>；在繁體中文中，目的地標籤為 <code>English</code>。首次載入時，WebUI 依序使用有效的已儲存語系、瀏覽器語言偵測，最後才使用 English。手動選擇會儲存在 <code>meters-tool.webui.locale</code>；偵測到的語系不會自動寫入。切換會改變 <code>&lt;html lang&gt;</code>，但不重新載入或呼叫 runtime endpoint，並保留目前的表單、作用中的作業、面板、狀態、Live data、圖表、資源與支援摘要狀態。未知的診斷文字保持原始內容。</p>
@@ -370,7 +370,7 @@ npm start</code></pre></div>
         <p>選擇實機資源會將其複製到 <code>VISA resource</code> 輸入欄位中。當掃描推斷出支援的型號且 <code>Expected model</code> 仍為 Auto-detect 時，瀏覽器可能會載入 <code>/api/capabilities?model=&lt;model&gt;</code> 以顯示選項，但仍會將 <code>Expected model</code> 保持在 Auto-detect。Start 一律會先執行新的後端 IDN preflight。</p>
         <p>使用者仍然可以手動輸入資源，並在掃描後於 <code>Device options</code> 中要求特定的 <code>Expected model</code>。</p>
         <p>WebUI 透過 Core 使用固定的預設 System VISA runtime。瀏覽器不提供選用的 PyVISA backend 選擇器，WebUI API 也不接受 resource scan 或實機執行的 backend override。目前 Product-open 的連線範圍（如 USB/system-VISA 或 LAN/TCPIP）記載於 <a href="../core/supported-models.md">支援型號</a>。在 source 或已安裝 Python 環境中，CLI 使用選用 backend（<code>@py</code>、<code>@bt</code>）的實機擷取僅限於已註冊的 Product-open scope。官方 standalone WebUI 不支援選用 backend；請勿嘗試透過未記載的 API payload 指定 backend。</p>
-        <p>WebUI 不公開驗證模式。未對產品開放的傳輸/後端範圍（無論是 <code>live_validated_full_suite</code> 或 <code>transport_pending</code>）以及量測或觸發模式功能，會在瀏覽器啟動時被封鎖。瀏覽器會停用產品不可用的功能選項，但該狀態僅為 UX；Core 驗證、支援原則關卡以及 <code>run_start_session()</code> 最終關卡仍是安全邊界。</p>
+        <p><code>live_validated_full_suite</code> 與 <code>transport_pending</code> 是 Core-owned machine-readable status。WebUI 不公開 Validation mode；normal browser starts 只允許 Product-open scopes/features，non-Product-open 仍被封鎖。瀏覽器會停用產品不可用的功能選項，但該狀態僅為 UX；Core 驗證、支援原則關卡以及 <code>run_start_session()</code> 最終關卡仍是安全邊界。</p>
 
         <h2>量測模式</h2>
         <p>量測選項是透過以下方式自 Core 載入：</p>
@@ -441,7 +441,7 @@ pending_keys</code></pre></div>
         <p>標準型號名稱仍可供一般使用，穩定的型號 ID 也可作為設定檔查詢輸入。選定的型號仍是預期型號防護；從 live <code>*IDN?</code> 偵測到的設定檔仍是執行階段驅動程式。型號 ID 不代表支援狀態或生命週期狀態。</p>
         
         <p><code>/api/capabilities</code> 也包含額外的支援 metadata。每個確切的實機連線範圍保留其現有的 <code>validation_status</code>、<code>transport_scope</code> 與 <code>backend_scope</code> 欄位，並新增 <code>features.measurement</code> 與 <code>features.trigger_mode</code> 對照表。功能項目公開其自身的 <code>validation_status</code>；量測鍵使用現有的配接器端名稱，例如 <code>voltage-dc-ratio</code>。現有的回應欄位不會被移除或重新命名。已註冊但尚未對產品開放的 scope，可能仍保留 machine-readable <code>transport_pending</code> 狀態。瀏覽器會將這些 scope 視為一般 Product 啟動不可用；此狀態不代表執行授權。</p>
-        <p>關於型號、傳輸、後端與量測功能支援矩陣，請參閱 <a href=../core/supported-models.md>支援型號</a>。現有的量測、觸發、範圍與限制欄位仍是控制項定義的 source of truth。Product-open support-policy 範圍不代表每個 distribution 都已 bundle 該 backend 套件。</p>
+        <p>關於型號、傳輸、後端與量測功能支援矩陣，請參閱 <a href="../core/supported-models.md">支援型號</a>。現有的量測、觸發、範圍與限制欄位仍是控制項定義的 source of truth。Product-open support-policy 範圍不代表每個 distribution 都已 bundle 該 backend 套件。</p>
         <p>Expected model 檢查是選用的。Core 會在 Start 時驗證連接儀器的識別資訊。若明確指定的預期型號與新的 IDN preflight 不符，WebUI 會回報選取的型號以及 IDN 中找到的支援型號。</p>
         <p>選取的 WebUI 型號不得被視為功能解鎖。停用或隱藏的控制項僅為 UX；Core 支援原則與 <code>run_start_session()</code> 最終關卡仍是 WebUI 後端提交的安全邊界。目前 WebUI 不提供選用 backend 選擇器；System VISA 仍是受支援的 WebUI runtime。選用的 <code>@py</code> 或 <code>@bt</code> backend 工作不在目前 WebUI product surface 內。CLI 開發／已安裝環境用途仍需要可載入的 backend 與在 <a href="../core/supported-models.md">支援型號</a> 中已註冊的 Product-open scope。</p>
         

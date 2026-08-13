@@ -249,7 +249,7 @@ GET /api/resources?verify=true&live_only=true
 
 WebUI 透過 Core 使用固定的預設 System VISA runtime。瀏覽器不提供選用的 PyVISA backend 選擇器，WebUI API 也不接受 resource scan 或實機執行的 backend override。目前 Product-open 的連線範圍（如 USB/system-VISA 或 LAN/TCPIP）記載於 [支援型號](../core/supported-models.md)。在 source 或已安裝 Python 環境中，CLI 使用選用 backend（`@py`、`@bt`）的實機擷取僅限於已註冊的 Product-open scope。官方 standalone WebUI 不支援選用 backend；請勿嘗試透過未記載的 API payload 指定 backend。
 
-WebUI 不公開驗證模式。未對產品開放的傳輸/後端範圍（無論是 `live_validated_full_suite` 或 `transport_pending`）以及量測或觸發模式功能，會在瀏覽器啟動時被封鎖。瀏覽器會停用產品不可用的功能選項，但該狀態僅為 UX；Core 驗證、支援原則關卡以及 `run_start_session()` 最終關卡仍是安全邊界。
+`live_validated_full_suite` 與 `transport_pending` 是 Core-owned machine-readable status。WebUI 不公開 Validation mode；normal browser starts 只允許 Product-open scopes/features，non-Product-open 仍被封鎖。瀏覽器會停用產品不可用的功能選項，但該狀態僅為 UX；Core 驗證、支援原則關卡以及 `run_start_session()` 最終關卡仍是安全邊界。
 
 ## 量測模式
 
