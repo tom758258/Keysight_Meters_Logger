@@ -69,12 +69,12 @@ The WebUI is a local acquisition console. The main areas are:
 - `Live data`: latest reading, trend chart, recent samples, and selected sample
   details.
 
-Select `Supported devices` to see the WebUI connection list:
+Select `Supported devices` to see the supported model list:
 
-| Vendor | Model | Connections |
+| Vendor | Model | Notes |
 | --- | --- | --- |
-| Keysight | 34461A | USB, LAN / TCPIP |
-| Keysight | 34460A | USB |
+| Keysight | 34461A | Supported model profile; exact live scope is in Supported Models |
+| Keysight | 34460A | Supported model profile; exact live scope is in Supported Models |
 
 ## Browser Language
 
@@ -180,14 +180,9 @@ connected.
 
 The WebUI uses the computer's fixed default System VISA runtime. It does not
 include a PyVISA backend selector, and its resource scan and run API accept no
-backend override. 34461A LAN/TCPIP with System VISA is Product-open. In a CLI
-source or installed Python environment, live acquisition with `@py` still
-requires a loadable backend and a registered Product-open scope. Although the
-CLI backend abstraction can carry an installed, loadable `@bt` selector, Meters
-currently registers no Product-open `@bt` live acquisition scope. Neither
-optional backend is supported by the official standalone WebUI. A Product-open
-`@py` support-policy scope does not mean the standalone distribution bundles
-pyvisa-py.
+backend override. Exact live model and connection support is governed by Core
+policy and documented in [Supported Models](../core/supported-models.md). For
+optional CLI backend details such as `@py`, see the [CLI User Guide](../cli/USER_GUIDE.md).
 
 `Live resource` shows the result of the last scan. Use it to confirm which
 instrument answered before copying or selecting a resource for the run. When

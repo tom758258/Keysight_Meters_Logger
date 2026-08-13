@@ -76,34 +76,21 @@ profile logic, so unknown models fail with a clear validation error.
 ## Live Support Scope Reminder
 
 A VISA resource that answers `*IDN?` or appears in `list-resources` is not by
-itself Product-open for every model and transport/backend combination. Before
-the first live run, keep these operator-facing limits in mind:
+itself Product-open for every model and transport/backend combination. Model,
+transport, backend, measurement, and trigger support are exact and must match
+Core policy. Unsupported combinations fail closed instead of being unlocked by
+`--model` or a scan result.
 
-- `34461A`: USB/system VISA and LAN/TCPIP with system VISA are Product-open.
-  LAN/TCPIP with pyvisa-py `@py` is a Product-open support-policy scope for
-  CLI use when that backend is installed and loadable.
-- `34460A`: the current Product-open live connection scope is USB/system VISA.
-  LAN/TCPIP with system VISA and LAN/TCPIP with pyvisa-py `@py` are not
-  Product-open. DCV Ratio is Product-open only within the USB/system VISA
-  scope. The base profile does not support `external` or `external-custom`,
-  does not support 10 A/current-terminal selection, and has a 1000-reading
-  memory limit.
-
-For the exact model, transport/backend, measurement, and trigger support scope,
-see [Supported Models](../core/supported-models.md).
+For the exact current support matrix, see [Supported Models](../core/supported-models.md).
 
 By default, the CLI uses the computer's System VISA runtime, such as Keysight
 IO Libraries Suite or NI-VISA. In a source checkout, virtual environment, or
-installed Python environment, the CLI can pass an optional backend selector
-when its backend is installed and loadable. Live acquisition also requires an
-exact registered Product-open support scope. `@py` has registered Product-open
-support for the documented scopes, including 34461A LAN/TCPIP; 34460A
-LAN/`@py` is not supported. `@bt` currently has no registered Product-open
-Meters live acquisition scope, so installing its backend alone does not enable
-`start-trigger-record`. Support-policy status does not guarantee backend
-package availability in a distribution. The current official standalone CLI
-executable supports only the System VISA path; it does not bundle `@py` or
-`@bt`. Normal WebUI runs also use the fixed System VISA path.
+installed Python environment, `--visa-library` is an advanced CLI option for a
+compatible PyVISA backend when it is installed and loadable. This does not
+change SCPI, trigger, cleanup, or Core model validation. The official
+standalone CLI executable supports only the fixed System VISA path and does not
+bundle optional backends. Normal WebUI runs also use the fixed System VISA
+path.
 
 ## Choosing A Measurement
 

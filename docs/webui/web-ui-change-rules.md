@@ -332,8 +332,8 @@ The UI may look different, but these behaviors must remain true:
 - Do not expose a PyVISA backend selector in the WebUI without a future
   explicit product decision. Backend selection remains CLI-only.
 - Do not infer LAN/TCPIP or pyvisa-py `@py` support from USB/system-VISA
-  support. The current optional `@py` scope is 34461A LAN/TCPIP and remains
-  CLI-only.
+  support. Exact model/transport/backend support remains defined by Core and
+  the canonical support matrix in `docs/core/supported-models.md`.
 - Range choices are populated from the selected measurement definition.
 - NPLC choices are populated from the selected measurement definition.
 - NPLC is hidden/disabled when unsupported.

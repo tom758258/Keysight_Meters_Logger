@@ -52,14 +52,11 @@ live 啟動省略 `--model` 時，連接儀器的 `*IDN?` 決定 runtime profile
 
 ## 實機支援範圍提醒
 
-某個 VISA resource 能回應 `*IDN?` 或出現在 `list-resources` 中，本身不代表所有型號與 transport/backend 組合都已 Product-open。首次實機執行前，請記住以下操作限制：
+某個 VISA resource 能回應 `*IDN?` 或出現在 `list-resources` 中，本身不代表所有型號與 transport/backend 組合都已 Product-open。型號、transport、backend、量測與觸發支援都是精確範圍，且必須符合 Core policy。未列出的組合會 fail closed，而不是透過 `--model` 或掃描結果被解鎖。
 
-- `34461A`：USB/system VISA 與 LAN/TCPIP with system VISA 已 Product-open。LAN/TCPIP with pyvisa-py `@py` 是 CLI 在該 backend 已安裝且可載入時可使用的 Product-open support-policy 範圍。
-- `34460A`：目前 Product-open 的實機 connection scope 是 USB/system VISA。LAN/TCPIP with system VISA 尚未 Product-open；LAN/TCPIP with pyvisa-py `@py` 目前不支援。DCV Ratio 只在 USB/system VISA scope 開放。base profile 不支援 `external` 或 `external-custom` trigger、不支援 10 A/current-terminal 選擇，且 reading memory 上限為 1000。
+精確的目前支援矩陣，請參閱 [支援型號](../core/supported-models.md)。
 
-精確的型號、transport/backend、量測與觸發支援範圍，請參閱 [支援型號](../core/supported-models.md)。
-
-CLI 預設使用電腦的 System VISA runtime，例如 Keysight IO Libraries Suite 或 NI-VISA。在 source checkout、虛擬環境或已安裝的 Python 環境中，CLI 可在 backend 已安裝且可載入時傳遞選用 selector；實機擷取還需要完全相符且已註冊的 Product-open support scope。`@py` 已具備文件所列 Product-open scope 的註冊支援，包括 LAN/TCPIP 上的 34461A；34460A LAN/`@py` 目前不支援。`@bt` 目前沒有已註冊的 Meters Product-open 實機擷取 scope，因此僅安裝其 backend 不會開放 `start-trigger-record`。Support-policy status 不保證 distribution 中存在 backend 套件。目前官方 standalone CLI 執行檔只支援 System VISA 路徑，不 bundle `@py` 或 `@bt`。一般的 WebUI 執行同樣使用固定的 System VISA 路徑。
+CLI 預設使用電腦的 System VISA runtime，例如 Keysight IO Libraries Suite 或 NI-VISA。在 source checkout、虛擬環境或已安裝的 Python 環境中，`--visa-library` 是進階 CLI 選項，用於在 backend 已安裝且可載入時選擇相容的 PyVISA runtime。它不會改變 SCPI、觸發、cleanup 或 Core 模型驗證。官方 standalone CLI 執行檔只支援固定的 System VISA 路徑，不 bundle 選用 backend。一般的 WebUI 執行同樣使用固定的 System VISA 路徑。
 
 ## 選擇量測類型
 

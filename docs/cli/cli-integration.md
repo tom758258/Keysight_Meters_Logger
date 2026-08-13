@@ -73,10 +73,10 @@ change SCPI setup, trigger behavior, cleanup order, CSV schema, JSON/JSONL
 contracts, model validation, or the support policy gate.
 
 pyvisa-py `@py` remains optional; do not make it a required dependency from
-CLI documentation or tests. The current Product-open optional backend scope is
-34461A LAN/TCPIP with `@py`. USB/system-VISA support does not open other
-LAN/TCPIP or pyvisa-py scopes. 34460A LAN/TCPIP and 34460A LAN/`@py` are not
-currently supported.
+CLI documentation or tests. Exact live support remains a Core-owned support
+policy decision and is documented in `docs/core/supported-models.md`.
+Unsupported model, transport, backend, or feature combinations fail closed and
+must not be opened by selector-only changes.
 
 The WebUI intentionally does not expose backend selection. Keep backend
 diagnostics in the CLI unless a future explicit product decision changes that
