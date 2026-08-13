@@ -203,7 +203,7 @@ http://127.0.0.1:8767/
 | Keysight | 34461A | USB、LAN / TCPIP |
 | Keysight | 34460A | USB |
 
-此清單不顯示 CLI-only backend，也不顯示尚未正式開放給 WebUI 使用的連線方式。
+此清單僅顯示目前 WebUI 正式支援的連線方式。
 
 ### 瀏覽器語言
 

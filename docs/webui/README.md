@@ -247,8 +247,7 @@ The `Supported devices` button opens a compact WebUI-only connection list:
 | Keysight | 34461A | USB, LAN / TCPIP |
 | Keysight | 34460A | USB |
 
-The list omits CLI-only backends and connections that are not open for WebUI
-product use.
+The list shows connections currently supported by the WebUI.
 
 ### Browser Language
 
