@@ -368,6 +368,114 @@ uv sync --all-extras --link-mode=copy
                 </tr>
             </tbody>
         </table>
+        <h2>CLI 驗證腳本</h2>
+        <p>Repository 提供兩個維護中的 PowerShell CLI 驗證入口：</p>
+        <ul>
+            <li><code>scripts\preflight-cli.ps1</code>：執行不需要實機的 CLI preflight，涵蓋 dry-run、simulator、本機控制 client、資源探測 contract 與 mocked pytest 檢查。</li>
+            <li><code>scripts\live-cli-check.ps1</code>：由操作人員執行的實機 CLI 驗證 wrapper。它要求明確提供 target、connection 類型與 VISA resource，不會自行掃描、推斷或猜測儀器 resource。</li>
+        </ul>
+
+        <h3>CLI Preflight</h3>
+        <p>進行實機驗證前，先執行 preflight：</p>
+        <div class="code-wrapper"><pre><code>powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\preflight-cli.ps1</code></pre></div>
+
+        <p>預設 <code>-Target</code> 為 <code>all</code>，因此會驗證所有已註冊的 CLI validation target。若只要驗證單一型號：</p>
+        <div class="code-wrapper"><pre><code>powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\preflight-cli.ps1 `
+  -Target keysight-34461a</code></pre></div>
+
+        <p>列出目前接受的 target ID：</p>
+        <div class="code-wrapper"><pre><code>powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\preflight-cli.ps1 `
+  -ListTargets</code></pre></div>
+
+        <p>目前 target ID 為：</p>
+        <div class="code-wrapper"><pre><code class="language-text">keysight-34461a
+keysight-34460a</code></pre></div>
+
+        <p>Preflight artifact 預設寫入 <code>.tmp_tests\cli_preflight</code>。可透過 <code>-OutputRoot</code> 指定其他位置，但該路徑必須仍位於 <code>.tmp_tests</code> 之下。</p>
+
+        <p>Preflight 不需要實體儀器。它會檢查 CLI dry-run 與 simulator 路徑、software-trigger client dry-run、<code>list-resources</code> dry-run contract，以及 mocked CLI resource-discovery tests。每個 target 都會在選定的 preflight output root 下產生 <code>report.json</code> 與 <code>summary.md</code>。</p>
+
+        <h3>實機 CLI 驗證</h3>
+        <p>使用 live wrapper 前，先依照本 README 其他實機範例的方式，把操作人員選定的確切 VISA resource 放入 PowerShell 文件變數：</p>
+        <div class="code-wrapper"><pre><code>$env:METER_RESOURCE = "USB0::...::INSTR"</code></pre></div>
+
+        <p><code>METER_RESOURCE</code> 只是方便文件範例使用的 PowerShell 變數。Validation wrapper 不會自行尋找或自動讀取這個變數；仍需明確以 <code>-Resource "$env:METER_RESOURCE"</code> 傳入。</p>
+
+        <p>建議先執行 plan-only：</p>
+        <div class="code-wrapper"><pre><code>powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\live-cli-check.ps1 `
+  -Target keysight-34461a `
+  -Connection usb `
+  -Resource "$env:METER_RESOURCE" `
+  -Suite minimal `
+  -PlanOnly</code></pre></div>
+
+        <p><code>-PlanOnly</code> 會產生並驗證該 suite 的 CLI dry-run plan，不會開啟 VISA resource。不過 <code>-Resource</code> 仍然是必要參數，讓產生的 command 與 artifact 能精確代表預計驗證的 connection。Plan-only 預設仍會先執行 preflight。</p>
+
+        <p>如果已經另外執行過 preflight，只想產生 live plan，可在 <code>-PlanOnly</code> 下搭配 <code>-SkipPreflight</code>：</p>
+        <div class="code-wrapper"><pre><code>powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\live-cli-check.ps1 `
+  -Target keysight-34461a `
+  -Connection usb `
+  -Resource "$env:METER_RESOURCE" `
+  -Suite minimal `
+  -PlanOnly `
+  -SkipPreflight</code></pre></div>
+
+        <p><code>-SkipPreflight</code> 刻意不允許用於真正的實機執行。</p>
+
+        <p>檢查 plan 後，移除 <code>-PlanOnly</code> 即可執行真正的 minimal suite：</p>
+        <div class="code-wrapper"><pre><code>powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\live-cli-check.ps1 `
+  -Target keysight-34461a `
+  -Connection usb `
+  -Resource "$env:METER_RESOURCE" `
+  -Suite minimal</code></pre></div>
+
+        <p>實機執行會先跑 preflight，並為 suite 中每個 case 產生 dry-run plan。接著 wrapper 會列出可能對儀器造成的狀態變更，並要求操作人員互動式按下 Enter，之後才會開始真正的 acquisition。若 stdin 被重新導向，wrapper 不會把它視為實機執行授權。</p>
+
+        <p>支援參數：</p>
+        <ul>
+            <li><code>-Target</code>（別名：<code>-Model</code>、<code>-Profile</code>）：<code>keysight-34461a</code> 或 <code>keysight-34460a</code>。</li>
+            <li><code>-Connection</code>（別名：<code>-Transport</code>）：<code>usb</code> 或 <code>local</code> 代表 USB/local connection class；<code>lan</code> 或 <code>network</code> 代表 LAN/network connection class。</li>
+            <li><code>-Resource</code>：操作人員選定的確切 VISA resource。即使在 plan-only 模式下也必須提供。</li>
+            <li><code>-VisaLibrary</code>（別名：<code>-Backend</code>、<code>-visa-library</code>）：選用的 PyVISA library/backend selector，例如 <code>@py</code>。省略時使用 System VISA。</li>
+            <li><code>-Suite</code>：<code>minimal</code>、<code>basic</code>、<code>frequency-period</code>、<code>external</code> 或 <code>full</code>。</li>
+            <li><code>-PlanOnly</code>：只驗證並寫出 dry-run plan，不開啟 VISA。</li>
+            <li><code>-SkipPreflight</code>：僅在 <code>-PlanOnly</code> 模式下略過獨立 preflight。</li>
+        </ul>
+
+        <p>各 suite 範圍：</p>
+        <ul>
+            <li><code>minimal</code>：執行一個有界限的 immediate DC current case。</li>
+            <li><code>basic</code>：涵蓋有界限的 immediate DC/AC 電流與電壓、2 線與 4 線電阻、software trigger、software timer、immediate custom 與 software custom 路徑。</li>
+            <li><code>frequency-period</code>：驗證 Frequency 與 Period 的 immediate acquisition 以及預期 SCPI setup。真正實機執行時，formal CLI case 前還會執行隔離的 SCPI diagnostic session。</li>
+            <li><code>external</code>：涵蓋 simple 與 custom external-trigger acquisition；34460A base profile 不支援此 suite。</li>
+            <li><code>full</code>：組合適用的 basic、Frequency/Period 與 external suites。對 <code>keysight-34460a</code> 而言，因 base profile 不支援 external trigger，因此會排除 external cases。</li>
+        </ul>
+
+        <p>驗證 LAN 前，先把 <code>METER_RESOURCE</code> 設成操作人員選定的確切 LAN VISA resource：</p>
+        <div class="code-wrapper"><pre><code>$env:METER_RESOURCE = "TCPIP0::...::hislip0::INSTR"</code></pre></div>
+
+        <p>接著同樣使用明確 resource：</p>
+        <div class="code-wrapper"><pre><code>powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\live-cli-check.ps1 `
+  -Target keysight-34461a `
+  -Connection lan `
+  -Resource "$env:METER_RESOURCE" `
+  -Suite minimal</code></pre></div>
+
+        <p>若驗證已安裝的選用 backend，例如 pyvisa-py，請明確傳入 backend selector：</p>
+        <div class="code-wrapper"><pre><code>powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\live-cli-check.ps1 `
+  -Target keysight-34461a `
+  -Connection lan `
+  -Resource "$env:METER_RESOURCE" `
+  -VisaLibrary "@py" `
+  -Suite minimal</code></pre></div>
+
+        <p>Live-validation 輸出位於：</p>
+        <div class="code-wrapper"><pre><code class="language-text">.tmp_tests\cli_live\&lt;target&gt;\&lt;connection&gt;\&lt;suite&gt;\&lt;timestamp&gt;\</code></pre></div>
+
+        <p>每次執行會將 private raw validation material 與 shareable artifact set 分開保存，完成時會印出 shareable summary 路徑。Validation report 會記錄 target、connection、backend、suite、package version、Git HEAD、dry-run plans、實際執行 cases 與結果狀態。</p>
+
+        <p>成功完成 live validation 只代表取得驗證證據。執行 <code>live-cli-check.ps1</code> 本身不會自動把 pending support entry 提升為 Product-open，也不會自動修改 supported-model matrix；support metadata 與文件的變更仍必須由專案明確進行。</p>
+
         <h2>基本工作流程</h2>
         <p>對於包含常見設定說明的引導式操作人員路徑，請參閱 <a href="USER_GUIDE.zh-TW.html">CLI 使用者指南</a>。簡要參考流程如下：</p>
         <ol>

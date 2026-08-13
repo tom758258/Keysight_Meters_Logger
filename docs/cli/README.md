@@ -247,6 +247,190 @@ Build scripts:
 | `scripts\build_windows_bundle.ps1` | Build the shared Windows onedir CLI, WebUI Launcher, and private Desktop host bundle. |
 | `scripts\build_release.ps1` | Assemble the Windows bundle ZIP, wheel, sdist, and checksums. |
 
+## CLI Validation Scripts
+
+The repository includes two maintained PowerShell entry points for CLI
+validation:
+
+- `scripts\preflight-cli.ps1` performs no-hardware CLI validation with dry-run,
+  simulator, local-control-client, resource-discovery contract, and mocked
+  pytest checks.
+- `scripts\live-cli-check.ps1` is the operator-run real-instrument validation
+  wrapper. It requires an explicit target, connection type, and VISA resource
+  and never scans for or guesses a resource.
+
+### CLI Preflight
+
+Run the preflight before real-instrument validation:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\preflight-cli.ps1
+```
+
+The default target is `all`, so the preflight validates all registered CLI
+validation targets. To validate one model only:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\preflight-cli.ps1 `
+  -Target keysight-34461a
+```
+
+List the accepted target IDs:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\preflight-cli.ps1 `
+  -ListTargets
+```
+
+The current target IDs are:
+
+```text
+keysight-34461a
+keysight-34460a
+```
+
+Preflight artifacts default to `.tmp_tests\cli_preflight`. A custom
+`-OutputRoot` may be supplied, but it must remain under `.tmp_tests`.
+
+Preflight does not require a physical instrument. It exercises CLI dry-run and
+simulator paths, software-trigger client dry-runs, `list-resources` dry-run
+contracts, and mocked CLI resource-discovery tests. Each target produces
+`report.json` and `summary.md` artifacts under the selected preflight output
+root.
+
+### Live CLI Validation
+
+Before using the live wrapper, copy the exact VISA resource selected by the
+operator into the PowerShell documentation variable used by the other examples:
+
+```powershell
+$env:METER_RESOURCE = "USB0::...::INSTR"
+```
+
+`METER_RESOURCE` is only a convenient PowerShell variable. The validation
+wrapper does not discover or read it automatically; pass its value explicitly
+with `-Resource "$env:METER_RESOURCE"`.
+
+Start with a plan-only run:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\live-cli-check.ps1 `
+  -Target keysight-34461a `
+  -Connection usb `
+  -Resource "$env:METER_RESOURCE" `
+  -Suite minimal `
+  -PlanOnly
+```
+
+`-PlanOnly` generates and validates the suite's CLI dry-run plans without
+opening the VISA resource. An explicit `-Resource` is still required so the
+planned command and artifacts represent the intended connection. Preflight
+still runs by default in plan-only mode.
+
+To generate only the live plans when preflight has already been run separately,
+`-SkipPreflight` may be used with `-PlanOnly`:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\live-cli-check.ps1 `
+  -Target keysight-34461a `
+  -Connection usb `
+  -Resource "$env:METER_RESOURCE" `
+  -Suite minimal `
+  -PlanOnly `
+  -SkipPreflight
+```
+
+`-SkipPreflight` is intentionally rejected for a real live run.
+
+After reviewing the plan, run the real minimal suite by removing `-PlanOnly`:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\live-cli-check.ps1 `
+  -Target keysight-34461a `
+  -Connection usb `
+  -Resource "$env:METER_RESOURCE" `
+  -Suite minimal
+```
+
+A live run first performs preflight and generates the suite dry-run plans. It
+then prints the possible instrument state changes and requires an interactive
+Enter confirmation before any live acquisition is executed. Redirected stdin
+cannot approve a live run.
+
+Supported parameters:
+
+- `-Target` (aliases: `-Model`, `-Profile`): `keysight-34461a` or
+  `keysight-34460a`.
+- `-Connection` (alias: `-Transport`): `usb` or `local` for the USB/local
+  connection class; `lan` or `network` for the LAN/network connection class.
+- `-Resource`: the exact operator-selected VISA resource. It is mandatory even
+  in plan-only mode.
+- `-VisaLibrary` (aliases: `-Backend`, `-visa-library`): optional PyVISA
+  library/backend selector such as `@py`. Omit it to use System VISA.
+- `-Suite`: `minimal`, `basic`, `frequency-period`, `external`, or `full`.
+- `-PlanOnly`: validate and write dry-run plans without opening VISA.
+- `-SkipPreflight`: skip the separate preflight only in `-PlanOnly` mode.
+
+Suite scope:
+
+- `minimal` runs one bounded immediate DC-current case.
+- `basic` covers bounded immediate DC/AC current and voltage, 2-wire and
+  4-wire resistance, software trigger, software timer, immediate custom, and
+  software custom paths.
+- `frequency-period` validates Frequency and Period immediate acquisition,
+  including the expected SCPI setup. Live execution also performs isolated
+  SCPI diagnostic sessions before the formal CLI cases.
+- `external` covers simple and custom external-trigger acquisition and is not
+  available for the 34460A base profile.
+- `full` combines the applicable basic, Frequency/Period, and external suites.
+  For `keysight-34460a`, external-trigger cases are omitted because the base
+  profile does not support them.
+
+For LAN validation, first set `METER_RESOURCE` to the exact operator-selected
+LAN VISA resource:
+
+```powershell
+$env:METER_RESOURCE = "TCPIP0::...::hislip0::INSTR"
+```
+
+Then use the same explicit-resource pattern:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\live-cli-check.ps1 `
+  -Target keysight-34461a `
+  -Connection lan `
+  -Resource "$env:METER_RESOURCE" `
+  -Suite minimal
+```
+
+For an installed optional backend such as pyvisa-py, pass the backend selector
+explicitly:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\live-cli-check.ps1 `
+  -Target keysight-34461a `
+  -Connection lan `
+  -Resource "$env:METER_RESOURCE" `
+  -VisaLibrary "@py" `
+  -Suite minimal
+```
+
+Live-validation output is written below:
+
+```text
+.tmp_tests\cli_live\<target>\<connection>\<suite>\<timestamp>\
+```
+
+Each run keeps private raw validation material separately from a shareable
+artifact set and prints the shareable summary path when it finishes. The
+validation report records the target, connection, backend, suite, package
+version, Git HEAD, dry-run plans, executed cases, and result status.
+
+A successful live validation run is validation evidence only. Running
+`live-cli-check.ps1` does not by itself promote a pending support entry to
+Product-open or otherwise change the supported-model matrix; support metadata
+and documentation changes remain explicit project changes.
+
 ## Basic Workflow
 
 For a guided operator path with common setting explanations, use the

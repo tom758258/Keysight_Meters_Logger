@@ -162,6 +162,187 @@ PyInstaller 會將產生的檔案寫入本機 `build\` 和 `dist\` 目錄。維�
 | `scripts\build_windows_bundle.ps1` | 建置共用 Windows onedir CLI、WebUI Launcher 與 private Desktop host bundle。 |
 | `scripts\build_release.ps1` | 組合 Windows bundle ZIP、wheel、sdist 與 checksums。 |
 
+## CLI 驗證腳本
+
+Repository 提供兩個維護中的 PowerShell CLI 驗證入口：
+
+- `scripts\preflight-cli.ps1`：執行不需要實機的 CLI preflight，涵蓋
+  dry-run、simulator、本機控制 client、資源探測 contract 與 mocked pytest
+  檢查。
+- `scripts\live-cli-check.ps1`：由操作人員執行的實機 CLI 驗證 wrapper。
+  它要求明確提供 target、connection 類型與 VISA resource，不會自行掃描、
+  推斷或猜測儀器 resource。
+
+### CLI Preflight
+
+進行實機驗證前，先執行 preflight：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\preflight-cli.ps1
+```
+
+預設 `-Target` 為 `all`，因此會驗證所有已註冊的 CLI validation target。
+若只要驗證單一型號：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\preflight-cli.ps1 `
+  -Target keysight-34461a
+```
+
+列出目前接受的 target ID：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\preflight-cli.ps1 `
+  -ListTargets
+```
+
+目前 target ID 為：
+
+```text
+keysight-34461a
+keysight-34460a
+```
+
+Preflight artifact 預設寫入 `.tmp_tests\cli_preflight`。可透過
+`-OutputRoot` 指定其他位置，但該路徑必須仍位於 `.tmp_tests` 之下。
+
+Preflight 不需要實體儀器。它會檢查 CLI dry-run 與 simulator 路徑、
+software-trigger client dry-run、`list-resources` dry-run contract，以及
+mocked CLI resource-discovery tests。每個 target 都會在選定的 preflight
+output root 下產生 `report.json` 與 `summary.md`。
+
+### 實機 CLI 驗證
+
+使用 live wrapper 前，先依照本 README 其他實機範例的方式，把操作人員
+選定的確切 VISA resource 放入 PowerShell 文件變數：
+
+```powershell
+$env:METER_RESOURCE = "USB0::...::INSTR"
+```
+
+`METER_RESOURCE` 只是方便文件範例使用的 PowerShell 變數。
+Validation wrapper 不會自行尋找或自動讀取這個變數；仍需明確以
+`-Resource "$env:METER_RESOURCE"` 傳入。
+
+建議先執行 plan-only：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\live-cli-check.ps1 `
+  -Target keysight-34461a `
+  -Connection usb `
+  -Resource "$env:METER_RESOURCE" `
+  -Suite minimal `
+  -PlanOnly
+```
+
+`-PlanOnly` 會產生並驗證該 suite 的 CLI dry-run plan，不會開啟 VISA
+resource。不過 `-Resource` 仍然是必要參數，讓產生的 command 與 artifact
+能精確代表預計驗證的 connection。Plan-only 預設仍會先執行 preflight。
+
+如果已經另外執行過 preflight，只想產生 live plan，可在
+`-PlanOnly` 下搭配 `-SkipPreflight`：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\live-cli-check.ps1 `
+  -Target keysight-34461a `
+  -Connection usb `
+  -Resource "$env:METER_RESOURCE" `
+  -Suite minimal `
+  -PlanOnly `
+  -SkipPreflight
+```
+
+`-SkipPreflight` 刻意不允許用於真正的實機執行。
+
+檢查 plan 後，移除 `-PlanOnly` 即可執行真正的 minimal suite：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\live-cli-check.ps1 `
+  -Target keysight-34461a `
+  -Connection usb `
+  -Resource "$env:METER_RESOURCE" `
+  -Suite minimal
+```
+
+實機執行會先跑 preflight，並為 suite 中每個 case 產生 dry-run plan。
+接著 wrapper 會列出可能對儀器造成的狀態變更，並要求操作人員互動式按下
+Enter，之後才會開始真正的 acquisition。若 stdin 被重新導向，
+wrapper 不會把它視為實機執行授權。
+
+支援參數：
+
+- `-Target`（別名：`-Model`、`-Profile`）：`keysight-34461a` 或
+  `keysight-34460a`。
+- `-Connection`（別名：`-Transport`）：`usb` 或 `local` 代表 USB/local
+  connection class；`lan` 或 `network` 代表 LAN/network connection class。
+- `-Resource`：操作人員選定的確切 VISA resource。即使在 plan-only
+  模式下也必須提供。
+- `-VisaLibrary`（別名：`-Backend`、`-visa-library`）：選用的 PyVISA
+  library/backend selector，例如 `@py`。省略時使用 System VISA。
+- `-Suite`：`minimal`、`basic`、`frequency-period`、`external` 或
+  `full`。
+- `-PlanOnly`：只驗證並寫出 dry-run plan，不開啟 VISA。
+- `-SkipPreflight`：僅在 `-PlanOnly` 模式下略過獨立 preflight。
+
+各 suite 範圍：
+
+- `minimal`：執行一個有界限的 immediate DC current case。
+- `basic`：涵蓋有界限的 immediate DC/AC 電流與電壓、2 線與 4 線電阻、
+  software trigger、software timer、immediate custom 與 software custom
+  路徑。
+- `frequency-period`：驗證 Frequency 與 Period 的 immediate acquisition
+  以及預期 SCPI setup。真正實機執行時，formal CLI case 前還會執行隔離的
+  SCPI diagnostic session。
+- `external`：涵蓋 simple 與 custom external-trigger acquisition；
+  34460A base profile 不支援此 suite。
+- `full`：組合適用的 basic、Frequency/Period 與 external suites。
+  對 `keysight-34460a` 而言，因 base profile 不支援 external trigger，
+  因此會排除 external cases。
+
+驗證 LAN 前，先把 `METER_RESOURCE` 設成操作人員選定的確切 LAN VISA
+resource：
+
+```powershell
+$env:METER_RESOURCE = "TCPIP0::...::hislip0::INSTR"
+```
+
+接著同樣使用明確 resource：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\live-cli-check.ps1 `
+  -Target keysight-34461a `
+  -Connection lan `
+  -Resource "$env:METER_RESOURCE" `
+  -Suite minimal
+```
+
+若驗證已安裝的選用 backend，例如 pyvisa-py，請明確傳入 backend selector：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\live-cli-check.ps1 `
+  -Target keysight-34461a `
+  -Connection lan `
+  -Resource "$env:METER_RESOURCE" `
+  -VisaLibrary "@py" `
+  -Suite minimal
+```
+
+Live-validation 輸出位於：
+
+```text
+.tmp_tests\cli_live\<target>\<connection>\<suite>\<timestamp>\
+```
+
+每次執行會將 private raw validation material 與 shareable artifact set
+分開保存，完成時會印出 shareable summary 路徑。Validation report 會記錄
+target、connection、backend、suite、package version、Git HEAD、dry-run
+plans、實際執行 cases 與結果狀態。
+
+成功完成 live validation 只代表取得驗證證據。執行
+`live-cli-check.ps1` 本身不會自動把 pending support entry 提升為
+Product-open，也不會自動修改 supported-model matrix；support metadata
+與文件的變更仍必須由專案明確進行。
+
 ## 基本工作流程
 
 對於包含常見設定說明的引導式操作人員路徑，請參閱 [CLI 使用者指南](USER_GUIDE.zh-TW.md)。簡要參考流程如下：
