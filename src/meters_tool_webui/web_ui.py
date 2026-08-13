@@ -90,6 +90,23 @@ def create_app(manager: WebRunManager | None = None) -> FastAPI:
         except Exception as exc:
             raise HTTPException(status_code=500, detail=str(exc)) from exc
 
+    @app.post("/api/plan")
+    async def api_plan(request: Request) -> dict[str, Any]:
+        try:
+            raw_payload = json.loads((await request.body()).decode("utf-8"))
+            if not isinstance(raw_payload, dict):
+                raise RunValidationError("request body must be a JSON object")
+            payload = RunStartRequest(**raw_payload)
+            return app.state.manager.plan(payload)
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise HTTPException(status_code=400, detail=f"malformed JSON: {exc}") from exc
+        except ValidationError as exc:
+            raise HTTPException(status_code=422, detail=json.loads(exc.json())) from exc
+        except WebRunError as exc:
+            raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=str(exc)) from exc
+
     @app.get("/api/runs/current")
     def api_current_run() -> dict[str, Any]:
         return app.state.manager.status()

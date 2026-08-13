@@ -221,9 +221,9 @@ Main areas:
 
 - Header: `Meters Tool` and `Local acquisition console`.
 - Device / Resource row: `VISA resource`, `Live resource`, `Scan Device`, and a
-  `Device options` gear for the `Expected model` selector and model support
-  summary. The row starts expanded and can collapse to a resource/model
-  summary.
+  `Device options` gear for execution mode, the model selector, and model
+  support summary. The row starts expanded and can collapse to a
+  resource/model summary that includes the selected execution mode.
 - The Expected model selector defaults to `Auto-detect`, which uses the
   connected instrument IDN at Start. Explicit `Require 34460A` or
   `Require 34461A` choices still read IDN and start only when it matches. The
@@ -260,6 +260,28 @@ terminal, and may wrap naturally only when the viewport is too narrow.
 The UI intentionally has no frontend build step, Node package manager, external
 CDN, or framework runtime. Static assets are plain HTML, CSS, and native
 JavaScript modules.
+
+## Execution Modes
+
+`Device options` provides three page-local execution modes:
+
+- `Real` is the default on every page load. It keeps the existing VISA resource,
+  scan, IDN preflight, support-policy, acquisition, trigger, CSV, Stop, and
+  cleanup behavior.
+- `Simulate` requires an explicit 34460A or 34461A model and runs the complete
+  acquisition runtime with the deterministic Core simulator. It does not scan,
+  open, query, or send commands to a real VISA resource. Simulated samples use
+  the normal status and event path, so latest value, chart, statistics, recent
+  samples, Stop, and normal CSV behavior remain available.
+- `Dry-run` requires an explicit 34460A or 34461A planning model and builds a
+  Core execution plan only. It creates no active run, performs no acquisition
+  or real VISA I/O, and produces no Live data samples. The plan appears in
+  Status details, including SCPI commands, read path, cleanup steps, and option
+  summary. Starting a preview clears stale Live data from an earlier run.
+
+Execution mode is not stored in local storage, cookies, or another persistent
+setting. Reloading the page returns to `Real`. Neither simulation nor dry-run
+results are evidence of successful live-hardware validation.
 
 ## Basic Workflow
 
@@ -719,6 +741,8 @@ The browser-facing API surface is:
   for verified supported IDNs, includes nullable `instrument_model`,
   `instrument_model_id`, and `matched_profile` metadata.
 - `POST /api/runs`: validates and starts a run.
+- `POST /api/plan`: validates a dry-run request and returns a Core execution
+  plan without opening VISA or creating an active run.
 - `GET /api/runs/current`: returns current or latest run status.
 - `GET /api/runs/current/events`: returns Server-Sent Events (SSE) stream of run status changes.
 - `POST /api/runs/current/command`: queues a software trigger for supported

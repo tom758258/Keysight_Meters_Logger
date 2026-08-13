@@ -5,7 +5,7 @@ from datetime import datetime
 import json
 import threading
 import time
-from dataclasses import dataclass, field, replace
+from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from typing import Any, Callable, Iterator, Optional
 from uuid import uuid4
@@ -479,6 +479,39 @@ class WebRunManager:
                 if handle is not None and self._active is handle and not self._is_handle_active(handle):
                     self._active = None
             raise
+
+    def plan(self, request: RunStartRequest) -> dict[str, Any]:
+        if not request.instrument_model:
+            raise RunValidationError("instrument_model is required for dry-run planning")
+        start_request = replace(
+            self._normalize_request_payload(request),
+            dry_run=True,
+            simulate=False,
+        )
+        try:
+            start_request, profile = resolve_start_profile(start_request)
+            trigger_mode = resolve_trigger_mode(start_request)
+            validate_start_request(
+                start_request,
+                trigger_mode,
+                instrument_profile=profile,
+            )
+            validate_start_workflow_support(start_request, trigger_mode, profile)
+            warnings = generate_buffer_overflow_warnings(
+                start_request,
+                trigger_mode,
+                profile,
+            )
+            return asdict(
+                build_start_plan(
+                    start_request,
+                    trigger_mode,
+                    profile,
+                    buffer_warnings=warnings,
+                )
+            )
+        except ValueError as exc:
+            raise RunValidationError(str(exc)) from exc
 
     def status(self) -> dict[str, Any]:
         with self._lock:

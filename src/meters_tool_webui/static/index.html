@@ -96,8 +96,16 @@
                 aria-labelledby="device-options-title"
               >
                 <h2 id="device-options-title" data-i18n="device.options">Device options</h2>
+                <fieldset class="execution-mode-fieldset">
+                  <legend data-i18n="execution.heading">Execution mode</legend>
+                  <div class="execution-mode-options">
+                    <label><input type="radio" name="execution-mode" value="real" checked /> <span data-i18n="execution.real">Real</span></label>
+                    <label><input type="radio" name="execution-mode" value="simulate" /> <span data-i18n="execution.simulate">Simulate</span></label>
+                    <label><input type="radio" name="execution-mode" value="dry-run" /> <span data-i18n="execution.dry_run">Dry-run</span></label>
+                  </div>
+                </fieldset>
                 <label>
-                  <span data-i18n="device.expected_model">Expected model</span>
+                  <span id="execution-model-label" data-i18n="device.expected_model">Expected model</span>
                   <select name="instrument_model" id="instrument-model" form="run-form">
                     <option value="" data-i18n="device.auto_detect">Auto-detect</option>
                     <option
@@ -112,7 +120,7 @@
                     >Require 34461A</option>
                   </select>
                 </label>
-                <p class="device-options-help" data-i18n="device.expected_model_help">
+                <p id="execution-model-help" class="device-options-help" data-i18n="device.expected_model_help">
                   Auto-detect uses the connected instrument IDN. Select a model only when you want to require a specific one. In live mode, the detected IDN model remains the runtime driver.
                 </p>
                 <div id="model-support-summary" class="model-support-summary" aria-live="polite">
@@ -579,6 +587,10 @@
           <div id="status-details" class="status-details is-hidden">
             <pre id="fatal-error"></pre>
             <pre id="cleanup-status"></pre>
+            <section id="dry-run-plan-result" class="dry-run-plan-result is-hidden">
+              <h3 data-i18n="execution.plan_result">Dry-run plan</h3>
+              <pre id="dry-run-plan"></pre>
+            </section>
             <pre id="raw-status"></pre>
           </div>
         </section>

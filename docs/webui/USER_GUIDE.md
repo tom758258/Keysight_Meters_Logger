@@ -59,8 +59,9 @@ for terminal commands, API behavior, and build details.
 The WebUI is a local acquisition console. The main areas are:
 
 - `Device / Resource`: the instrument address, last scanned live resource,
-  `Scan Device` button, and `Device options` gear. It starts expanded and can
-  collapse to a short resource/model summary.
+  `Scan Device` button, and `Device options` gear for execution mode and model
+  selection. It starts expanded and can collapse to a short summary that
+  identifies the selected execution mode.
 - `Run Setup`: CSV output path and run count settings.
 - `Measurement`: measurement type and related options.
 - `Trigger`: trigger mode and trigger-related options.
@@ -97,6 +98,26 @@ does not reload the page or reset the current form, run, Live data, or status.
 In Electron Desktop, `System` also keeps the native window UI aligned with the
 operating-system appearance. Selecting `Light` or `Dark` applies that preference
 to the native window UI as well, and Desktop restores it on later starts.
+
+## Choosing An Execution Mode
+
+Open `Device options` and choose one mode:
+
+- `Real` uses the configured VISA resource and keeps the normal scan, identity
+  check, acquisition, trigger, CSV, Stop, and cleanup workflow.
+- `Simulate` requires `34460A` or `34461A`. It does not use or query real VISA
+  hardware. The deterministic simulated instrument runs through the complete
+  acquisition runtime, so Live data latest value, chart, statistics, recent
+  samples, Stop, and normal CSV output work as they do for a runtime run.
+- `Dry-run` requires a planning model and changes Start to `Preview plan`. It
+  validates and displays the Core plan in Status details but starts no
+  acquisition, creates no active run, performs no real VISA I/O, and produces
+  no Live data samples. Previewing a plan clears samples left on screen by an
+  earlier run.
+
+Execution mode is page-local and cannot be changed while a run is active. It
+is not saved: reloading always returns to `Real`. Simulation and dry-run are
+useful no-hardware checks, but neither is live-hardware validation evidence.
 
 ## First Run
 

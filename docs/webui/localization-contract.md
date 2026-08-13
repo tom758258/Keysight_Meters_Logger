@@ -192,7 +192,7 @@ runtime schemas.
 
 | Contract | Protected examples |
 | --- | --- |
-| Endpoint paths | `/api/capabilities`, `/api/resources`, `/api/runs`, `/api/runs/current`, `/api/runs/current/events`, `/api/runs/current/command`, `/api/runs/current/stop`, `/api/runs/current/open-csv`, `/api/csv/select-folder` |
+| Endpoint paths | `/api/capabilities`, `/api/resources`, `/api/runs`, `/api/plan`, `/api/runs/current`, `/api/runs/current/events`, `/api/runs/current/command`, `/api/runs/current/stop`, `/api/runs/current/open-csv`, `/api/csv/select-folder` |
 | HTTP contract | Methods, status behavior, media types, and validation envelopes |
 | API fields | All request and response field names, including command envelope fields |
 | SSE contract | Event name `run-status`, event IDs, data shape, and keepalive behavior |
@@ -291,7 +291,8 @@ IDs, `name`, `value`, and `data-*` attributes are not translation prose.
 | `index.html` | Toolbar subtitle | `Unofficial Tool` | visible text | `translate` | `app.unofficial_tool` |
 | `index.html` | Device section | `Device / Resource`; `No resource / not scanned / Auto-detect` | heading/empty summary | `translate` | `device.resource_heading`, `device.summary_empty` |
 | `index.html` | Device options | `Device options` in heading, `title`, and `aria-label` | visible/accessibility | `translate` | `device.options`, `accessibility.device_options` |
-| `index.html` | Model selector | `Expected model`; `Auto-detect`; `Require 34460A`; `Require 34461A` | label/options | `translate_with_canonical_token` | `device.expected_model`, `device.auto_detect`, `device.require_model` |
+| `index.html` | Execution mode | `Execution mode`; `Real`; `Simulate`; `Dry-run` | label/radio options | `translate` | `execution.heading`, `execution.real`, `execution.simulate`, `execution.dry_run` |
+| `index.html` | Model selector | `Expected model`; `Simulation model`; `Planning model`; `Auto-detect`; `Require 34460A`; `Require 34461A` | label/options | `translate_with_canonical_token` | `device.expected_model`, `device.simulation_model`, `device.planning_model`, `device.auto_detect`, `device.require_model` |
 | `index.html` | Model help | `Auto-detect uses ... runtime driver.` | help text | `translate_with_canonical_token` | `device.expected_model_help` |
 | `index.html` | Support summary | `Model support`; `Loading support status`; `Open`; `Limits`; `Pending` | headings/initial state | `translate` | `support.heading`, `support.loading`, `support.open`, `support.limits`, `support.pending` |
 | `index.html` | Device collapse | `Collapse Device / Resource` | `aria-label` | `translate` | `accessibility.collapse_device_resource` |
@@ -311,7 +312,7 @@ IDs, `name`, `value`, and `data-*` attributes are not translation prose.
 | `index.html` | Timer/metadata | `Timer interval s`; `Trigger metadata JSON`; `{"batch":"A1"}` | labels/example placeholder | labels `translate_with_canonical_token`; example `preserve_raw` | `trigger.timer_interval_s`, `trigger.metadata_json` |
 | `index.html` | Live data header | `Live data`; `No samples captured` | heading/empty state | `translate` | `live_data.heading`, `live_data.no_samples` |
 | `index.html` | Run metrics | `State`; `Sample`; `Errors`; hidden `CSV`; `Idle`; hidden `Default` or `Off` | labels/defaults | labels/defaults `translate`; CSV token and raw `csv_enabled`/`csv_path` field names preserved | `status.state`, `status.sample`, `status.errors`, `status.idle`, `common.default`, `common.off` |
-| `index.html` | Run controls | `Start`; `Trigger`; `Stop`; `Open CSV` | buttons | `translate_with_canonical_token` for CSV; otherwise `translate` | `run.start`, `trigger.send`, `run.stop`, `run.open_csv` |
+| `index.html` | Run controls | `Start`; `Preview plan`; `Trigger`; `Stop`; `Open CSV` | buttons | `translate_with_canonical_token` for CSV; otherwise `translate` | `run.start`, `execution.preview_plan`, `trigger.send`, `run.stop`, `run.open_csv` |
 | `index.html` | Latest sample | `Latest`; `Time UTC+8`; `Trigger` | labels | `translate_with_canonical_token` for UTC+8 | `live_data.latest`, `live_data.time_utc_plus_8`, `trigger.heading` |
 | `index.html` | Trend section | `Trend`; `Scale mode`; `Auto deviation`; `Auto absolute`; `Manual span`; `Range step` | heading/labels/options | `translate` | `live_data.trend`, `live_data.scale_mode`, `live_data.scale.*` |
 | `index.html` | Trend help | `Range step disabled because Auto range is on.`; `0.01`; `Live sample value trend`; `Waiting for samples` | help/placeholder/ARIA/empty state | text `translate`; numeric placeholder `machine_value` | `live_data.range_step_auto_range`, `accessibility.live_sample_trend`, `live_data.waiting_samples` |
@@ -319,6 +320,7 @@ IDs, `name`, `value`, and `data-*` attributes are not translation prose.
 | `index.html` | Recent table | `Recent samples`; `Recent live samples`; `Seq`; `Time UTC+8`; `Value`; `Unit`; `Trigger`; `Status`; `Details`; `No samples captured` | heading/ARIA/columns/empty state | `translate_with_canonical_token` where technical | `live_data.recent_samples`, `accessibility.recent_samples`, `live_data.column.*` |
 | `index.html` | Sample details | `Sample details`; `No sample selected`; `Close sample details`; visible `X` | label/state/ARIA | `translate` (`X` remains glyph) | `live_data.sample_details`, `live_data.no_sample_selected`, `accessibility.close_sample_details` |
 | `index.html` | Status panel | `Status`; `Show Details`; `Status log` | heading/button/ARIA | `translate` | `status.heading`, `status.show_details`, `accessibility.status_log` |
+| `index.html` | Dry-run result | `Dry-run plan`; completion status and raw Core plan JSON | heading/status/raw machine data | heading/status `translate`; plan JSON `preserve_raw` | `execution.plan_result`, `execution.plan_completed` |
 | `index.html` | Contract attributes | IDs, form names/values, `data-*` scopes, units, `lang="en"` baseline | machine/DOM contract | `machine_value` | none |
 
 ### `static/app.js`

@@ -358,6 +358,30 @@ button:disabled:hover {
   font-size: 14px;
 }
 
+.execution-mode-fieldset {
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.execution-mode-fieldset legend {
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.execution-mode-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+
+.execution-mode-options label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
 .device-options-help {
   margin: 0;
   color: var(--muted);
@@ -1095,6 +1119,11 @@ button:focus {
 
 .status-details {
   margin-top: 10px;
+}
+
+.dry-run-plan-result h3 {
+  margin: 10px 0 6px;
+  font-size: 13px;
 }
 
 pre {

@@ -64,6 +64,26 @@ class _HtmlTreeParser(HTMLParser):
 
 
 class WebUiStaticTests(unittest.TestCase):
+    def test_static_ui_exposes_non_persistent_execution_modes_and_plan_result(self):
+        index, app_js = load_static_ui()
+        payload_js = (STATIC_DIR / "run_form_payload.js").read_text(encoding="utf-8")
+
+        for value in ("real", "simulate", "dry-run"):
+            self.assertRegex(
+                index,
+                rf'<input\b(?=[^>]*\bname="execution-mode")(?=[^>]*\bvalue="{value}")[^>]*>',
+            )
+        self.assertRegex(
+            index,
+            r'<input\b(?=[^>]*\bname="execution-mode")(?=[^>]*\bvalue="real")'
+            r'(?=[^>]*\bchecked\b)[^>]*>',
+        )
+        self.assertIn('id="execution-model-label"', index)
+        self.assertIn('id="dry-run-plan"', index)
+        self.assertIn('"/api/plan"', payload_js)
+        self.assertNotIn("execution-mode.locale", app_js)
+        self.assertNotIn("execution-mode.storage", app_js)
+
     def test_static_ui_omits_cli_compat_only_controls(self):
         index, _ = load_static_ui()
         javascript_sources = {
@@ -380,6 +400,9 @@ class WebUiStaticTests(unittest.TestCase):
 
     def test_static_ui_exposes_run_control_and_endpoint_contracts(self):
         index, app_js = load_static_ui()
+        endpoint_sources = app_js + (STATIC_DIR / "run_form_payload.js").read_text(
+            encoding="utf-8"
+        )
 
         for element_id in (
             "refresh-resources",
@@ -402,7 +425,7 @@ class WebUiStaticTests(unittest.TestCase):
             '"/api/runs/current/open-csv"',
         ):
             with self.subTest(endpoint=endpoint):
-                self.assertIn(endpoint, app_js)
+                self.assertIn(endpoint, endpoint_sources)
         self.assertIn("metadata,", app_js)
         self.assertNotIn("schema_version", app_js)
         self.assertNotIn('command: "software_trigger"', app_js)

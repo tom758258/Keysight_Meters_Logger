@@ -14,6 +14,9 @@ import {
   deviceResourceToggleButton,
   deviceOptionsPanel,
   deviceOptionsToggleButton,
+  executionModeInputs,
+  executionModelHelp,
+  executionModelLabel,
   form,
   freqPeriodTimeoutSelect,
   gateTimeSelect,
@@ -39,6 +42,7 @@ import {
   themeToggle,
   themeToggleLabel,
 } from "./dom.js";
+import { buildExecutionRequest } from "./run_form_payload.js";
 import {
   initializeLiveDataUi,
   refreshLiveChartScaleAvailability,
@@ -59,11 +63,14 @@ import {
 import {
   appendBrowserError,
   appendTranslatedStatusLog,
+  beginPlanPreview,
+  clearPlanPreview,
   initializeStatusUi,
   isRunActive,
   markSoftwareTriggerQueuedForLog,
   pollStatus,
   renderStatus,
+  renderPlanPreview,
   refreshStatusPresentation,
   startStatusUpdates,
 } from "./status.js";
@@ -135,6 +142,115 @@ function updateRangeAndLiveChartScale(notice = "") {
 
 let scanMetadataByResource = new Map();
 let resourceScanCompleted = false;
+let currentExecutionMode = "real";
+let realResourceValue = resourceInput.value;
+let realModelValue = instrumentModelSelect.value;
+let noHardwareModelValue = "";
+
+function setExecutionModeSelection(mode) {
+  for (const input of executionModeInputs) {
+    input.checked = input.value === mode;
+  }
+}
+
+function updateModelSelectorPresentation() {
+  const noHardware = currentExecutionMode !== "real";
+  const labelKey = currentExecutionMode === "simulate"
+    ? "device.simulation_model"
+    : currentExecutionMode === "dry-run"
+      ? "device.planning_model"
+      : "device.expected_model";
+  const helpKey = currentExecutionMode === "simulate"
+    ? "device.simulation_model_help"
+    : currentExecutionMode === "dry-run"
+      ? "device.planning_model_help"
+      : "device.expected_model_help";
+  setTranslatedText(executionModelLabel, labelKey);
+  setTranslatedText(executionModelHelp, helpKey);
+  for (const option of instrumentModelSelect.options) {
+    if (!option.value) {
+      option.disabled = noHardware;
+      setTranslatedText(
+        option,
+        noHardware ? "device.select_model" : "device.auto_detect"
+      );
+    } else {
+      setTranslatedText(
+        option,
+        noHardware ? "device.model_value" : "device.require_model",
+        { model: option.value }
+      );
+    }
+  }
+}
+
+function updateExecutionModePresentation() {
+  const noHardware = currentExecutionMode !== "real";
+  resourceInput.disabled = noHardware;
+  resourceInput.required = !noHardware;
+  resourceSelect.disabled = noHardware;
+  refreshResourcesButton.dataset.executionDisabled = String(noHardware);
+  refreshResourcesButton.disabled = noHardware || isRunActive();
+  deviceResourceToggleButton.disabled = noHardware;
+  if (noHardware) {
+    deviceResourceBody.classList.add("is-hidden");
+  } else {
+    deviceResourceBody.classList.toggle(
+      "is-hidden",
+      deviceResourceToggleButton.getAttribute("aria-expanded") !== "true"
+    );
+  }
+  instrumentModelSelect.required = noHardware;
+  document.querySelector("#model-support-summary")?.classList.toggle(
+    "is-hidden",
+    noHardware
+  );
+  const dryRun = currentExecutionMode === "dry-run";
+  triggerRunButton.dataset.executionDisabled = String(dryRun);
+  stopRunButton.dataset.executionDisabled = String(dryRun);
+  if (dryRun) {
+    triggerRunButton.disabled = true;
+    stopRunButton.disabled = true;
+  } else {
+    stopRunButton.disabled = false;
+    updateTriggerButtonUi();
+  }
+  setTranslatedText(startRunButton, dryRun ? "execution.preview_plan" : "run.start");
+  updateModelSelectorPresentation();
+  updateDeviceResourceSummary();
+}
+
+async function switchExecutionMode(nextMode) {
+  if (isRunActive()) {
+    setExecutionModeSelection(currentExecutionMode);
+    return;
+  }
+  if (nextMode === currentExecutionMode) {
+    return;
+  }
+  if (currentExecutionMode === "real") {
+    realResourceValue = resourceInput.value;
+    realModelValue = instrumentModelSelect.value;
+    if (!noHardwareModelValue && realModelValue) {
+      noHardwareModelValue = realModelValue;
+    }
+  } else {
+    noHardwareModelValue = instrumentModelSelect.value;
+  }
+  currentExecutionMode = nextMode;
+  if (currentExecutionMode === "real") {
+    resourceInput.value = realResourceValue;
+    instrumentModelSelect.value = realModelValue;
+  } else {
+    instrumentModelSelect.value = noHardwareModelValue;
+  }
+  clearPlanPreview();
+  updateExecutionModePresentation();
+  await loadCapabilities(instrumentModelSelect.value);
+  updateModelSelectorPresentation();
+  updateRangeAndLiveChartScale();
+  updateDeviceResourceSummary();
+}
 
 function liveResourceSummary() {
   if (!resourceSelect.value) {
@@ -154,6 +270,17 @@ function expectedModelSummary() {
 
 function updateDeviceResourceSummary() {
   if (!deviceResourceSummary) {
+    return;
+  }
+  if (currentExecutionMode !== "real") {
+    const model = instrumentModelSelect.value || t("device.select_model");
+    setTranslatedText(
+      deviceResourceSummary,
+      currentExecutionMode === "simulate"
+        ? "device.simulation_summary"
+        : "device.planning_summary",
+      { model }
+    );
     return;
   }
   const params = {
@@ -303,13 +430,32 @@ selectCsvFolderButton.addEventListener("click", async () => {
 measurementSelect.addEventListener("change", updateMeasurementAndLiveChartScale);
 instrumentModelSelect.addEventListener("change", async () => {
   try {
+    if (currentExecutionMode === "real") {
+      realModelValue = instrumentModelSelect.value;
+    } else {
+      noHardwareModelValue = instrumentModelSelect.value;
+    }
     await loadCapabilities(instrumentModelSelect.value);
+    updateModelSelectorPresentation();
     updateRangeAndLiveChartScale();
     updateDeviceResourceSummary();
   } catch (error) {
     appendBrowserError(error);
   }
 });
+for (const input of executionModeInputs) {
+  input.addEventListener("change", async () => {
+    if (!input.checked) {
+      return;
+    }
+    try {
+      await switchExecutionMode(input.value);
+    } catch (error) {
+      setExecutionModeSelection(currentExecutionMode);
+      appendBrowserError(error);
+    }
+  });
+}
 triggerModeSelect.addEventListener("change", updateTriggerModeUi);
 timerIntervalInput.addEventListener("input", () => {
   updateTriggerButtonUi();
@@ -390,7 +536,12 @@ startRunButton.addEventListener("click", async () => {
   }
   try {
     const payload = formPayload();
-    if (!payload.resource) {
+    if (currentExecutionMode !== "real" && !payload.instrument_model) {
+      appendTranslatedStatusLog("validation.execution_model_required");
+      instrumentModelSelect.focus();
+      return;
+    }
+    if (currentExecutionMode === "real" && !payload.resource) {
       appendTranslatedStatusLog("validation.visa_resource_required");
       resourceInput.focus();
       return;
@@ -401,16 +552,30 @@ startRunButton.addEventListener("click", async () => {
       form.reportValidity();
       return;
     }
-    renderStatus(await api("/api/runs", {
+    const request = buildExecutionRequest(payload, currentExecutionMode);
+    if (currentExecutionMode === "dry-run") {
+      beginPlanPreview();
+    } else {
+      clearPlanPreview();
+    }
+    const result = await api(request.path, {
       method: "POST",
-      body: JSON.stringify(payload),
-    }));
+      body: JSON.stringify(request.payload),
+    });
+    if (currentExecutionMode === "dry-run") {
+      renderPlanPreview(result);
+    } else {
+      renderStatus(result);
+    }
   } catch (error) {
     appendBrowserError(error);
   }
 });
 
 triggerRunButton.addEventListener("click", async () => {
+  if (currentExecutionMode === "dry-run") {
+    return;
+  }
   try {
     const metadata = triggerMetadataPayload();
     await api("/api/runs/current/command", {
@@ -430,6 +595,9 @@ triggerRunButton.addEventListener("click", async () => {
 });
 
 stopRunButton.addEventListener("click", async () => {
+  if (currentExecutionMode === "dry-run") {
+    return;
+  }
   try {
     renderStatus(await api("/api/runs/current/stop", { method: "POST" }));
   } catch (error) {
@@ -452,6 +620,7 @@ function refreshLocalizedPresentation() {
   refreshRunFormPresentation();
   refreshResourcesPresentation();
   refreshStatusPresentation();
+  updateExecutionModePresentation();
 }
 
 function browserStorage() {
@@ -499,6 +668,8 @@ initializeStatusUi();
 initializeLiveDataUi();
 updateCsvOutputUi();
 setDeviceResourceExpanded(true);
+setExecutionModeSelection("real");
+updateExecutionModePresentation();
 updateDeviceResourceSummary();
 for (const button of panelToggles) {
   setPanelExpanded(button, true);
@@ -506,6 +677,7 @@ for (const button of panelToggles) {
 
 loadCapabilities()
   .then(() => {
+    updateModelSelectorPresentation();
     updateRangeAndLiveChartScale();
     updateDeviceResourceSummary();
     return pollStatus();

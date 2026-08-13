@@ -1,6 +1,9 @@
 import { api } from "./api.js";
 import {
   cleanupStatus,
+  dryRunPlan,
+  dryRunPlanResult,
+  executionModeInputs,
   fatalError,
   latestStatus,
   openCsvButton,
@@ -38,6 +41,14 @@ let pollingIntervalId = null;
 let loggedSseFallback = false;
 let latestRenderedStatus = null;
 let lastRunControlsActive = false;
+let planPreviewActive = false;
+
+const EMPTY_PLAN_LIVE_DATA = Object.freeze({
+  run_id: null,
+  latest_sample: null,
+  recent_samples: [],
+  sample_capacity: 5000,
+});
 
 function clearTranslationBinding(element, binding = "data-i18n") {
   element.removeAttribute(binding);
@@ -227,7 +238,32 @@ export function renderStatus(status) {
   fatalError.textContent = status.fatal_error || "";
   cleanupStatus.textContent = status.cleanup_status || "";
   rawStatus.textContent = JSON.stringify(status, null, 2);
-  renderLiveData(status);
+  renderLiveData(planPreviewActive ? EMPTY_PLAN_LIVE_DATA : status);
+}
+
+export function beginPlanPreview() {
+  planPreviewActive = true;
+  dryRunPlanResult.classList.add("is-hidden");
+  dryRunPlan.textContent = "";
+  renderLiveData(EMPTY_PLAN_LIVE_DATA);
+}
+
+export function renderPlanPreview(plan) {
+  planPreviewActive = true;
+  dryRunPlan.textContent = JSON.stringify(plan, null, 2);
+  dryRunPlanResult.classList.remove("is-hidden");
+  setStatusDetailsVisible(true);
+  renderLiveData(EMPTY_PLAN_LIVE_DATA);
+  appendTranslatedStatusLog("execution.plan_completed");
+}
+
+export function clearPlanPreview() {
+  planPreviewActive = false;
+  dryRunPlanResult.classList.add("is-hidden");
+  dryRunPlan.textContent = "";
+  if (latestRenderedStatus) {
+    renderLiveData(latestRenderedStatus);
+  }
 }
 
 export function refreshStatusPresentation() {
@@ -253,9 +289,15 @@ export function refreshStatusPresentation() {
 function updateRunControlButtons(status) {
   const active = Boolean(status?.active);
   startRunButton.disabled = active;
-  refreshResourcesButton.disabled = active;
+  refreshResourcesButton.disabled =
+    active || refreshResourcesButton.dataset.executionDisabled === "true";
+  for (const input of executionModeInputs) {
+    input.disabled = active;
+  }
   if (active) {
     stopRunButton.disabled = false;
+  } else if (stopRunButton.dataset.executionDisabled === "true") {
+    stopRunButton.disabled = true;
   }
   if (active && !lastRunControlsActive) {
     appendTranslatedStatusLog("status.active_run_start_blocked");

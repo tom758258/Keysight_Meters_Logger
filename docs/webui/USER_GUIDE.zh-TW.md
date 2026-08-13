@@ -52,7 +52,7 @@ http://127.0.0.1:8767/
 
 WebUI 是一個本機擷取主控台。主要區域包含：
 
-- `Device / Resource` (裝置/資源列)：儀器位址、最近一次掃描回應的實機資源、`Scan Device` 按鈕，以及 `Device options` 齒輪中的 `Expected model` 選擇器。此列預設展開，可收合成資源/型號摘要。
+- `Device / Resource` (裝置/資源列)：儀器位址、最近一次掃描回應的實機資源、`Scan Device` 按鈕，以及 `Device options` 齒輪中的執行模式與型號選擇器。此列預設展開，可收合成能辨識目前執行模式的摘要。
 - `Run Setup` (作業設定)：CSV 輸出路徑與執行次數設定。
 - `Measurement` (量測)：量測類型與相關選項。
 - `Trigger` (觸發)：觸發模式與觸發相關選項。
@@ -72,6 +72,16 @@ WebUI 是一個本機擷取主控台。主要區域包含：
 使用語言按鈕旁的主題按鈕，依序切換 `系統`、`淺色` 與 `深色`。`系統` 會跟隨瀏覽器或作業系統的色彩配置，並在設定變更時同步更新。選取的偏好會儲存在瀏覽器中，之後開啟頁面時會自動還原。切換主題會立即生效，不會重新載入頁面，也不會重設目前的表單、作業、Live data 或狀態。
 
 在 Electron Desktop 中，`系統` 也會讓原生視窗介面跟隨作業系統外觀。選取 `淺色` 或 `深色` 時，該偏好也會套用至原生視窗介面，並在之後啟動 Desktop 時還原。
+
+## 選擇執行模式
+
+開啟 `Device options` 並選擇一種模式：
+
+- `Real` 使用設定的 VISA resource，並維持一般的掃描、identity check、擷取、觸發、CSV、Stop 與清理工作流程。
+- `Simulate` 必須選擇 `34460A` 或 `34461A`，且不使用或查詢真實 VISA hardware。Deterministic simulated instrument 會完整執行 acquisition runtime，因此 Live data 的最新讀值、圖表、統計資料、最近 sample、Stop 與正常 CSV 輸出都可運作。
+- `Dry-run` 必須選擇 planning model，並將 Start 改為 `Preview plan`。它只驗證 Core plan 並顯示於 Status details，不啟動 acquisition、不建立 active run、不執行真實 VISA I/O，也不產生 Live data sample。Preview plan 會清除前一次 runtime 留在畫面上的 sample。
+
+Execution mode 僅存在於目前頁面，active run 期間不可切換，而且不會持久化；重新載入頁面一律回到 `Real`。Simulation 與 Dry-run 可用於無硬體檢查，但都不能當作實機驗證證據。
 
 ## 首次執行
 

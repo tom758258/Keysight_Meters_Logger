@@ -35,6 +35,91 @@ class WebUiRunApiTests(unittest.TestCase):
     def tearDown(self):
         cleanup_tempdir(self)
 
+    def test_simulate_uses_no_real_visa_and_publishes_sample_status(self):
+        client, csv_path = make_api_client(self)
+
+        with (
+            patch(
+                "meters_tool_core.instrument.pyvisa.ResourceManager",
+                side_effect=AssertionError("simulate must not create a VISA resource manager"),
+            ) as resource_manager,
+            patch(
+                "meters_tool_core.start_resolution.VisaInstrument.preflight_idn",
+                side_effect=AssertionError("simulate must not query live IDN"),
+            ) as preflight,
+        ):
+            response = client.post(
+                "/api/runs",
+                json={
+                    "resource": "SIM::34460A",
+                    "instrument_model": "34460A",
+                    "simulate": True,
+                    "csv": str(csv_path),
+                    "trigger_mode": "immediate",
+                    "max_samples": 1,
+                },
+            )
+            status = wait_until_inactive(client)
+
+        self.assertEqual(200, response.status_code)
+        resource_manager.assert_not_called()
+        preflight.assert_not_called()
+        self.assertFalse(status["active"])
+        self.assertEqual(1, status["captured"])
+        self.assertEqual(1, len(status["recent_samples"]))
+        self.assertEqual(status["latest_sample"], status["recent_samples"][-1])
+        self.assertEqual("SIM::34460A", status["latest_sample"]["resource_id"])
+
+    def test_plan_returns_start_plan_without_visa_runtime_or_active_run(self):
+        manager = WebRunManager()
+        client = make_api_client_with_manager(manager)
+
+        with (
+            patch(
+                "meters_tool_core.instrument.pyvisa.ResourceManager",
+                side_effect=AssertionError("dry-run must not create a VISA resource manager"),
+            ) as resource_manager,
+            patch(
+                "meters_tool_core.start_resolution.VisaInstrument.preflight_idn",
+                side_effect=AssertionError("dry-run must not query live IDN"),
+            ) as preflight,
+            patch("meters_tool_webui._run_manager.run_start_session") as runner,
+            patch("meters_tool_webui._run_manager.threading.Thread") as worker,
+        ):
+            response = client.post(
+                "/api/plan",
+                json={
+                    "resource": "SIM::34461A",
+                    "instrument_model": "34461A",
+                    "simulate": True,
+                    "trigger_mode": "immediate",
+                    "measurement": "voltage-dc",
+                    "max_samples": 1,
+                },
+            )
+            missing_model_response = client.post(
+                "/api/plan",
+                json={"resource": "SIM::34461A", "trigger_mode": "immediate"},
+            )
+
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(422, missing_model_response.status_code)
+        plan = response.json()
+        self.assertTrue(plan["dry_run"])
+        self.assertFalse(plan["simulate"])
+        self.assertEqual("SIM::34461A", plan["resource"])
+        self.assertEqual("voltage_dc", plan["measurement_type"])
+        self.assertTrue(plan["scpi_commands"])
+        self.assertEqual("READ?", plan["read_path"])
+        self.assertTrue(plan["cleanup_steps"])
+        self.assertIn("auto_range", plan["option_summary"])
+        resource_manager.assert_not_called()
+        preflight.assert_not_called()
+        runner.assert_not_called()
+        worker.assert_not_called()
+        self.assertEqual("idle", manager.status()["state"])
+        self.assertFalse(manager.status()["active"])
+
     def test_run_start_rejects_second_active_run_and_stop_releases_it(self):
         client, csv_path = make_api_client(self)
         request = {

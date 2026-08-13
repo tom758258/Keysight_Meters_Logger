@@ -188,7 +188,7 @@ http://127.0.0.1:8767/
 主要區域：
 
 - 標頭：`Meters Tool` 和 `Local acquisition console`。
-- `Device / Resource` 列：`VISA resource`、`Live resource`（實機資源）、`Scan Device`，以及 `Device options` 齒輪中的 `Expected model` 選擇器與型號支援摘要。此列預設展開，可收合成資源/型號摘要。
+- `Device / Resource` 列：`VISA resource`、`Live resource`（實機資源）、`Scan Device`，以及 `Device options` 齒輪中的執行模式、型號選擇器與型號支援摘要。此列預設展開，可收合成包含目前執行模式的資源/型號摘要。
 - `Expected model` 選擇器預設為 `Auto-detect`，會在 Start 時使用連接中的儀器 IDN。若明確選擇 `Require 34460A` 或 `Require 34461A`，仍會讀取 IDN，只有在符合時才啟動。偵測到的 IDN 選擇設定檔仍為實機執行階段設定檔。
 - 型號支援摘要顯示來自 `/api/capabilities` 的驗證狀態、開啟工作流程群組、型號限制以及傳輸/後端範圍狀態。這僅供操作人員檢視；Core 仍會透過支援原則與執行器最終關卡拒絕不支援的直接後端提交。
 - 狀態列 (Status strip)：`State`、`Captured`、`Errors` 和 `CSV`。
@@ -203,6 +203,16 @@ http://127.0.0.1:8767/
 English／繁體中文呈現使用以下術語規則。繁體中文的 Measurement options 控制項顯示 `自動量程（Auto range）`；精簡摘要繼續使用 `自動量程`。選用標記與欄位標題保持同一行，包括 AC filter 與 Current terminal，僅在 viewport 太窄時自然換行。
 
 此 UI 刻意不設計前端建置步驟、Node 套件管理器、外部 CDN 或框架執行階段。靜態資產皆為純 HTML、CSS 和原生的 JavaScript 模組。
+
+## 執行模式
+
+`Device options` 提供三種僅限目前頁面的執行模式：
+
+- `Real` 是每次載入頁面的預設值，維持既有的 VISA resource、掃描、IDN preflight、支援原則、擷取、觸發、CSV、Stop 與清理行為。
+- `Simulate` 必須明確選擇 34460A 或 34461A，並使用 Core 的 deterministic simulator 完整執行 acquisition runtime。它不會掃描、開啟、查詢真實 VISA resource，也不會向其送出指令。模擬 sample 會使用一般 status/event 路徑，因此最新讀值、圖表、統計資料、最近 sample、Stop 與正常 CSV 行為都可使用。
+- `Dry-run` 必須明確選擇 34460A 或 34461A planning model，且只建立 Core execution plan。它不建立 active run、不執行 acquisition 或真實 VISA I/O，也不產生 Live data sample。計畫會顯示於 Status details，包括 SCPI commands、read path、cleanup steps 與 option summary。開始 preview 時會清除上一次 runtime 留在畫面上的 Live data。
+
+Execution mode 不會儲存於 local storage、cookie 或其他持久化設定；重新載入頁面一律回到 `Real`。Simulation 與 Dry-run 結果都不能作為實機驗證成功的證據。
 
 ## 基本工作流程
 
@@ -515,6 +525,7 @@ POST /api/runs/current/open-csv
 - `GET /api/capabilities`：傳回 Core 支援的量測與觸發能力。選用的標準型號或已註冊穩定型號 ID 可選擇設定檔；省略型號會傳回未解析的自動 metadata 以及相容的 34461A 形狀能力表。設定檔身份與確切的實機支援範圍新增 metadata，而不移除現有欄位。
 - `GET /api/resources?verify=true&live_only=true`：掃描 VISA 資源，且對於驗證過支援的 IDN，包含可為空的 `instrument_model`、`instrument_model_id` 與 `matched_profile` metadata。
 - `POST /api/runs`：驗證並啟動執行。
+- `POST /api/plan`：驗證 dry-run request，並在不開啟 VISA 或建立 active run 的情況下傳回 Core execution plan。
 - `GET /api/runs/current`：傳回目前或最新的執行狀態。
 - `GET /api/runs/current/events`：傳回執行狀態變更的伺服器傳送事件 (SSE) 串流。
 - `POST /api/runs/current/command`：為支援的模式排入軟體觸發。接受 WebUI 私有的 `{ "metadata": {} }` payload；接受時傳回 `202`，驗證錯誤傳回 `400`，佇列/速率拒絕傳回 `429`，沒有作用中的執行或執行尚未 ready 時傳回 `409`。

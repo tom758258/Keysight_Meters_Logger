@@ -105,3 +105,32 @@ export function buildRunPayload(values, context) {
   }
   return compactPayload(payload);
 }
+
+export function buildExecutionRequest(payload, executionMode) {
+  const mode = String(executionMode || "real");
+  if (mode === "real") {
+    return { path: "/api/runs", payload: { ...payload } };
+  }
+  if (!["simulate", "dry-run"].includes(mode)) {
+    throw new Error(`Unsupported execution mode: ${mode}`);
+  }
+  const model = textOrNull(payload.instrument_model);
+  if (!model) {
+    throw new Error("model is required for no-hardware execution");
+  }
+  // SIM::<model> is also the deterministic no-hardware placeholder for planning;
+  // dry-run remains dry_run=true and simulate=false in the backend.
+  const noHardwarePayload = {
+    ...payload,
+    resource: `SIM::${model}`,
+  };
+  if (mode === "simulate") {
+    noHardwarePayload.simulate = true;
+  } else {
+    delete noHardwarePayload.simulate;
+  }
+  return {
+    path: mode === "dry-run" ? "/api/plan" : "/api/runs",
+    payload: noHardwarePayload,
+  };
+}

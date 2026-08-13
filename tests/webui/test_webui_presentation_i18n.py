@@ -183,6 +183,7 @@ function element(selector) {
   if (!elements.has(selector)) elements.set(selector, new FakeElement());
   return elements.get(selector);
 }
+const executionModeInputs = [new FakeElement("input"), new FakeElement("input")];
 function descendantByClass(root, className) {
   const pending = [...root.children];
   while (pending.length > 0) {
@@ -200,7 +201,9 @@ globalThis.fetch = async () => {
 };
 globalThis.document = {
   querySelector: element,
-  querySelectorAll() { return []; },
+  querySelectorAll(selector) {
+    return selector === "[name='execution-mode']" ? executionModeInputs : [];
+  },
   createElement(tagName) { return new FakeElement(tagName); },
   createElementNS(_namespace, tagName) { return new FakeElement(tagName); },
 };
@@ -246,13 +249,29 @@ assert.equal(element("#status-state").getAttribute("data-i18n"), "status.running
 assert.equal(element("#fatal-error").textContent, "raw fatal TYPE_X");
 assert.equal(element("#cleanup-status").textContent, "raw cleanup CODE_Y");
 assert.equal(element("#raw-status").textContent, JSON.stringify(running, null, 2));
+
+status.renderPlanPreview({
+  dry_run: true,
+  simulate: false,
+  scpi_commands: ["CONF:VOLT:DC"],
+  read_path: "READ?",
+  cleanup_steps: ["wait for worker"],
+  option_summary: { auto_range: true },
+});
+assert.equal(element("#live-data-summary").getAttribute("data-i18n"), "live_data.no_samples");
+assert.equal(element("#live-latest-value").textContent, "--");
+assert.match(element("#dry-run-plan").textContent, /"dry_run": true/);
+assert.equal(element("#dry-run-plan-result").classList.contains("is-hidden"), false);
+status.renderStatus(running);
+assert.equal(element("#live-data-summary").getAttribute("data-i18n"), "live_data.no_samples");
+status.clearPlanPreview();
 assert.equal(
   element("#live-data-summary").getAttribute("data-i18n"),
   "live_data.recent_sample_summary"
 );
 
 const latestLines = () => element("#latest-status").children;
-assert.equal(latestLines().at(-1).getAttribute("data-i18n"), "status.ready");
+assert.equal(latestLines().at(-1).getAttribute("data-i18n"), "execution.plan_completed");
 
 const row = element("#live-samples-body").children.find(
   (candidate) => candidate.dataset.sequence === String(sample.sequence)
@@ -286,6 +305,7 @@ assert.equal(
 assert.equal(element("#live-sample-details").getAttribute("data-i18n"), null);
 
 element("#toggle-status-details").click();
+element("#toggle-status-details").click();
 const rawStatusBeforeLocaleRefresh = element("#raw-status").textContent;
 const rawSampleDetailsBeforeLocaleRefresh = element("#live-sample-details").textContent;
 const statusLogCountBeforeLocaleRefresh = latestLines().length;
@@ -308,7 +328,7 @@ assert.equal(
   "live_data.selected_sample"
 );
 assert.equal(latestLines().length, statusLogCountBeforeLocaleRefresh);
-assert.equal(latestLines().at(-1).getAttribute("data-i18n"), "status.ready");
+assert.equal(latestLines().at(-1).getAttribute("data-i18n"), "execution.plan_completed");
 assert.equal(fetchCalls, 0);
 i18n.setLocale("en");
 status.refreshStatusPresentation();
@@ -372,6 +392,7 @@ assert.equal(element("#status-csv").getAttribute("data-i18n"), "common.off");
 assert.equal(element("#open-csv").disabled, true);
 
 status.renderStatus({ ...running, active: true });
+assert.equal(executionModeInputs.every((input) => input.disabled), true);
 const unloadEvent = { preventDefaultCalled: false, returnValue: "", preventDefault() {
   this.preventDefaultCalled = true;
 } };

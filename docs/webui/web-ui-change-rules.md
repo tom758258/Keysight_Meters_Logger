@@ -138,6 +138,7 @@ Do not rename, remove, or repurpose these endpoints:
 - `GET /api/capabilities`
 - `GET /api/resources?verify=true&live_only=true`
 - `POST /api/runs`
+- `POST /api/plan`
 - `GET /api/runs/current`
 - `GET /api/runs/current/events`
 - `POST /api/runs/current/command`
@@ -162,6 +163,7 @@ Important payload fields currently sent by the UI include:
 
 - `resource`
 - `instrument_model`
+- `simulate` for simulated runtime requests
 - `csv_enabled`
 - `csv`
 - `timeout_ms`
@@ -202,6 +204,13 @@ The UI must continue to use `/api/capabilities` as the source of truth for
 measurement options, range options, NPLC options, defaults, and trigger modes.
 Do not invent measurement or trigger options in the frontend.
 
+Execution mode is page-local and defaults to `Real` on every load. Real uses
+`POST /api/runs` unchanged. Simulate also uses `POST /api/runs`, requires an
+explicit supported model, and sends a deterministic no-hardware simulator
+resource. Dry-run uses `POST /api/plan`, requires an explicit supported model,
+and must not create an active run or repopulate Live data. Disable execution
+mode controls while a run is active; keep the event guard simple.
+
 ## DOM And Form Contract To Preserve
 
 You may reorganize layout and visual grouping, but preserve functional IDs,
@@ -231,9 +240,13 @@ Important IDs:
 - `fatal-error`
 - `cleanup-status`
 - `raw-status`
+- `dry-run-plan-result`
+- `dry-run-plan`
 - `resource`
 - `resource-select`
 - `instrument-model`
+- `execution-model-label`
+- `execution-model-help`
 - `measurement`
 - `measurement-range`
 - `range-unit`

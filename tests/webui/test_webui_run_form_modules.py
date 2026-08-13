@@ -150,7 +150,7 @@ for (const name of ["document", "window", "fetch", "FormData"]) {
   });
 }
 
-const { buildRunPayload } = await import(payloadUrl);
+const { buildExecutionRequest, buildRunPayload } = await import(payloadUrl);
 
 const simpleValues = {
   resource: " USB0::SIM ",
@@ -282,6 +282,33 @@ assert.equal(external.csv_enabled, true);
 assert.equal("dcv_input_impedance" in external, false);
 assert.equal("sw_min_interval_ms" in external, false);
 assert.equal("sw_queue_max" in external, false);
+
+const realRequest = buildExecutionRequest(simple, "real");
+assert.equal(realRequest.path, "/api/runs");
+assert.deepEqual(realRequest.payload, simple);
+
+const simulateRequest = buildExecutionRequest({
+  ...simple,
+  resource: "TCPIP0::REAL",
+  instrument_model: "34460A",
+}, "simulate");
+assert.equal(simulateRequest.path, "/api/runs");
+assert.equal(simulateRequest.payload.resource, "SIM::34460A");
+assert.equal(simulateRequest.payload.simulate, true);
+
+const planRequest = buildExecutionRequest({
+  ...simple,
+  resource: "USB0::REAL",
+  instrument_model: "34461A",
+  simulate: true,
+}, "dry-run");
+assert.equal(planRequest.path, "/api/plan");
+assert.equal(planRequest.payload.resource, "SIM::34461A");
+assert.equal("simulate" in planRequest.payload, false);
+assert.throws(
+  () => buildExecutionRequest({ ...simple, instrument_model: null }, "simulate"),
+  /model is required/
+);
 
 process.stdout.write(JSON.stringify({ ok: true }));
 """

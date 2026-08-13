@@ -682,7 +682,8 @@ export function updateTriggerButtonUi() {
   const timerActive = mode === "software" && timerTriggerCheckbox.checked;
   const visible = mode === "software-custom" || (mode === "software" && !timerActive);
   triggerRunButton.classList.toggle("is-hidden", !visible);
-  triggerRunButton.disabled = !visible;
+  triggerRunButton.disabled =
+    !visible || triggerRunButton.dataset.executionDisabled === "true";
 }
 
 export function updatePanelSummaries() {
