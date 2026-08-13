@@ -278,9 +278,9 @@
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool-webui.exe</code></pre></div>
         <p>Windows GUI 啟動器包裝器為：</p>
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool-webui-launcher.exe</code></pre></div>
-        <p>PyInstaller 獨立 launcher 執行檔為：</p>
-        <div class="code-wrapper"><pre><code>dist\meters-tool-webui-launcher.exe</code></pre></div>
-        <p>虛擬環境 wrapper 需要已安裝的專案環境；<code>dist\</code> 執行檔則是獨立的 Windows 建置產物。</p>
+        <p>PyInstaller 獨立 launcher 執行檔位於共用 Windows bundle 內：</p>
+        <div class="code-wrapper"><pre><code>dist\meters-tool\meters-tool-webui-launcher.exe</code></pre></div>
+        <p>虛擬環境 wrapper 需要已安裝的專案環境；<code>dist\meters-tool\</code> 資料夾則是獨立的 Windows 建置產物（詳情請參閱根目錄 <a href="../../README.zh-TW.html#建置">README Build 說明</a>）。</p>
         <p>預設的本機伺服器為：</p>
         <div class="code-wrapper"><pre><code>http://127.0.0.1:8767/</code></pre></div>
         <p>該伺服器是一個 Uvicorn/FastAPI 程序。終端機按鍵 <code>q</code> 無法停止它。請使用 <code>Ctrl+C</code> 進行正常關閉。如果終端機沒有傳送 SIGINT，請先停止作用中的執行並等待清理完成，再透過 PID 終止監聽程序。強制終止只是最後的復原方式，可能會略過儀器的正常清理。</p>

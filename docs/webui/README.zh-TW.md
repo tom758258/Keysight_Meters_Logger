@@ -56,14 +56,14 @@ Windows GUI 啟動器包裝器為：
 .\.venv\Scripts\meters-tool-webui-launcher.exe
 ```
 
-PyInstaller 獨立 launcher 執行檔為：
+PyInstaller 獨立 launcher 執行檔位於共用 Windows bundle 內：
 
 ```text
-dist\meters-tool-webui-launcher.exe
+dist\meters-tool\meters-tool-webui-launcher.exe
 ```
 
-虛擬環境 wrapper 需要已安裝的專案環境；`dist\` 執行檔則是獨立的
-Windows 建置產物。
+虛擬環境 wrapper 需要已安裝的專案環境；`dist\meters-tool\` 資料夾則是獨立的
+Windows 建置產物（詳情請參閱根目錄 [README Build 說明](../../README.zh-TW.md#建置)）。
 
 預設的本機伺服器為：
 
