@@ -76,8 +76,16 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File `
 ```
 
 Use `-PlanOnly` first to inspect the plan without opening VISA. A live run
-requires interactive confirmation. Where an optional backend is in scope, pass
-`-VisaLibrary "@py"`; the wrapper records the selected backend in its report.
+requires interactive confirmation.
+
+Before starting real live validation, ensure that no other Meters CLI, WebUI,
+logger, test process, or external VISA application is actively using the same
+physical instrument. Independent concurrent clients can interfere with SCPI
+command/response ordering or instrument state. This is an operator prerequisite;
+Meters Tool does not enforce it with an automatic lock.
+
+Where an optional backend is in scope, pass `-VisaLibrary "@py"`; the wrapper
+records the selected backend in its report.
 Do not place a real VISA resource, complete serial number, private or
 link-local lab address, or personal filesystem path in a commit, issue, or
 public artifact.

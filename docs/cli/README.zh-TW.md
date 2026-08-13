@@ -64,13 +64,13 @@ Python 整合應從 `meters_tool_core` 或 `meters_tool_core.*` 匯入共享的 
 - VISA 執行階段，例如 Keysight IO Libraries Suite 或 NI-VISA。
 - 透過 VISA 可見的支援數位萬用電表；目前支援的型號與連線範圍請參閱支援型號文件。34460A 基礎設定檔不假設具備選用的 LAN/LXI 或外接觸發支援。
 
-CLI 在開發／已安裝 Python 環境中，可在對應 backend 已安裝且可載入時傳遞 `@py` 或 `@bt` 等選用 selector。這只代表 PyVISA 可承接該 selector；實機擷取還另外需要符合已註冊的 Product-open support scope（請參閱 [支援型號](../core/supported-models.md)）。僅安裝 backend 套件不會在未註冊 Product-open scope 下開放 `start-trigger-record` 實機執行。Backend selector 不會改變 SCPI 設定或 Core 驗證。若要測試 pyvisa-py，僅在需要時安裝其選用套件：
+CLI 在開發／已安裝 Python 環境中，可在 pyvisa-py 已安裝且可載入時傳遞選用的 `@py` backend selector。這只代表 PyVISA 可承接該 selector；實機擷取還另外需要符合已註冊的 Product-open support scope（請參閱 [支援型號](../core/supported-models.md)）。僅安裝 backend 套件不會在未註冊 Product-open scope 下開放 `start-trigger-record` 實機執行。Backend selector 不會改變 SCPI 設定或 Core 驗證。`@bt` selector 保留給未來獨立的 `pyvisa_bt` backend identity；本專案未實作或未提供 pyvisa_bt，沒有 Product-open 的 `@bt` 實機支援 scope，以 `@bt` 進行的 live 使用仍會 fail closed。若要測試 pyvisa-py，僅在需要時安裝其選用套件：
 
 ```powershell
 uv pip install pyvisa-py pyserial psutil zeroconf
 ```
 
-System VISA（例如 USB/system-VISA 或 LAN/TCPIP）與選用 backend 目前 Product-open 的連線範圍記載於 [支援型號](../core/supported-models.md)。Support-policy validation status 不代表 distribution 已包含該 backend 套件。目前官方 standalone Meters Tool 執行檔只支援預設 System VISA 路徑；`@py` 與 `@bt` 未被 bundle，也不屬於受支援的 standalone runtime。
+System VISA（例如 USB/system-VISA 或 LAN/TCPIP）與選用的 CLI `@py` backend 目前 Product-open 的連線範圍記載於 [支援型號](../core/supported-models.md)。Support-policy validation status 不代表 distribution 已包含該 backend 套件。目前官方 standalone Meters Tool 執行檔只支援預設 System VISA 路徑；`@py` 未被 bundle，也不屬於受支援的 standalone runtime。
 
 ## 開發
 
@@ -407,7 +407,7 @@ uv run meters-tool start-trigger-record `
   --max-samples 1
 ```
 
-`--backend "@py"` 可作為 `--visa-library "@py"` 的別名。此選項供 CLI 診斷與已安裝環境中的選用 backend 檢查使用。目前官方 standalone CLI 執行檔只支援預設 System VISA 路徑，且不 bundle `@py` 或 `@bt`。WebUI 同樣使用固定的預設 System VISA runtime，且不接受 backend override。
+`--backend "@py"` 可作為 `--visa-library "@py"` 的別名。此選項供 CLI 診斷與已安裝環境中的選用 backend 檢查使用。目前官方 standalone CLI 執行檔只支援預設 System VISA 路徑，且不 bundle `@py`。WebUI 同樣使用固定的預設 System VISA runtime，且不接受 backend override。`@bt` selector 僅保留給未來的 `pyvisa_bt` identity；本專案不提供該 backend，以 `@bt` 進行的 live 使用仍會 fail closed。
 
 pyvisa-py 的 Product-open 範圍記載於 [支援型號](../core/supported-models.md)；這項 validation metadata 不表示特定 distribution 已包含 pyvisa-py。Windows 上的 USBTMC 可能需要 WinUSB/libusb 設定，通常不比 Keysight IO Libraries Suite 或 NI-VISA 簡單。使用 pyvisa-py 與 pyserial 的 RS-232/ASRL 在支援序列 I/O 的儀器上通常直接，但目前 Meters 設定檔以 USB/LAN Truevolt DMM 為目標。`PYVISA_LIBRARY="@py"` 仍會直接影響 PyVISA，但本專案建議在 CLI 指令中明確使用 `--visa-library "@py"`，讓測試可重現。
 

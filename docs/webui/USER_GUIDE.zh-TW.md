@@ -89,6 +89,8 @@ Execution mode 僅存在於目前頁面，Start／Preview request pending 或 ac
 
 進行基本的立即量測 (immediate measurement)，請採用以下流程：
 
+進行實機執行前，請確認沒有其他 Meters CLI、WebUI、logger、測試程序或外部 VISA 應用程式正在控制同一台實體儀器。同時控制可能干擾 SCPI 回應或儀器狀態。Meters Tool 不會以自動鎖定強制此前提。
+
 1. 開啟 Keysight 34460A 或 34461A 電源並將其連接至電腦。
 2. 啟動 WebUI。
 3. 點擊 `Scan Device`。

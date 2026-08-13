@@ -247,7 +247,7 @@ GET /api/resources?verify=true&live_only=true
 
 使用者仍然可以手動輸入資源，並在掃描後於 `Device options` 中要求特定的 `Expected model`。
 
-WebUI 透過 Core 使用固定的預設 System VISA runtime。瀏覽器不提供選用的 PyVISA backend 選擇器，WebUI API 也不接受 resource scan 或實機執行的 backend override。目前 Product-open 的連線範圍（如 USB/system-VISA 或 LAN/TCPIP）記載於 [支援型號](../core/supported-models.md)。在 source 或已安裝 Python 環境中，CLI 使用選用 backend（`@py`、`@bt`）的實機擷取僅限於已註冊的 Product-open scope。官方 standalone WebUI 不支援選用 backend；請勿嘗試透過未記載的 API payload 指定 backend。
+WebUI 透過 Core 使用固定的預設 System VISA runtime。瀏覽器不提供選用的 PyVISA backend 選擇器，WebUI API 也不接受 resource scan 或實機執行的 backend override。目前 Product-open 的連線範圍（如 USB/system-VISA 或 LAN/TCPIP）記載於 [支援型號](../core/supported-models.md)。在 source 或已安裝 Python 環境中，CLI 使用選用 `@py` backend 的實機擷取僅限於已註冊的 Product-open scope。`@bt` selector 僅保留給未來獨立的 `pyvisa_bt` identity；本專案未實作 pyvisa_bt，沒有 Product-open 的 `@bt` 實機支援 scope，以 `@bt` 進行的 live 使用仍會 fail closed。官方 standalone WebUI 不支援選用 backend；請勿嘗試透過未記載的 API payload 指定 backend。
 
 `live_validated_full_suite` 與 `transport_pending` 是 Core-owned machine-readable status。WebUI 不公開 Validation mode；normal browser starts 只允許 Product-open scopes/features，non-Product-open 仍被封鎖。瀏覽器會停用產品不可用的功能選項，但該狀態僅為 UX；Core 驗證、支援原則關卡以及 `run_start_session()` 最終關卡仍是安全邊界。
 
@@ -302,7 +302,7 @@ pending_keys
 
 Expected model 檢查是選用的。Core 會在 Start 時驗證連接儀器的識別資訊。若明確指定的預期型號與新的 IDN preflight 不符，WebUI 會回報選取的型號以及 IDN 中找到的支援型號。
 
-選取的 WebUI 型號不得被視為功能解鎖。停用或隱藏的控制項僅為 UX；Core 支援原則與 `run_start_session()` 最終關卡仍是 WebUI 後端提交的安全邊界。目前 WebUI 不提供選用 backend 選擇器；System VISA 仍是受支援的 WebUI runtime。選用的 `@py` 或 `@bt` backend 工作不在目前 WebUI product surface 內。CLI 開發／已安裝環境用途仍需要可載入的 backend 與在 [支援型號](../core/supported-models.md) 中已註冊的 Product-open scope。
+選取的 WebUI 型號不得被視為功能解鎖。停用或隱藏的控制項僅為 UX；Core 支援原則與 `run_start_session()` 最終關卡仍是 WebUI 後端提交的安全邊界。目前 WebUI 不提供選用 backend 選擇器；System VISA 仍是受支援的 WebUI runtime。選用的 `@py` backend 工作不在目前 WebUI product surface 內；`@bt` 僅保留給未來的 `pyvisa_bt` identity，並非目前受支援的 backend。CLI 開發／已安裝環境用途仍需要可載入的 backend 與在 [支援型號](../core/supported-models.md) 中已註冊的 Product-open scope。
 
 目前呈現的量測模式包括：
 

@@ -21,6 +21,11 @@
 - Synchronizes the Electron Desktop native title bar and window theme with WebUI theme selection.
 - Adds WebUI `Real / Simulate / Dry-run` execution mode selection.
 - Adds a Supported Devices modal in WebUI showing currently supported hardware models and connections.
+- Clarifies that `@bt` is reserved for a future `pyvisa_bt` backend identity and
+  is not a currently supported backend.
+- Documents the single-client live-instrument prerequisite: before a real live
+  run or validation, no other Meters CLI, WebUI, logger, test process, or
+  external VISA application should control the same physical instrument.
 
 ## v2.0.0
 

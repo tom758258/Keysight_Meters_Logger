@@ -24,6 +24,11 @@ virtual environment, module, and build commands.
 Use this flow when checking a new computer, VISA runtime, connection, or
 instrument setup.
 
+Before a real live run, ensure no other Meters CLI, WebUI, logger, test
+process, or external VISA application is controlling the same physical
+instrument. Concurrent control can interfere with SCPI responses or instrument
+state. Meters Tool does not enforce this with an automatic lock.
+
 1. Turn on the Keysight 34460A or 34461A and connect it to the computer.
 2. List resources that currently answer `*IDN?`:
 

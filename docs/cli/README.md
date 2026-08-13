@@ -114,26 +114,29 @@ Important limitations:
   currently supported models and connection scopes. The 34460A base profile
   does not assume optional LAN/LXI or external trigger support.
 
-The CLI can pass optional backend selectors such as `@py` or `@bt` in a
-development or installed Python environment when the corresponding backend is
-installed and loadable. That makes the selector available to PyVISA; live
-acquisition separately requires an exact registered Product-open support scope
-(see [Supported Models](../core/supported-models.md)). Installing a backend package
-alone does not enable `start-trigger-record` live execution if the target connection
-scope is not registered as Product-open for that backend. Backend selection does not
-alter SCPI setup or Core validation. For pyvisa-py testing, install the optional
-packages only when needed:
+The CLI can pass the optional `@py` backend selector in a development or
+installed Python environment when pyvisa-py is installed and loadable. That makes
+the selector available to PyVISA; live acquisition separately requires an exact
+registered Product-open support scope (see [Supported Models](../core/supported-models.md)).
+Installing a backend package alone does not enable `start-trigger-record` live
+execution if the target connection scope is not registered as Product-open for
+that backend. Backend selection does not alter SCPI setup or Core validation.
+The `@bt` selector is reserved for a future distinct `pyvisa_bt` backend
+identity; this project does not implement or provide pyvisa_bt, there is no
+Product-open `@bt` live support scope, and live use with `@bt` remains
+fail-closed. For pyvisa-py testing, install the optional packages only when
+needed:
 
 ```powershell
 uv pip install pyvisa-py pyserial psutil zeroconf
 ```
 
 Current Product-open connection scopes under System VISA (such as USB/system-VISA or LAN/TCPIP)
-and optional backends are documented in [Supported Models](../core/supported-models.md).
+and the optional CLI `@py` backend are documented in [Supported Models](../core/supported-models.md).
 Support-policy validation status does not imply that a distribution bundles
 the backend package. The current official standalone Meters Tool executable
-supports the default System VISA path only; `@py` and `@bt` are not bundled or
-part of the supported standalone runtime.
+supports the default System VISA path only; `@py` is not bundled or part of the
+supported standalone runtime.
 
 ## Development
 
@@ -513,8 +516,10 @@ uv run meters-tool start-trigger-record `
 `--backend "@py"` is accepted as an alias for `--visa-library "@py"`. This
 option is intended for CLI diagnostics and optional installed-environment
 backend checks. The current official standalone CLI executable supports only
-the default System VISA path and does not bundle `@py` or `@bt`. The WebUI also
-uses the fixed default System VISA runtime and accepts no backend override.
+the default System VISA path and does not bundle `@py`. The WebUI also uses the
+fixed default System VISA runtime and accepts no backend override. The `@bt`
+selector is reserved for a future `pyvisa_bt` identity only; this project does
+not provide that backend and live use with `@bt` remains fail-closed.
 
 Exact Product-open scopes for pyvisa-py are documented in [Supported Models](../core/supported-models.md).
 Validation metadata does not indicate that a given distribution contains pyvisa-py.

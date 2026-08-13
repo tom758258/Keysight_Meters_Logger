@@ -130,6 +130,11 @@ neither is live-hardware validation evidence.
 
 Use this flow for a basic immediate measurement:
 
+Before a real live run, ensure no other Meters CLI, WebUI, logger, test
+process, or external VISA application is controlling the same physical
+instrument. Concurrent control can interfere with SCPI responses or instrument
+state. Meters Tool does not enforce this with an automatic lock.
+
 1. Turn on the Keysight 34460A or 34461A and connect it to the computer.
 2. Start the WebUI.
 3. Click `Scan Device`.

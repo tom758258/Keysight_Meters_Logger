@@ -342,8 +342,11 @@ exposes no optional PyVISA backend selector, and the WebUI API accepts no
 backend override for resource scans or live runs. Current Product-open connection
 scopes (such as USB/system-VISA or LAN/TCPIP) are documented in
 [Supported Models](../core/supported-models.md). In a source or installed Python
-environment, CLI live acquisition with optional backends (`@py`, `@bt`) is limited to
-registered Product-open scopes. The official standalone WebUI supports neither optional
+environment, CLI live acquisition with the optional `@py` backend is limited to
+registered Product-open scopes. The `@bt` selector is reserved for a future
+distinct `pyvisa_bt` identity only; this project does not implement pyvisa_bt,
+there is no Product-open `@bt` live support scope, and live use with `@bt`
+remains fail-closed. The official standalone WebUI supports neither optional
 backend; do not attempt to supply one through an undocumented API payload.
 
 `live_validated_full_suite` and `transport_pending` are Core-owned machine-readable
@@ -453,10 +456,11 @@ The selected WebUI model must not be treated as a feature unlock. Disabled or
 hidden controls are UX only; the Core support policy and `run_start_session()`
 runner final gate remain the safety boundary for WebUI backend submissions.
 The current WebUI exposes no optional backend selector; System VISA remains the
-supported WebUI runtime. Optional `@py` or `@bt` backend work remains outside
-the current WebUI product surface. CLI development/installed-environment use
-still requires a loadable backend and an exact registered Product-open scope in
-[Supported Models](../core/supported-models.md).
+supported WebUI runtime. Optional `@py` backend work remains outside the
+current WebUI product surface; `@bt` is reserved for a future `pyvisa_bt`
+identity only and is not a currently supported backend. CLI
+development/installed-environment use still requires a loadable backend and an
+exact registered Product-open scope in [Supported Models](../core/supported-models.md).
 
 Currently surfaced measurement modes include:
 
