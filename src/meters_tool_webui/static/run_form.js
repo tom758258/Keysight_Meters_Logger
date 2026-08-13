@@ -909,4 +909,5 @@ export async function loadCapabilities(model = null) {
   populateFeatureOptions(previousMeasurement, previousTriggerMode);
   updateMeasurementUi();
   updateTriggerModeUi();
+  return capabilities;
 }

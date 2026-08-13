@@ -75,6 +75,23 @@ class WebUiApiTests(unittest.TestCase):
         )
         self.assertEqual(
             [
+                {
+                    "vendor": "Keysight",
+                    "model": "34461A",
+                    "connections": ["usb", "tcpip"],
+                },
+                {
+                    "vendor": "Keysight",
+                    "model": "34460A",
+                    "connections": ["usb"],
+                },
+            ],
+            payload["supported_devices"],
+        )
+        self.assertNotIn("backend", str(payload["supported_devices"]).lower())
+        self.assertNotIn("@py", str(payload["supported_devices"]).lower())
+        self.assertEqual(
+            [
                 "current-dc",
                 "voltage-dc",
                 "voltage-dc-ratio",

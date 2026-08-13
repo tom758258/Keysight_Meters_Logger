@@ -19,6 +19,12 @@ from meters_tool_core.measurement import (
     registered_measurement_types,
 )
 from meters_tool_core.models import INSTRUMENT_PROFILES, find_instrument_profile_by_idn
+from meters_tool_core.support_policy import (
+    BACKEND_SYSTEM_VISA,
+    TRANSPORT_TCPIP,
+    TRANSPORT_USB,
+    VALIDATION_STATUS_LIVE_VALIDATED_FULL_SUITE,
+)
 from meters_tool_core.validation import (
     BUFFER_DRAIN_SIZE_RANGE,
     HW_TRIGGER_DELAY_S_RANGE,
@@ -147,6 +153,7 @@ def build_capabilities_payload(
             }
             for available in INSTRUMENT_PROFILES
         ],
+        "supported_devices": supported_devices_payload(),
         "measurements": measurements,
         "trigger_modes": list(supported_trigger_modes(profile)),
         "trigger_mode_metadata": {
@@ -197,6 +204,32 @@ def build_capabilities_payload(
             "fallback_profile_id": profile.model_id if auto_unresolved else None,
         },
     }
+
+
+def supported_devices_payload() -> list[dict[str, Any]]:
+    devices = []
+    displayed_transports = {TRANSPORT_USB, TRANSPORT_TCPIP}
+    for profile in INSTRUMENT_PROFILES:
+        live_support = start_workflow_support(profile)["start-trigger-record"]["live"]
+        connections = []
+        for scope in live_support.scopes:
+            if (
+                scope.backend_scope == BACKEND_SYSTEM_VISA
+                and scope.validation_status
+                == VALIDATION_STATUS_LIVE_VALIDATED_FULL_SUITE
+                and scope.transport_scope in displayed_transports
+                and scope.transport_scope not in connections
+            ):
+                connections.append(scope.transport_scope)
+        if connections:
+            devices.append(
+                {
+                    "vendor": profile.vendor,
+                    "model": profile.model,
+                    "connections": connections,
+                }
+            )
+    return devices
 
 
 def resource_model_metadata(idn_detail: str | None) -> dict[str, Any]:

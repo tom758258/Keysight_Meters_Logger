@@ -323,7 +323,7 @@ npm start</code></pre></div>
         <p>主要區域：</p>
         <ul>
             <li>標頭：<code>Meters Tool</code> 和 <code>Local acquisition console</code>。</li>
-            <li><code>Device / Resource</code> 列：<code>VISA resource</code>、<code>Live resource</code>（實機資源）、<code>Scan Device</code>，以及 <code>Device options</code> 齒輪中的執行模式、型號選擇器與型號支援摘要。此列預設展開，可收合成包含目前執行模式的資源/型號摘要。</li>
+            <li><code>Device / Resource</code> 列：<code>VISA resource</code>、<code>Live resource</code>（實機資源）、<code>Scan Device</code>、<code>支援裝置</code> 清單，以及 <code>Device options</code> 齒輪中的執行模式、型號選擇器與型號支援摘要。此列預設展開，可收合成包含目前執行模式的資源/型號摘要。</li>
             <li><code>Expected model</code> 選擇器預設為 <code>Auto-detect</code>，會在 Start 時使用連接中的儀器 IDN。若明確選擇 <code>Require 34460A</code> 或 <code>Require 34461A</code>，仍會讀取 IDN，只有在符合時才啟動。偵測到的 IDN 選擇設定檔仍為實機執行階段設定檔。</li>
             <li>型號支援摘要顯示來自 <code>/api/capabilities</code> 的驗證狀態、開啟工作流程群組、型號限制以及傳輸/後端範圍狀態。這僅供操作人員檢視；Core 仍會透過支援原則與執行器最終關卡拒絕不支援的直接後端提交。</li>
             <li>狀態列 (Status strip)：<code>State</code>、<code>Captured</code>、<code>Errors</code> 和 <code>CSV</code>。</li>
@@ -331,6 +331,15 @@ npm start</code></pre></div>
             <li>用於裝置/資源設定、執行設定 (run configuration)、量測設定、觸發設定、即時資料 (Live data) 與狀態詳細資料的可摺疊設定面板。</li>
             <li>即時資料面板包含最新讀值、取樣時間、觸發來源、趨勢圖表、統計資料、最近取樣表格以及所選取樣的 metadata。</li>
         </ul>
+        <p><code>支援裝置</code> 按鈕會開啟精簡的 WebUI 連線清單：</p>
+        <table>
+            <thead><tr><th>廠商</th><th>型號</th><th>連線方式</th></tr></thead>
+            <tbody>
+                <tr><td>Keysight</td><td>34461A</td><td>USB、LAN / TCPIP</td></tr>
+                <tr><td>Keysight</td><td>34460A</td><td>USB</td></tr>
+            </tbody>
+        </table>
+        <p>此清單不顯示 CLI-only backend，也不顯示尚未正式開放給 WebUI 使用的連線方式。</p>
 
         <h3>瀏覽器語言</h3>
         <p>右上角永久顯示的地球與文字按鈕可在 English 與繁體中文之間切換。在 English 中，目的地標籤為 <code>繁體中文</code>；在繁體中文中，目的地標籤為 <code>English</code>。首次載入時，WebUI 依序使用有效的已儲存語系、瀏覽器語言偵測，最後才使用 English。手動選擇會儲存在 <code>meters-tool.webui.locale</code>；偵測到的語系不會自動寫入。切換會改變 <code>&lt;html lang&gt;</code>，但不重新載入或呼叫 runtime endpoint，並保留目前的表單、作用中的作業、面板、狀態、Live data、圖表、資源與支援摘要狀態。未知的診斷文字保持原始內容。</p>

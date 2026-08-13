@@ -140,6 +140,34 @@ class WebUiStaticTests(unittest.TestCase):
         self.assertIn('data-i18n="device.expected_model"', index)
         self.assertIn('data-i18n="device.expected_model_help"', index)
 
+    def test_static_ui_exposes_supported_device_list(self):
+        index, app_js = load_static_ui()
+
+        assert_tag_with_attrs(
+            self,
+            index,
+            "button",
+            {
+                "id": "supported-devices-toggle",
+                "type": "button",
+                "aria-controls": "supported-devices-panel",
+                "aria-expanded": "false",
+            },
+        )
+        self.assertLess(
+            index.index('id="supported-devices-toggle"'),
+            index.index('id="device-options-toggle"'),
+        )
+        for expected in (
+            'id="supported-devices-panel"',
+            'id="supported-devices-body"',
+            'data-i18n="supported_devices.vendor"',
+            'data-i18n="supported_devices.model"',
+            'data-i18n="supported_devices.connections"',
+        ):
+            self.assertIn(expected, index)
+        self.assertIn("renderSupportedDevices", app_js)
+
     def test_static_ui_displays_validation_scoped_model_support(self):
         index, _app_js = load_static_ui()
         run_form_js = (STATIC_DIR / "run_form.js").read_text(encoding="utf-8")

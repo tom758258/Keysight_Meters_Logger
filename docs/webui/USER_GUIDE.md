@@ -59,15 +59,22 @@ for terminal commands, API behavior, and build details.
 The WebUI is a local acquisition console. The main areas are:
 
 - `Device / Resource`: the instrument address, last scanned live resource,
-  `Scan Device` button, and `Device options` gear for execution mode and model
-  selection. It starts expanded and can collapse to a short summary that
-  identifies the selected execution mode.
+  `Scan Device` button, `Supported devices` list, and `Device options` gear for
+  execution mode and model selection. It starts expanded and can collapse to a
+  short summary that identifies the selected execution mode.
 - `Run Setup`: CSV output path and run count settings.
 - `Measurement`: measurement type and related options.
 - `Trigger`: trigger mode and trigger-related options.
 - `Status`: current run state, captured sample count, errors, CSV path, and log.
 - `Live data`: latest reading, trend chart, recent samples, and selected sample
   details.
+
+Select `Supported devices` to see the WebUI connection list:
+
+| Vendor | Model | Connections |
+| --- | --- | --- |
+| Keysight | 34461A | USB, LAN / TCPIP |
+| Keysight | 34460A | USB |
 
 ## Browser Language
 

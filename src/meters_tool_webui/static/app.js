@@ -34,6 +34,9 @@ import {
   selectCsvFolderButton,
   startRunButton,
   stopRunButton,
+  supportedDevicesBody,
+  supportedDevicesPanel,
+  supportedDevicesToggleButton,
   swMinIntervalInput,
   timerIntervalInput,
   timerTriggerCheckbox,
@@ -115,6 +118,14 @@ function setDeviceOptionsExpanded(expanded) {
   deviceOptionsToggleButton.setAttribute("aria-expanded", String(expanded));
 }
 
+function setSupportedDevicesExpanded(expanded) {
+  if (!supportedDevicesPanel || !supportedDevicesToggleButton) {
+    return;
+  }
+  supportedDevicesPanel.classList.toggle("is-hidden", !expanded);
+  supportedDevicesToggleButton.setAttribute("aria-expanded", String(expanded));
+}
+
 function setDeviceResourceExpanded(expanded) {
   if (!deviceResourceBody || !deviceResourceToggleButton) {
     return;
@@ -147,6 +158,36 @@ let executionRequestPending = false;
 let realResourceValue = resourceInput.value;
 let realModelValue = instrumentModelSelect.value;
 let noHardwareModelValue = "";
+let supportedDevices = [];
+
+function connectionLabel(connection) {
+  return connection === "tcpip"
+    ? t("supported_devices.connection.tcpip")
+    : t("supported_devices.connection.usb");
+}
+
+function renderSupportedDevices() {
+  if (!supportedDevicesBody) {
+    return;
+  }
+  supportedDevicesBody.replaceChildren(
+    ...supportedDevices.map((device) => {
+      const row = document.createElement("tr");
+      for (const value of [
+        device.vendor,
+        device.model,
+        (device.connections || [])
+          .map(connectionLabel)
+          .join(t("supported_devices.connection_separator")),
+      ]) {
+        const cell = document.createElement("td");
+        cell.textContent = value;
+        row.appendChild(cell);
+      }
+      return row;
+    })
+  );
+}
 
 function setExecutionModeSelection(mode) {
   for (const input of executionModeInputs) {
@@ -506,6 +547,7 @@ if (deviceResourceToggleButton && deviceResourceBody) {
 if (deviceOptionsToggleButton && deviceOptionsPanel) {
   deviceOptionsToggleButton.addEventListener("click", (event) => {
     event.stopPropagation();
+    setSupportedDevicesExpanded(false);
     setDeviceOptionsExpanded(
       deviceOptionsToggleButton.getAttribute("aria-expanded") !== "true"
     );
@@ -525,6 +567,7 @@ if (deviceOptionsToggleButton && deviceOptionsPanel) {
       return;
     }
     setDeviceOptionsExpanded(false);
+    setSupportedDevicesExpanded(false);
   });
   document.addEventListener("keydown", (event) => {
     if (
@@ -533,6 +576,27 @@ if (deviceOptionsToggleButton && deviceOptionsPanel) {
     ) {
       setDeviceOptionsExpanded(false);
       deviceOptionsToggleButton.focus();
+    }
+  });
+}
+if (supportedDevicesToggleButton && supportedDevicesPanel) {
+  supportedDevicesToggleButton.addEventListener("click", (event) => {
+    event.stopPropagation();
+    setDeviceOptionsExpanded(false);
+    setSupportedDevicesExpanded(
+      supportedDevicesToggleButton.getAttribute("aria-expanded") !== "true"
+    );
+  });
+  supportedDevicesPanel.addEventListener("click", (event) => {
+    event.stopPropagation();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (
+      event.key === "Escape" &&
+      supportedDevicesToggleButton.getAttribute("aria-expanded") === "true"
+    ) {
+      setSupportedDevicesExpanded(false);
+      supportedDevicesToggleButton.focus();
     }
   });
 }
@@ -635,6 +699,7 @@ function refreshLocalizedPresentation() {
   refreshResourcesPresentation();
   refreshStatusPresentation();
   updateExecutionModePresentation();
+  renderSupportedDevices();
 }
 
 function browserStorage() {
@@ -690,7 +755,9 @@ for (const button of panelToggles) {
 }
 
 loadCapabilities()
-  .then(() => {
+  .then((capabilities) => {
+    supportedDevices = capabilities.supported_devices || [];
+    renderSupportedDevices();
     updateModelSelectorPresentation();
     updateRangeAndLiveChartScale();
     updateDeviceResourceSummary();

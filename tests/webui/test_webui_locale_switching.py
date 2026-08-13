@@ -687,6 +687,10 @@ const capabilities = {
   support_summary: null,
   support: { "start-trigger-record": { live: null } },
   available_profiles: [],
+  supported_devices: [
+    { vendor: "Keysight", model: "34461A", connections: ["usb", "tcpip"] },
+    { vendor: "Keysight", model: "34460A", connections: ["usb"] },
+  ],
   measurements: [{ name: "current-dc", unit: "A", nplc_options: [], range_options: [], defaults: {} }],
   trigger_modes: ["software"],
 };
@@ -751,6 +755,15 @@ assert.equal(
   "resource.option_with_detail"
 );
 assert.match(resourceOption("USB0::RAW").textContent, /raw vendor detail/);
+const supportedRows = element("#supported-devices-body").children;
+assert.equal(supportedRows.length, 2);
+assert.deepEqual(
+  supportedRows.map((row) => row.children.map((cell) => cell.textContent)),
+  [
+    ["Keysight", "34461A", "USB, LAN / TCPIP"],
+    ["Keysight", "34460A", "USB"],
+  ]
+);
 
 element("#locale-toggle").click();
 assert.equal(documentElement.lang, "zh-TW");
@@ -769,6 +782,15 @@ assert.equal(
   "resource.option_with_detail"
 );
 assert.match(resourceOption("USB0::RAW").textContent, /raw vendor detail/);
+assert.deepEqual(
+  element("#supported-devices-body").children.map(
+    (row) => row.children.map((cell) => cell.textContent)
+  ),
+  [
+    ["Keysight", "34461A", "USB、LAN / TCPIP"],
+    ["Keysight", "34460A", "USB"],
+  ]
+);
 assert.deepEqual(
   {
     resource: element("#resource").value,

@@ -188,13 +188,22 @@ http://127.0.0.1:8767/
 主要區域：
 
 - 標頭：`Meters Tool` 和 `Local acquisition console`。
-- `Device / Resource` 列：`VISA resource`、`Live resource`（實機資源）、`Scan Device`，以及 `Device options` 齒輪中的執行模式、型號選擇器與型號支援摘要。此列預設展開，可收合成包含目前執行模式的資源/型號摘要。
+- `Device / Resource` 列：`VISA resource`、`Live resource`（實機資源）、`Scan Device`、`支援裝置` 清單，以及 `Device options` 齒輪中的執行模式、型號選擇器與型號支援摘要。此列預設展開，可收合成包含目前執行模式的資源/型號摘要。
 - `Expected model` 選擇器預設為 `Auto-detect`，會在 Start 時使用連接中的儀器 IDN。若明確選擇 `Require 34460A` 或 `Require 34461A`，仍會讀取 IDN，只有在符合時才啟動。偵測到的 IDN 選擇設定檔仍為實機執行階段設定檔。
 - 型號支援摘要顯示來自 `/api/capabilities` 的驗證狀態、開啟工作流程群組、型號限制以及傳輸/後端範圍狀態。這僅供操作人員檢視；Core 仍會透過支援原則與執行器最終關卡拒絕不支援的直接後端提交。
 - 狀態列 (Status strip)：`State`、`Captured`、`Errors` 和 `CSV`。
 - 動作按鈕：`Start`、`Trigger`、`Stop` 和 `Open CSV`。
 - 用於裝置/資源設定、執行設定 (run configuration)、量測設定、觸發設定、即時資料 (Live data) 與狀態詳細資料的可摺疊設定面板。
 - 即時資料面板包含最新讀值、取樣時間、觸發來源、趨勢圖表、統計資料、最近取樣表格以及所選取樣的 metadata。
+
+`支援裝置` 按鈕會開啟精簡的 WebUI 連線清單：
+
+| 廠商 | 型號 | 連線方式 |
+| --- | --- | --- |
+| Keysight | 34461A | USB、LAN / TCPIP |
+| Keysight | 34460A | USB |
+
+此清單不顯示 CLI-only backend，也不顯示尚未正式開放給 WebUI 使用的連線方式。
 
 ### 瀏覽器語言
 

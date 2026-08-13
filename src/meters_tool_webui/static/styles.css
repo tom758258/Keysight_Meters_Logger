@@ -296,9 +296,16 @@ button:disabled:hover {
   gap: 12px;
 }
 
-.device-options {
+.device-options,
+.supported-devices {
   position: relative;
   flex: 0 0 auto;
+}
+
+.supported-devices-button {
+  min-height: 32px;
+  padding: 5px 10px;
+  box-shadow: none;
 }
 
 .resource-collapse-toggle {
@@ -356,6 +363,38 @@ button:disabled:hover {
 .device-options-panel h2 {
   margin-bottom: 0;
   font-size: 14px;
+}
+
+.supported-devices-panel {
+  width: min(440px, calc(100vw - 40px));
+}
+
+.supported-devices-table-wrap {
+  overflow-x: auto;
+}
+
+.supported-devices-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: left;
+}
+
+.supported-devices-table th,
+.supported-devices-table td {
+  border-bottom: 1px solid var(--table-line);
+  padding: 8px 10px;
+  white-space: nowrap;
+}
+
+.supported-devices-table th:first-child,
+.supported-devices-table td:first-child {
+  padding-left: 0;
+}
+
+.supported-devices-table th:last-child,
+.supported-devices-table td:last-child {
+  padding-right: 0;
 }
 
 .execution-mode-fieldset {

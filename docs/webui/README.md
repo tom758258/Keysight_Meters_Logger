@@ -220,10 +220,11 @@ The current WebUI layout is a direct acquisition console, not a landing page.
 Main areas:
 
 - Header: `Meters Tool` and `Local acquisition console`.
-- Device / Resource row: `VISA resource`, `Live resource`, `Scan Device`, and a
-  `Device options` gear for execution mode, the model selector, and model
-  support summary. The row starts expanded and can collapse to a
-  resource/model summary that includes the selected execution mode.
+- Device / Resource row: `VISA resource`, `Live resource`, `Scan Device`, a
+  `Supported devices` list, and a `Device options` gear for execution mode, the
+  model selector, and model support summary. The row starts expanded and can
+  collapse to a resource/model summary that includes the selected execution
+  mode.
 - The Expected model selector defaults to `Auto-detect`, which uses the
   connected instrument IDN at Start. Explicit `Require 34460A` or
   `Require 34461A` choices still read IDN and start only when it matches. The
@@ -238,6 +239,16 @@ Main areas:
   measurement settings, trigger settings, Live data, and status details.
 - Live data panel with latest value, sample time, trigger source, trend chart,
   statistics, recent sample table, and selected-sample metadata.
+
+The `Supported devices` button opens a compact WebUI-only connection list:
+
+| Vendor | Model | Connections |
+| --- | --- | --- |
+| Keysight | 34461A | USB, LAN / TCPIP |
+| Keysight | 34460A | USB |
+
+The list omits CLI-only backends and connections that are not open for WebUI
+product use.
 
 ### Browser Language
 
