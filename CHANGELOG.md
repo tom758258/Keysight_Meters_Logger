@@ -4,28 +4,16 @@
 
 ## v3.0.0
 
-- Adds a private Desktop WebUI host and thin Electron shell while reusing the
-  existing FastAPI application, static WebUI, and graceful WebRunManager cleanup.
-- Changes the Windows x64 Desktop build from a portable executable to an
-  unpacked Electron directory that launches the shared Windows onedir host and
-  uses its single `_internal` tree.
-- Replaces the separate Windows executable artifacts with one versioned Windows
-  x64 ZIP containing the Electron Desktop, CLI, WebUI Launcher, private Desktop
-  host, shared PyInstaller onedir `_internal`, and Electron runtime files.
-- Adds CLI `--no-csv` support for orchestrator-owned JSONL sample persistence
-  while preserving CSV as the default output.
-- Adds a default-enabled WebUI `CSV output` control so a run can opt out of CSV
-  without affecting live samples, status, stopping, or cleanup.
-- Clarifies public support documentation to describe current support behavior while preserving machine-readable support policy contracts.
-- Adds persistent WebUI `System / Light / Dark` theme selection with loopback port persistence.
-- Synchronizes the Electron Desktop native title bar and window theme with WebUI theme selection.
+- Adds the Windows Electron Desktop and replaces separate Windows executable
+  artifacts with one versioned Windows x64 ZIP containing the Desktop, CLI,
+  and WebUI Launcher.
+- Adds optional CSV output control to both CLI and WebUI while preserving CSV
+  as the default.
+- Adds persistent WebUI `System / Light / Dark` theme selection with matching
+  Electron Desktop window theme synchronization.
 - Adds WebUI `Real / Simulate / Dry-run` execution mode selection.
-- Adds a Supported Devices modal in WebUI showing currently supported hardware models and connections.
-- Clarifies that `@bt` is reserved for a future `pyvisa_bt` backend identity and
-  is not a currently supported backend.
-- Documents the single-client live-instrument prerequisite: before a real live
-  run or validation, no other Meters CLI, WebUI, logger, test process, or
-  external VISA application should control the same physical instrument.
+- Adds a Supported Devices modal in WebUI showing currently supported hardware
+  models and connections.
 
 ## v2.0.0
 
