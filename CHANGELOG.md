@@ -17,6 +17,10 @@
 - Adds a default-enabled WebUI `CSV output` control so a run can opt out of CSV
   without affecting live samples, status, stopping, or cleanup.
 - Clarifies public support documentation to describe current support behavior while preserving machine-readable support policy contracts.
+- Adds persistent WebUI `System / Light / Dark` theme selection with loopback port persistence.
+- Synchronizes the Electron Desktop native title bar and window theme with WebUI theme selection.
+- Adds WebUI `Real / Simulate / Dry-run` execution mode selection.
+- Adds a Supported Devices modal in WebUI showing currently supported hardware models and connections.
 
 ## v2.0.0
 

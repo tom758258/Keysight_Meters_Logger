@@ -2,7 +2,7 @@
 
 # Meters Tool
 
-Meters Tool 是供支援的數位萬用電表使用的 Python 資料擷取與紀錄工具。目前版本支援 Keysight 34460A 與 34461A；確切的產品支援範圍請參閱 [支援型號文件](docs/core/supported-models.md)。專案提供單一可安裝發行套件 `meters-tool`，其套件版本由根目錄 `pyproject.toml` 定義，同時保留三個獨立的 import package：`meters_tool_core`、`meters_tool_cli` 與 `meters_tool_webui`。
+Meters Tool 是供支援的數位萬用電表使用的 Python 資料擷取與紀錄工具。Meters Tool 支援 Keysight 34460A 與 34461A；確切的產品支援範圍請參閱 [支援型號文件](docs/core/supported-models.md)。專案提供單一可安裝發行套件 `meters-tool`，其套件版本由根目錄 `pyproject.toml` 定義，同時保留三個獨立的 import package：`meters_tool_core`、`meters_tool_cli` 與 `meters_tool_webui`。
 
 本專案支援透過 VISA 進行 DC 與 AC 電流、DC 與 AC 電壓、DC 電壓比、頻率、週期，以及 2 線式或 4 線式電阻量測。預設會將每筆擷取樣本寫入 CSV 的一行，包含時間戳記、量測類型、單位、觸發來源與相關 metadata。CLI 呼叫端可使用 `--no-csv`，WebUI 使用者則可取消勾選 `CSV 輸出`；兩者都映射到同一個 Core `csv_enabled` 設定。
 

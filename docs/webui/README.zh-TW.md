@@ -196,14 +196,7 @@ http://127.0.0.1:8767/
 - 用於裝置/資源設定、執行設定 (run configuration)、量測設定、觸發設定、即時資料 (Live data) 與狀態詳細資料的可摺疊設定面板。
 - 即時資料面板包含最新讀值、取樣時間、觸發來源、趨勢圖表、統計資料、最近取樣表格以及所選取樣的 metadata。
 
-`支援裝置` 按鈕會開啟精簡的 WebUI 連線清單：
-
-| 廠商 | 型號 | 連線方式 |
-| --- | --- | --- |
-| Keysight | 34461A | USB、LAN / TCPIP |
-| Keysight | 34460A | USB |
-
-此清單僅顯示目前 WebUI 正式支援的連線方式。
+`支援裝置` 按鈕會開啟一個精簡的 WebUI 連線清單，僅顯示目前 WebUI 正式支援的連線方式（由 Core 能力 metadata 衍生）。如需操作人員所見之連線清單，請參閱 [WebUI 使用者指南](USER_GUIDE.zh-TW.md)；確切的產品支援型號與連線範圍請參閱 [支援型號](../core/supported-models.md)。
 
 ### 瀏覽器語言
 
@@ -305,7 +298,7 @@ pending_keys
 `transport_pending` 狀態。瀏覽器會將這些 scope 視為一般 Product 啟動不可用；
 此狀態不代表執行授權。
 
-瀏覽器使用此 metadata 來顯示型號的實機支援，並停用對目前資源傳輸與 WebUI 固定系統-VISA 後端而言非產品開放的功能。在資源已知之前，Auto-detect 保持現有的備援功能檢視，且僅使用備援設定檔宣告的產品範圍；它絕不會開放非 Product-open 功能。對於 34461A，該 metadata 包含已支援的 USB/system-VISA、LAN/system-VISA 以及選用的 CLI 專用 LAN/pyvisa-py `@py` 範圍。對於 34460A，DCV Ratio 在 USB/system-VISA 上為 `Product-open`；LAN/TCPIP 目前不支援。現有的量測、觸發、範圍與限制欄位仍是控制項定義的 source of truth。Product-open support-policy 範圍不代表每個 distribution 都已 bundle 該 backend 套件。
+關於型號、傳輸、後端與量測功能支援矩陣，請參閱 [支援型號](../core/supported-models.md)。現有的量測、觸發、範圍與限制欄位仍是控制項定義的 source of truth。Product-open support-policy 範圍不代表每個 distribution 都已 bundle 該 backend 套件。
 
 Expected model 檢查是選用的。Core 會在 Start 時驗證連接儀器的識別資訊。若明確指定的預期型號與新的 IDN preflight 不符，WebUI 會回報選取的型號以及 IDN 中找到的支援型號。
 

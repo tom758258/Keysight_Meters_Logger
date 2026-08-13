@@ -83,12 +83,7 @@ Important limitations:
   live mismatches fail before setup SCPI. Model names are normalized and
   validated by Core profile logic; unknown models fail validation with the
   supported models listed.
-- Live product support is feature-aware and exact-scope: the connection,
-  measurement, and effective trigger mode must each be Product-open for the
-  detected model and exact transport/VISA backend. Missing feature metadata
-  fails closed rather than inheriting support from another scope.
-- 34460A DCV Ratio is Product-open only on USB/system-VISA. This support does
-  not extend to 34460A LAN or pyvisa-py scopes.
+- Live product support is feature-aware and exact-scope; see [Supported Models](../core/supported-models.md) for the exact model, transport, and feature support matrix. Missing feature metadata fails closed rather than inheriting support from another scope.
 - The 34460A has a lower maximum reading rate than the 34461A, but the CLI does
   not actively control high-speed reading rate in this release.
 - AC, Frequency, and Period modes expose the 34461A `3`, `20`, and `200` Hz

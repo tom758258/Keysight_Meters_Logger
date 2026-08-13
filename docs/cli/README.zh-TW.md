@@ -50,8 +50,7 @@ Python 整合應從 `meters_tool_core` 或 `meters_tool_core.*` 匯入共享的 
 - 本專案目前支援 Keysight 34460A 與 34461A Truevolt DMM 記錄。若省略 `--model`，實機啟動將從已連接之儀器的 IDN 自動偵測型號。
 - 當 Start 必須要求 34460A IDN 相符時，請選擇 `--model 34460A`。在實機模式下，這僅作為預期型號防護 (expected-model guard)，並不會覆寫由 IDN 決定的設定檔。在 dry-run 或模擬模式下，它會選擇 34460A 的設定檔限制：無 10 A 電流範圍或電流端子選擇、1000 筆讀值的記憶體，且無基礎設定檔外接觸發模式。
 - 當 Start 必須要求 34461A IDN 相符時，請選擇 `--model 34461A`。明確的實機不符會在 setup SCPI 之前失敗。型號名稱由 Core 設定檔邏輯進行標準化與驗證；未知的型號驗證會失敗，並列出支援的型號。
-- 實機產品支援具備功能感知 (feature-aware) 且範圍精確 (exact-scope)：對於偵測到的型號與確切的傳輸/VISA 後端，連線、量測與實際的觸發模式必須均為 Product-open。缺少的功能 metadata 會以預設關閉 (fail-closed) 處理，而非繼承其他範圍的支援。
-- 34460A DCV Ratio 僅在 USB/system-VISA 上開放產品使用。此支援不延伸至 34460A LAN 或 pyvisa-py 範圍。
+- 實機產品支援具備功能感知與範圍精確性；確切的型號、傳輸與功能支援矩陣請參閱 [支援型號](../core/supported-models.md)。缺少的功能 metadata 會以預設關閉 (fail-closed) 處理，而非繼承其他範圍的支援。
 - 34460A 的最大讀值速率低於 34461A，但 CLI 在此版本中不會主動控制高速讀值速率。
 - AC、頻率與週期模式透過 `--ac-bandwidth-hz` 公開 34461A 的 `3`、`20` 和 `200` Hz 頻寬/濾波器設定。在實際投入生產使用前，請使用操作人員提供的 VISA 資源執行低風險的實機資源快速功能健檢 (smoke test)，並將 CLI 記錄列與 34461A 前面板讀值進行對比。
 - `--nplc` 和 `--auto-zero` 是 DC/電阻控制項。AC 電流、AC 電壓、頻率與週期僅接受中性預設值 `--nplc 1.0`；任何其他 NPLC 值都將被拒絕，因為這些模式不會寫入 NPLC SCPI。它們也不會寫入 Auto Zero SCPI 指令。

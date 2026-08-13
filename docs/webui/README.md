@@ -242,14 +242,7 @@ Main areas:
 - Live data panel with latest value, sample time, trigger source, trend chart,
   statistics, recent sample table, and selected-sample metadata.
 
-The `Supported devices` button opens a compact WebUI-only connection list:
-
-| Vendor | Model | Connections |
-| --- | --- | --- |
-| Keysight | 34461A | USB, LAN / TCPIP |
-| Keysight | 34460A | USB |
-
-The list shows connections currently supported by the WebUI.
+The `Supported devices` button opens a compact WebUI connection list. It displays the connections currently supported by the WebUI (derived from Core capability metadata). For the operator-facing connection list, see the [WebUI User Guide](USER_GUIDE.md); for full model capabilities and exact product support policy, see [Supported Models](../core/supported-models.md).
 
 ### Browser Language
 
@@ -449,10 +442,7 @@ features that are not product-open for the current resource transport and the
 WebUI's fixed system-VISA backend. Before a resource is known, Auto-detect
 keeps the existing fallback capability view and uses only the fallback
 profile's declared product scope; it never opens a non-Product-open feature.
-For 34461A the metadata includes Product-open USB/system-VISA,
-LAN/system-VISA, and optional CLI-only LAN/pyvisa-py `@py` scopes. For 34460A,
-DCV Ratio is Product-open on USB/system-VISA, while LAN/TCPIP is not currently
-supported. Existing measurement, trigger, range, and limit fields remain the
+For the exact model, transport, backend, and feature support matrix, see [Supported Models](../core/supported-models.md). Existing measurement, trigger, range, and limit fields remain the
 source of truth for control definitions. A Product-open support-policy scope
 does not mean that every distribution bundles its backend package.
 

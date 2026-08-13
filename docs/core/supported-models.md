@@ -94,45 +94,11 @@ do not query live hardware.
 | LAN/TCPIP with system VISA | Open for 34461A | Not currently supported |
 | LAN/TCPIP with pyvisa-py `@py` | Open for optional CLI-only 34461A scope | Not currently supported |
 
-34461A Product support:
+### Exact-Scope Details
 
-- Product-open for currently supported 34461A profile workflows, including
-  immediate, software, software timer, custom buffered, Frequency, Period, external
-  simple, and external custom workflows.
-- Supported transport/backend scopes are USB/system-VISA, LAN/TCPIP with the
-  default system VISA runtime, and LAN/TCPIP with optional CLI-only pyvisa-py
-  `@py`.
-- DCV Ratio and the 10 A current-terminal path are available where supported by
-  the profile and the operator confirms safe wiring.
-
-34460A Product support:
-
-- Product-open for the USB/system-VISA scope and currently supported 34460A
-  profile workflows: immediate DC current,
-  immediate DC voltage, immediate AC current, immediate AC voltage, immediate
-  2-wire resistance, immediate 4-wire resistance, software trigger, software
-  timer, immediate custom buffered workflow, software custom buffered
-  workflow, Frequency, and Period.
-- Hard limits remain closed: no 10 A/current-terminal path, a 1000-reading
-  memory limit, no base-profile external or external-custom workflows, and
-  buffer drain capped at 1000 readings.
-- DCV Ratio is Product-open only on USB/system-VISA. It combines with the
-  Product-open `immediate`, `software`, `immediate-custom`, and
-  `software-custom` trigger modes in this exact scope.
-- LAN/TCPIP with system VISA and LAN/TCPIP with pyvisa-py `@py` are not
-  currently supported for 34460A.
-
-Transport/backend Product scope:
-
-- USB/system-VISA support does not open LAN/TCPIP or pyvisa-py `@py`.
-- 34461A LAN/TCPIP with system VISA is open for the currently supported
-  34461A workflows.
-- 34461A LAN/TCPIP with optional CLI-only pyvisa-py `@py` is open for the
-  currently supported 34461A workflows.
-- 34460A LAN/TCPIP and 34460A LAN/`@py` are not currently supported.
-  USB/system-VISA is the current 34460A product scope.
-- Only the exact combinations listed above are Product-open; an unsupported
-  connection, measurement, trigger mode, or model combination is not available.
+- **Keysight 34461A**: Product-open for USB/system-VISA, LAN/system-VISA, and LAN/pyvisa-py @py (optional and CLI-only) scopes across all profile workflows (including simple/custom external triggers, DCV Ratio, and the 10 A current terminal path with operator-confirmed wiring).
+- **Keysight 34460A**: Product-open ONLY on USB/system-VISA across its supported workflows (immediate, software, software-timer, custom buffered, Frequency, Period, and DCV Ratio). The base profile does not support external triggers or the 10 A current-terminal path, and is subject to a 1000-reading memory limit. LAN/system-VISA and LAN/pyvisa-py @py scopes are not currently supported (pending).
+- **Fail-Closed Policy**: Any connection, measurement, trigger mode, or model combination not explicitly listed in the capability table above is unsupported and fails closed (see [Core Integration](integration.md#validation-flow)).
 
 ## VISA Backend Selection
 

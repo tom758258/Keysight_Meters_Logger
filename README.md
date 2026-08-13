@@ -3,7 +3,7 @@
 # Meters Tool
 
 Meters Tool is a Python data acquisition and logging toolkit for supported
-digital multimeters. The current release supports the Keysight 34460A and
+digital multimeters. Meters Tool supports the Keysight 34460A and
 34461A; see [Supported Models](docs/core/supported-models.md) for the exact
 Product support scope. It provides one installable distribution,
 `meters-tool`, with the package version defined by the root
