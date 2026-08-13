@@ -288,11 +288,12 @@ export function refreshStatusPresentation() {
 
 function updateRunControlButtons(status) {
   const active = Boolean(status?.active);
-  startRunButton.disabled = active;
+  const executionPending = startRunButton.dataset.executionPending === "true";
+  startRunButton.disabled = active || executionPending;
   refreshResourcesButton.disabled =
     active || refreshResourcesButton.dataset.executionDisabled === "true";
   for (const input of executionModeInputs) {
-    input.disabled = active;
+    input.disabled = active || executionPending;
   }
   if (active) {
     stopRunButton.disabled = false;

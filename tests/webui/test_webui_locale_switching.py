@@ -75,6 +75,9 @@ class FakeElement {
   contains() { return false; }
   closest() { return null; }
   setCustomValidity(message) { this.validationMessage = message; }
+  checkValidity() { return true; }
+  reportValidity() { return true; }
+  focus() { this.focused = true; }
   click() { this.listeners.get("click")?.({ target: this }); }
 }
 
@@ -108,13 +111,21 @@ function optionByValue(select, value) {
 const documentElement = new FakeElement();
 const documentListeners = new Map();
 const windowListeners = new Map();
+const executionModeInputs = ["real", "simulate", "dry-run"].map((value) => {
+  const input = new FakeElement();
+  input.value = value;
+  input.checked = value === "real";
+  return input;
+});
 let intervalCalls = 0;
 let eventSourceCalls = 0;
 let reloadCalls = 0;
 globalThis.document = {
   documentElement,
   querySelector: element,
-  querySelectorAll: () => [],
+  querySelectorAll(selector) {
+    return selector === "[name='execution-mode']" ? executionModeInputs : [];
+  },
   createElement: () => new FakeElement(),
   createElementNS: () => new FakeElement(),
   addEventListener(name, listener) { documentListeners.set(name, listener); },
@@ -166,6 +177,172 @@ const fallbackState = {
   autoRange: element("[name='auto_range']").checked,
 };
 '''
+
+
+@pytest.mark.skipif(NODE is None, reason="Node.js is required for execution-mode tests")
+def test_execution_mode_pending_lock_and_real_resource_isolation():
+    script = APPLICATION_TEST_SETUP + r'''
+const capabilities = {
+  app: { version: "2.0.0" },
+  limits: {},
+  support_summary: null,
+  support: {
+    "start-trigger-record": {
+      live: {
+        transport_scope: "usb",
+        scopes: [
+          {
+            transport_scope: "usb",
+            backend_scope: "system_visa",
+            validation_status: "live_validated_full_suite",
+            features: {
+              measurement: {
+                "current-dc": { validation_status: "live_validated_full_suite" },
+                "voltage-dc": { validation_status: "live_validated_full_suite" },
+              },
+              trigger_mode: { immediate: { validation_status: "live_validated_full_suite" } },
+            },
+          },
+          {
+            transport_scope: "tcpip",
+            backend_scope: "system_visa",
+            validation_status: "live_validated_full_suite",
+            features: {
+              measurement: {
+                "current-dc": { validation_status: "live_validated_full_suite" },
+                "voltage-dc": { validation_status: "feature_pending" },
+              },
+              trigger_mode: { immediate: { validation_status: "live_validated_full_suite" } },
+            },
+          },
+        ],
+      },
+    },
+  },
+  available_profiles: [{ model: "34460A" }, { model: "34461A" }],
+  measurements: [
+    { name: "current-dc", unit: "A", nplc_options: [1], range_options: [], defaults: {} },
+    { name: "voltage-dc", unit: "V", nplc_options: [1], range_options: [], defaults: {} },
+  ],
+  trigger_modes: ["immediate"],
+  trigger_mode_metadata: { immediate: { uses_trigger_timeout: false } },
+};
+const inactiveStatus = {
+  run_id: null,
+  state: "idle",
+  active: false,
+  captured: 0,
+  errors: 0,
+  csv_path: null,
+  latest_status: "idle",
+  recent_samples: [],
+  latest_sample: null,
+  sample_capacity: 100,
+};
+function deferred() {
+  let resolve;
+  const promise = new Promise((complete) => { resolve = complete; });
+  return { promise, resolve };
+}
+let runRequest = deferred();
+let planRequest = deferred();
+let runRequestCount = 0;
+let planRequestCount = 0;
+globalThis.fetch = async (path) => {
+  const target = String(path);
+  if (target.includes("/api/capabilities")) return response(capabilities);
+  if (target === "/api/runs") {
+    runRequestCount += 1;
+    return runRequest.promise;
+  }
+  if (target === "/api/plan") {
+    planRequestCount += 1;
+    return planRequest.promise;
+  }
+  return response(inactiveStatus);
+};
+globalThis.FormData = class {
+  get(name) {
+    const values = {
+      resource: element("#resource").value,
+      instrument_model: element("#instrument-model").value,
+      trigger_mode: element("#trigger-mode").value,
+      measurement: element("#measurement").value,
+      nplc: "1",
+      auto_range: "on",
+      max_samples: "1",
+    };
+    return values[name] ?? null;
+  }
+};
+
+element("#resource").value = "TCPIP0::REAL::INSTR";
+element("#instrument-model").value = "34461A";
+element("#measurement").value = "voltage-dc";
+element("#trigger-mode").value = "immediate";
+
+await import(appUrl);
+await new Promise((resolve) => setTimeout(resolve, 0));
+const status = await import(new URL("./status.js", appUrl));
+const mode = (value) => executionModeInputs.find((input) => input.value === value);
+const changeMode = async (value) => {
+  mode(value).checked = true;
+  await mode(value).listeners.get("change")();
+};
+
+assert.equal(optionByValue(element("#measurement"), "voltage-dc").disabled, true);
+await changeMode("simulate");
+assert.equal(element("#resource").value, "");
+assert.equal(optionByValue(element("#measurement"), "voltage-dc").disabled, false);
+await changeMode("real");
+assert.equal(element("#resource").value, "TCPIP0::REAL::INSTR");
+
+const start = element("#start-run").listeners.get("click");
+const pendingRun = start();
+await new Promise((resolve) => setTimeout(resolve, 0));
+assert.equal(runRequestCount, 1);
+assert.equal(element("#start-run").disabled, true);
+assert.equal(executionModeInputs.every((input) => input.disabled), true);
+status.renderStatus(inactiveStatus);
+assert.equal(element("#start-run").disabled, true);
+assert.equal(executionModeInputs.every((input) => input.disabled), true);
+await start();
+assert.equal(runRequestCount, 1);
+await changeMode("dry-run");
+assert.equal(mode("real").checked, true);
+assert.equal(element("#resource").value, "TCPIP0::REAL::INSTR");
+
+const runningStatus = { ...inactiveStatus, run_id: "run-1", state: "running", active: true };
+runRequest.resolve(response(runningStatus));
+await pendingRun;
+assert.match(element("#raw-status").textContent, /"run_id": "run-1"/);
+assert.equal(element("#dry-run-plan-result").classList.contains("is-hidden"), true);
+
+status.renderStatus(inactiveStatus);
+await changeMode("dry-run");
+assert.equal(element("#resource").value, "");
+const pendingPlan = start();
+await new Promise((resolve) => setTimeout(resolve, 0));
+assert.equal(planRequestCount, 1);
+await changeMode("real");
+assert.equal(mode("dry-run").checked, true);
+planRequest.resolve(response({ dry_run: true, simulate: false, scpi_commands: [] }));
+await pendingPlan;
+assert.match(element("#dry-run-plan").textContent, /"dry_run": true/);
+assert.equal(element("#dry-run-plan-result").classList.contains("is-hidden"), false);
+assert.equal(element("#start-run").disabled, false);
+assert.equal(executionModeInputs.every((input) => !input.disabled), true);
+
+await changeMode("real");
+assert.equal(element("#resource").value, "TCPIP0::REAL::INSTR");
+process.stdout.write(JSON.stringify({ ok: true }));
+'''
+    completed = run_node(script, STATIC_DIR / "app.js")
+    assert completed.returncode == 0, (
+        "Execution-mode pending/resource regression failed\n"
+        f"stdout:\n{completed.stdout}\nstderr:\n{completed.stderr}"
+    )
+    assert completed.stdout == '{"ok":true}'
 
 
 @pytest.mark.skipif(NODE is None, reason="Node.js is required for locale runtime tests")

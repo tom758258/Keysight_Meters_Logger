@@ -280,8 +280,9 @@ JavaScript modules.
   summary. Starting a preview clears stale Live data from an earlier run.
 
 Execution mode is not stored in local storage, cookies, or another persistent
-setting. Reloading the page returns to `Real`. Neither simulation nor dry-run
-results are evidence of successful live-hardware validation.
+setting. It cannot be changed while a Start or Preview request is pending or a
+run is active. Reloading the page returns to `Real`. Neither simulation nor
+dry-run results are evidence of successful live-hardware validation.
 
 ## Basic Workflow
 

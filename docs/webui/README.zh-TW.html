@@ -344,7 +344,7 @@ npm start</code></pre></div>
             <li><code>Simulate</code> 必須明確選擇 34460A 或 34461A，並使用 Core 的 deterministic simulator 完整執行 acquisition runtime。它不會掃描、開啟、查詢真實 VISA resource，也不會向其送出指令。模擬 sample 會使用一般 status/event 路徑，因此最新讀值、圖表、統計資料、最近 sample、Stop 與正常 CSV 行為都可使用。</li>
             <li><code>Dry-run</code> 必須明確選擇 34460A 或 34461A planning model，且只建立 Core execution plan。它不建立 active run、不執行 acquisition 或真實 VISA I/O，也不產生 Live data sample。計畫會顯示於 Status details，包括 SCPI commands、read path、cleanup steps 與 option summary。開始 preview 時會清除上一次 runtime 留在畫面上的 Live data。</li>
         </ul>
-        <p>Execution mode 不會儲存於 local storage、cookie 或其他持久化設定；重新載入頁面一律回到 <code>Real</code>。Simulation 與 Dry-run 結果都不能作為實機驗證成功的證據。</p>
+        <p>Execution mode 不會儲存於 local storage、cookie 或其他持久化設定；Start／Preview request pending 或 active run 期間不可切換，重新載入頁面一律回到 <code>Real</code>。Simulation 與 Dry-run 結果都不能作為實機驗證成功的證據。</p>
 
         <h2>基本工作流程</h2>
         <ol>

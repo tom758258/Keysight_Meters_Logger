@@ -209,7 +209,8 @@ Execution mode is page-local and defaults to `Real` on every load. Real uses
 explicit supported model, and sends a deterministic no-hardware simulator
 resource. Dry-run uses `POST /api/plan`, requires an explicit supported model,
 and must not create an active run or repopulate Live data. Disable execution
-mode controls while a run is active; keep the event guard simple.
+mode controls while a Start or Preview request is pending or a run is active;
+keep the event guard simple.
 
 ## DOM And Form Contract To Preserve
 

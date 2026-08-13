@@ -143,6 +143,7 @@ function updateRangeAndLiveChartScale(notice = "") {
 let scanMetadataByResource = new Map();
 let resourceScanCompleted = false;
 let currentExecutionMode = "real";
+let executionRequestPending = false;
 let realResourceValue = resourceInput.value;
 let realModelValue = instrumentModelSelect.value;
 let noHardwareModelValue = "";
@@ -186,6 +187,11 @@ function updateModelSelectorPresentation() {
 
 function updateExecutionModePresentation() {
   const noHardware = currentExecutionMode !== "real";
+  startRunButton.dataset.executionPending = String(executionRequestPending);
+  startRunButton.disabled = executionRequestPending || isRunActive();
+  for (const input of executionModeInputs) {
+    input.disabled = executionRequestPending || isRunActive();
+  }
   resourceInput.disabled = noHardware;
   resourceInput.required = !noHardware;
   resourceSelect.disabled = noHardware;
@@ -221,7 +227,7 @@ function updateExecutionModePresentation() {
 }
 
 async function switchExecutionMode(nextMode) {
-  if (isRunActive()) {
+  if (executionRequestPending || isRunActive()) {
     setExecutionModeSelection(currentExecutionMode);
     return;
   }
@@ -242,10 +248,12 @@ async function switchExecutionMode(nextMode) {
     resourceInput.value = realResourceValue;
     instrumentModelSelect.value = realModelValue;
   } else {
+    resourceInput.value = "";
     instrumentModelSelect.value = noHardwareModelValue;
   }
   clearPlanPreview();
   updateExecutionModePresentation();
+  updateFeatureAvailability();
   await loadCapabilities(instrumentModelSelect.value);
   updateModelSelectorPresentation();
   updateRangeAndLiveChartScale();
@@ -530,18 +538,19 @@ if (deviceOptionsToggleButton && deviceOptionsPanel) {
 }
 
 startRunButton.addEventListener("click", async () => {
-  if (isRunActive()) {
+  if (executionRequestPending || isRunActive()) {
     appendTranslatedStatusLog("status.active_run_start_blocked");
     return;
   }
+  const submittedMode = currentExecutionMode;
   try {
     const payload = formPayload();
-    if (currentExecutionMode !== "real" && !payload.instrument_model) {
+    if (submittedMode !== "real" && !payload.instrument_model) {
       appendTranslatedStatusLog("validation.execution_model_required");
       instrumentModelSelect.focus();
       return;
     }
-    if (currentExecutionMode === "real" && !payload.resource) {
+    if (submittedMode === "real" && !payload.resource) {
       appendTranslatedStatusLog("validation.visa_resource_required");
       resourceInput.focus();
       return;
@@ -552,8 +561,10 @@ startRunButton.addEventListener("click", async () => {
       form.reportValidity();
       return;
     }
-    const request = buildExecutionRequest(payload, currentExecutionMode);
-    if (currentExecutionMode === "dry-run") {
+    const request = buildExecutionRequest(payload, submittedMode);
+    executionRequestPending = true;
+    updateExecutionModePresentation();
+    if (submittedMode === "dry-run") {
       beginPlanPreview();
     } else {
       clearPlanPreview();
@@ -562,13 +573,16 @@ startRunButton.addEventListener("click", async () => {
       method: "POST",
       body: JSON.stringify(request.payload),
     });
-    if (currentExecutionMode === "dry-run") {
+    if (submittedMode === "dry-run") {
       renderPlanPreview(result);
     } else {
       renderStatus(result);
     }
   } catch (error) {
     appendBrowserError(error);
+  } finally {
+    executionRequestPending = false;
+    updateExecutionModePresentation();
   }
 });
 

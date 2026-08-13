@@ -81,7 +81,7 @@ WebUI 是一個本機擷取主控台。主要區域包含：
 - `Simulate` 必須選擇 `34460A` 或 `34461A`，且不使用或查詢真實 VISA hardware。Deterministic simulated instrument 會完整執行 acquisition runtime，因此 Live data 的最新讀值、圖表、統計資料、最近 sample、Stop 與正常 CSV 輸出都可運作。
 - `Dry-run` 必須選擇 planning model，並將 Start 改為 `Preview plan`。它只驗證 Core plan 並顯示於 Status details，不啟動 acquisition、不建立 active run、不執行真實 VISA I/O，也不產生 Live data sample。Preview plan 會清除前一次 runtime 留在畫面上的 sample。
 
-Execution mode 僅存在於目前頁面，active run 期間不可切換，而且不會持久化；重新載入頁面一律回到 `Real`。Simulation 與 Dry-run 可用於無硬體檢查，但都不能當作實機驗證證據。
+Execution mode 僅存在於目前頁面，Start／Preview request pending 或 active run 期間不可切換，而且不會持久化；重新載入頁面一律回到 `Real`。Simulation 與 Dry-run 可用於無硬體檢查，但都不能當作實機驗證證據。
 
 ## 首次執行
 

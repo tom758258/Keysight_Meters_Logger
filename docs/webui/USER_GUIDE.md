@@ -115,9 +115,10 @@ Open `Device options` and choose one mode:
   no Live data samples. Previewing a plan clears samples left on screen by an
   earlier run.
 
-Execution mode is page-local and cannot be changed while a run is active. It
-is not saved: reloading always returns to `Real`. Simulation and dry-run are
-useful no-hardware checks, but neither is live-hardware validation evidence.
+Execution mode is page-local and cannot be changed while a Start or Preview
+request is pending or a run is active. It is not saved: reloading always
+returns to `Real`. Simulation and dry-run are useful no-hardware checks, but
+neither is live-hardware validation evidence.
 
 ## First Run
 

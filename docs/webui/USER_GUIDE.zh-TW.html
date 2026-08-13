@@ -271,7 +271,7 @@
             <li><code>Simulate</code> 必須選擇 <code>34460A</code> 或 <code>34461A</code>，且不使用或查詢真實 VISA hardware。Deterministic simulated instrument 會完整執行 acquisition runtime，因此 Live data 的最新讀值、圖表、統計資料、最近 sample、Stop 與正常 CSV 輸出都可運作。</li>
             <li><code>Dry-run</code> 必須選擇 planning model，並將 Start 改為 <code>Preview plan</code>。它只驗證 Core plan 並顯示於 Status details，不啟動 acquisition、不建立 active run、不執行真實 VISA I/O，也不產生 Live data sample。Preview plan 會清除前一次 runtime 留在畫面上的 sample。</li>
         </ul>
-        <p>Execution mode 僅存在於目前頁面，active run 期間不可切換，而且不會持久化；重新載入頁面一律回到 <code>Real</code>。Simulation 與 Dry-run 可用於無硬體檢查，但都不能當作實機驗證證據。</p>
+        <p>Execution mode 僅存在於目前頁面，Start／Preview request pending 或 active run 期間不可切換，而且不會持久化；重新載入頁面一律回到 <code>Real</code>。Simulation 與 Dry-run 可用於無硬體檢查，但都不能當作實機驗證證據。</p>
 
         <h2>首次執行</h2>
         <p>進行基本的立即量測 (immediate measurement)，請採用以下流程：</p>
