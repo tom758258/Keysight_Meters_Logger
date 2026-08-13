@@ -78,7 +78,7 @@ launcher is:
 .\.venv\Scripts\meters-tool-webui-launcher.exe
 ```
 
-The PyInstaller standalone launcher executable is located in the shared Windows
+The PyInstaller launcher executable is located in the shared Windows onedir
 bundle:
 
 ```text
@@ -86,7 +86,7 @@ dist\meters-tool\meters-tool-webui-launcher.exe
 ```
 
 The virtual-environment wrapper requires the installed project environment;
-the `dist\meters-tool\` directory is the standalone Windows build artifact
+the `dist\meters-tool\` directory is the shared Windows onedir build output
 (see the root [README Build section](../../README.md#build)).
 
 The default local server is:
