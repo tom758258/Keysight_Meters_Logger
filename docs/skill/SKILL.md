@@ -1,6 +1,6 @@
 ---
 name: meters-tool-cli-orchestration
-description: Use when modifying, testing, reviewing, or orchestrating Meters Tool CLI/worker subprocess workflows, including start-trigger-record, JSON/JSONL contracts, dry-run, simulate, wait-ready, status, send-command, stop, POST /command, GET /status, report.json, CSV, run_id correlation, and live resource safety. Do not use for CSS-only UI styling, general documentation polishing, or unrelated Python refactors.
+description: Use when modifying, testing, reviewing, or orchestrating Meters Tool CLI/worker subprocess workflows, including start-trigger-record, JSON/JSONL contracts, dry-run, simulate, wait-ready, status, send-command, stop, capabilities --json, POST /command, GET /status, report.json, CSV, --no-csv, csv_enabled, run_id correlation, and live resource safety. Do not use for CSS-only UI styling, general documentation polishing, or unrelated Python refactors.
 ---
 
 # Meters Tool CLI Orchestration
@@ -81,6 +81,34 @@ and fail-closed rules.
 - Do not stop, kill, or reuse unrelated pre-existing `meters-tool`
   processes unless the user explicitly approves it. Use a fresh explicit port
   for the owned worker, or report a pre-existing-worker/port blocker.
+- Before a real live workflow, treat single-client instrument control as an
+  operator prerequisite: no other Meters CLI, WebUI, logger, test process, or
+  external VISA application should actively control the same physical
+  instrument. Meters does not enforce this with automatic locking; do not
+  terminate unrelated processes or invent locking.
+
+### CSV, dry-run planning, and orchestrator persistence
+
+- CSV output remains enabled by default. With `--no-csv`, Meters does not create
+  its CSV writer, CSV file, or CSV-only parent directory.
+- JSONL `sample` events, lifecycle, status, summary, stop, cleanup, and `run_id`
+  behavior remain unchanged with `--no-csv`.
+- When an orchestrator owns persistence, retain the complete raw stdout JSONL
+  stream and may derive sample storage from `sample` events. Do not treat only
+  `sample` events as complete workflow evidence.
+- Dry-run reports `csv_enabled`. `csv_path` is nullable and must be `null` when
+  `csv_enabled` is `false`. `dry_run_writes_csv` remains `false` for all
+  dry-runs and must not be used as a substitute for `csv_enabled`.
+
+### Capability discovery
+
+- Use `capabilities --json` as the no-VISA, no-live-I/O capability and support
+  discovery path. Optional `--model MODEL` may inspect a requested profile
+  offline; it does not perform live identity detection and does not override the
+  model detected during a later live run.
+- Product support still requires the exact registered live transport/backend/
+  feature scope from Core support policy and `supported-models.md`. Defer
+  backend and support decisions to the contracts and that reference.
 
 ### Startup-bound execution context and command envelope
 
@@ -169,8 +197,13 @@ Apply these rules before running or preparing executable Meters workflows such a
 2. Read the relevant source-of-truth contracts before editing or reviewing.
 3. Keep proposed changes inside the documented lifecycle and safety boundaries.
 4. Prefer no-hardware validation first: dry-run, simulator, and contract tests.
-5. Require explicit user-selected resources before proposing live runs.
-6. Report any contract impact, validation coverage, and remaining live-hardware
+5. Require explicit user-selected resources before proposing live runs. Confirm
+   the single-client live-instrument prerequisite with the operator; do not
+   assume exclusive control or terminate unrelated processes.
+6. Use `capabilities --json` for offline capability and support discovery when
+   planning; do not treat it as live identity or as a substitute for registered
+   live support scope.
+7. Report any contract impact, validation coverage, and remaining live-hardware
    risk explicitly.
 
 ## Bundled simulator helper

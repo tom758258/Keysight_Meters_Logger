@@ -63,9 +63,27 @@ separate wrapper report with `schema_version: 1`.
 
 For live work, even the short prompt must stay explicit. A live prompt must
 include an exact operator-selected VISA resource and explicit live execution
-authorization for that resource. Do not shorten live prompts by removing the
+authorization for that resource. Confirm the single-client live-instrument
+prerequisite with the operator before live execution; Meters does not enforce
+exclusive control automatically, and agents must not terminate unrelated
+processes or invent locking. Do not shorten live prompts by removing the
 resource, the authorization, or the prohibition against scanning, guessing,
 rotating, or substituting resources.
+
+Dry-run planning reports `csv_enabled`; `csv_path` is nullable and must be
+`null` when `csv_enabled` is `false`. `dry_run_writes_csv` remains `false` for
+all dry-runs and must not substitute for `csv_enabled`. CSV stays enabled by
+default; with `--no-csv`, Meters creates no CSV writer, file, or CSV-only parent
+directory, while JSONL lifecycle, status, summary, stop, cleanup, and `run_id`
+behavior stay unchanged. Orchestrators that own persistence must retain the
+complete raw stdout JSONL stream and may derive sample storage from `sample`
+events.
+
+Use `capabilities --json` for no-VISA, no-live-I/O capability and support
+discovery. Optional `--model` inspects a profile offline; it does not perform
+live identity detection or override the model detected in a later live run.
+Product support still requires the exact registered live transport/backend/
+feature scope.
 
 ## Before running executable examples
 
@@ -252,6 +270,9 @@ Codex should:
 - Use documented CLI spellings and resource strings instead of inventing flags,
   SCPI-form measurement values, or simulator aliases.
 - Ask the user for the explicit `--resource` if it was not provided.
+- Confirm the single-client live-instrument prerequisite with the operator
+  before any live command; do not terminate unrelated processes or assume
+  automatic locking.
 - Plan dry-run and simulator validation before any live command.
 - Use repository-documented subprocess orchestration for software-trigger
   validation instead of detached shell launch.
@@ -327,6 +348,9 @@ Codex should:
 - Check that cleanup uses `POST /stop` or the documented CLI stop client.
 - Check that missing `ready`, malformed JSON, non-zero exit, missing summary,
   `summary.ok: false`, and `fatal_error` are treated as failed or incomplete.
+- Check `--no-csv` orchestrator persistence: complete raw stdout JSONL retained,
+  sample storage may derive from `sample` events, and dry-run `csv_enabled`/
+  nullable `csv_path` semantics are respected.
 - Flag any resource scanning, guessing, rotation, or silent substitution in
   live acquisition workflows.
 
@@ -722,6 +746,9 @@ Codex should:
 - Treat this as a real-instrument workflow only because the user explicitly
   authorized live execution and supplied a concrete resource placeholder to be
   replaced by the operator.
+- Confirm the single-client live-instrument prerequisite with the operator
+  before live execution; do not terminate unrelated processes or assume
+  automatic locking.
 - Run or attempt dry-run and simulator validation before any live command.
 - Use documented CLI spellings, simulator resource strings, and subprocess
   orchestration instead of invented flags or detached shell launch.

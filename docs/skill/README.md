@@ -28,7 +28,7 @@ that touches:
 
 - Meters CLI and worker lifecycle behavior.
 - `start-trigger-record`, `dry-run`, `simulate`, `wait-ready`, `status`,
-  `send-command`, and `stop`.
+  `send-command`, `stop`, and `capabilities --json`.
 - Runtime JSONL events and single-response JSON client commands.
 - Local control endpoints: `POST /command`, `POST /stop`, and `GET /status`.
 - `run_id` correlation between stdout JSONL, `/status`, CSV, and `report.json`.
@@ -249,6 +249,11 @@ Use $meters-tool-cli-orchestration to check whether this orchestrator workflow r
 ## Safety notes
 
 - Prefer dry-run and simulator validation before live hardware.
+- Before a real live workflow, confirm the single-client live-instrument
+  prerequisite with the operator: no other Meters CLI, WebUI, logger, test
+  process, or external VISA application should actively control the same
+  physical instrument. Meters does not enforce this automatically; do not
+  terminate unrelated processes or invent locking.
 - Live mode requires an explicit user-selected `--resource`.
 - Do not scan, guess, rotate, brute-force, or silently substitute live VISA
   resources inside an acquisition workflow.
@@ -258,5 +263,18 @@ Use $meters-tool-cli-orchestration to check whether this orchestrator workflow r
   is `expected_model_id`, while simulate/dry-run `--model` is
   `planning_model_id`; Meters does not use `planning_profile_id`. Direct
   `POST /command` must omit `context` and cannot override startup context.
-- Use structured JSON/JSONL, CSV, `report.json`, and exit codes for machine
-  decisions. Human-readable text is diagnostic only.
+- CSV output remains enabled by default. With `--no-csv`, Meters does not create
+  its CSV writer, CSV file, or CSV-only parent directory; JSONL lifecycle,
+  status, summary, stop, cleanup, and `run_id` behavior stay unchanged. An
+  orchestrator that owns persistence should retain the complete raw stdout
+  JSONL stream and may derive sample storage from `sample` events.
+- Dry-run reports `csv_enabled`; `csv_path` is nullable and must be `null` when
+  `csv_enabled` is `false`. `dry_run_writes_csv` remains `false` for all
+  dry-runs and must not substitute for `csv_enabled`.
+- Use `capabilities --json` for no-VISA, no-live-I/O capability and support
+  discovery. Optional `--model` inspects a profile offline; it does not perform
+  live identity detection or override the model detected in a later live run.
+  Product support still requires the exact registered live transport/backend/
+  feature scope.
+- Use structured JSON/JSONL, CSV when enabled, `report.json`, and exit codes
+  for machine decisions. Human-readable text is diagnostic only.

@@ -11,7 +11,7 @@
 當您要求 Codex 修改、審查、測試、除錯或調度涉及以下項目的工作時，請使用此 Skill：
 
 - Meters CLI 與 worker 的生命週期行為。
-- `start-trigger-record`、`dry-run`、`simulate`、`wait-ready`、`status`、`send-command` 及 `stop`。
+- `start-trigger-record`、`dry-run`、`simulate`、`wait-ready`、`status`、`send-command`、`stop` 及 `capabilities --json`。
 - 執行階段的 JSONL 事件與單一回應 JSON 的客戶端命令。
 - 本機控制端點 (local control endpoints)：`POST /command`、`POST /stop` 及 `GET /status`。
 - 標準輸出 (stdout) JSONL、`/status`、CSV 與 `report.json` 之間的 `run_id` 關聯性。
@@ -199,10 +199,26 @@ helper 會在指定輸出目錄中寫入 `dry_run.jsonl`、`sim_worker_stdout.js
 ## 安全注意事項 (Safety notes)
 
 - 在實際操作硬體之前，優先使用試執行 (dry-run) 與模擬器 (simulator) 進行驗證。
+- 在實際 live workflow 前，請與操作人員確認 single-client live-instrument
+  前提：不應有其他 Meters CLI、WebUI、logger、test process 或外部 VISA
+  application 正在 actively control 同一台實體儀器。Meters 不會自動 enforce
+  這項限制；請勿 terminate 無關 process，也不要自行發明 locking。
 - 實機模式 (live mode) 需要使用者明確選定 `--resource`。
 - 在擷取工作流程中，請勿掃描、猜測、輪換、暴力破解或暗中替換實機 VISA 資源。
 - 請將 `ready` 與 `wait-ready` 僅視為控制平面 (control plane) 的就緒狀態，而非量測完成。
-- 請使用結構化的 JSON/JSONL、CSV、`report.json` 及結束代碼 (exit codes) 來進行機器決策。人類可讀的文字僅供診斷使用。
+- CSV 輸出預設啟用。使用 `--no-csv` 時，Meters 不會建立 CSV writer、CSV
+  檔案或僅供 CSV 使用的父目錄；JSONL lifecycle、status、summary、stop、
+  cleanup 與 `run_id` 行為不變。若 orchestrator 擁有 persistence，應保留
+  完整的 raw stdout JSONL stream，並可從 `sample` events 衍生 sample storage。
+- dry-run 會回報 `csv_enabled`；當 `csv_enabled` 為 `false` 時，`csv_path`
+  可為 null 且必須為 `null`。所有 dry-run 的 `dry_run_writes_csv` 仍為
+  `false`，不可用它取代 `csv_enabled`。
+- 使用 `capabilities --json` 作為 no-VISA、no-live-I/O 的 capability 與
+  support discovery path。選用的 `--model` 可 offline 檢視 profile，但不會
+  執行 live identity detection，也不會覆寫後續 live run 偵測到的 model。
+  product support 仍須符合 exact registered live transport/backend/feature scope。
+- 請使用結構化的 JSON/JSONL、啟用時的 CSV、`report.json` 及結束代碼 (exit
+  codes) 來進行機器決策。人類可讀的文字僅供診斷使用。
 
 ## Common schema 2 與 runtime 規則
 

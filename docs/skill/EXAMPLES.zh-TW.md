@@ -24,7 +24,20 @@
 
 對 no-hardware 與 simulator 工作來說，如果 agent 正確遵守 Skill 與 contracts，短 prompt 通常應該足夠。短版與長版的 contract-level 結果應該相同：dry-run 與 simulator 仍是分開 invocation，pass/fail 仍根據 JSON/JSONL 與 artifacts，仍需檢查 `run_id` correlation，且不碰 live hardware。
 
-對 live 工作來說，即使是短 prompt 也必須保持明確。live prompt 必須包含 operator 選定的 exact VISA resource，以及針對該 resource 的 explicit live execution authorization。不要為了縮短 live prompt 而移除 resource、授權，或禁止 scan、guess、rotate、substitute resource 的安全邊界。
+對 live 工作來說，即使是短 prompt 也必須保持明確。live prompt 必須包含 operator 選定的 exact VISA resource，以及針對該 resource 的 explicit live execution authorization。在 live execution 前，請與操作人員確認 single-client live-instrument 前提；Meters 不會自動 enforce exclusive control，agent 也不得 terminate 無關 process 或自行發明 locking。不要為了縮短 live prompt 而移除 resource、授權，或禁止 scan、guess、rotate、substitute resource 的安全邊界。
+
+dry-run planning 會回報 `csv_enabled`；當 `csv_enabled` 為 `false` 時，
+`csv_path` 可為 null 且必須為 `null`。所有 dry-run 的 `dry_run_writes_csv`
+仍為 `false`，不可用它取代 `csv_enabled`。CSV 預設啟用；使用 `--no-csv` 時，
+Meters 不建立 CSV writer、檔案或僅供 CSV 使用的父目錄，而 JSONL lifecycle、
+status、summary、stop、cleanup 與 `run_id` 行為不變。擁有 persistence 的
+orchestrator 必須保留完整的 raw stdout JSONL stream，並可從 `sample` events
+衍生 sample storage。
+
+使用 `capabilities --json` 作為 no-VISA、no-live-I/O 的 capability 與 support
+discovery path。選用的 `--model` 可 offline 檢視 profile，但不會執行 live
+identity detection，也不會覆寫後續 live run 偵測到的 model。product support
+仍須符合 exact registered live transport/backend/feature scope。
 
 ## 執行範例前 (Before running executable examples)
 
@@ -157,6 +170,8 @@ Codex 應該：
 - 拒絕在 acquisition workflow 內猜測、掃描、輪換或替換實機 VISA 資源。
 - 使用文件化的 CLI 拼法與 resource strings，而不是自行發明 flags、SCPI-form measurement values 或 simulator aliases。
 - 如果使用者尚未提供，要求使用者提供明確的 `--resource`。
+- 在任何 live command 前，與操作人員確認 single-client live-instrument
+  前提；請勿 terminate 無關 process，也不要假設 automatic locking。
 - 在任何 live command 前，先規劃 dry-run 與 simulator validation。
 - 對於 software-trigger validation，使用 repository 已文件化的 subprocess orchestration，而不是 detached shell launch。
 - 將 `ready` 與 `wait-ready` 視為 control-plane readiness，而不是 measurement completion。
@@ -217,6 +232,9 @@ Codex 應該：
 - 檢查 `POST /command` 是否只在 readiness 之後使用。
 - 檢查 cleanup 是否使用 `POST /stop` 或已文件化的 CLI stop client。
 - 檢查 missing `ready`、malformed JSON、non-zero exit、missing summary、`summary.ok: false` 與 `fatal_error` 是否被視為 failed 或 incomplete。
+- 檢查 `--no-csv` orchestrator persistence：是否保留完整 raw stdout JSONL、
+  sample storage 是否可從 `sample` events 衍生，以及 dry-run 的
+  `csv_enabled`/nullable `csv_path` 語意是否正確。
 - 標記 live acquisition workflow 中任何 resource scanning、guessing、rotation 或 silent substitution。
 
 #### 預期結果
@@ -540,6 +558,8 @@ measurement values、simulator resource aliases 或 worker launch patterns。如
 Codex 應該：
 
 - 只有在使用者明確授權 live execution，並提供由操作人員替換的具體 resource placeholder 後，才把這視為 real-instrument workflow。
+- 在 live execution 前，與操作人員確認 single-client live-instrument 前提；
+  請勿 terminate 無關 process，也不要假設 automatic locking。
 - 在任何 live command 前，先執行或嘗試執行 dry-run 與 simulator validation。
 - 使用文件化的 CLI 拼法、simulator resource strings 與 subprocess orchestration，而不是自行發明 flags 或使用 detached shell launch。
 - 只使用提供的 live resource，絕不 scan、guess、rotate 或 substitute 其他 resource。
