@@ -103,19 +103,15 @@ validation artifact.
 
 Normal CLI starts remain in product support-policy mode. Non-Product-open
 scopes continue to reject when users call `meters-tool start-trigger-record`
-directly. 34460A DCV Ratio is Product-open only on USB/system-VISA and does not
-require the hidden validation selector there.
+directly. Validation mode does not bypass Core support policy or model/profile
+hard limits; unsupported or missing scopes fail closed, and validation may only
+exercise explicitly registered pending entries under the documented validation
+policy.
 
-For 34460A, the current Product-open live scope remains USB/system-VISA;
-LAN/TCPIP is not currently supported.
-
-Validation mode is still bounded by Core model/profile limits. It must not
-enable 34460A external or external-custom workflows, 10 A or current-terminal
-paths, buffer drain sizes above the selected profile reading memory, unknown
-profiles, missing registrations, or invalid requests. The USB/system-VISA DCV
-Ratio scope is Product-open; this does not open the 34460A LAN scopes.
-Changing a pending entry to `live_validated_full_suite` is an explicit support
-metadata and documentation change, not an automatic result of validation mode.
+The exact current Product-open and pending support matrix lives in
+`docs/core/supported-models.md`. Changing a pending entry to
+`live_validated_full_suite` is an explicit support metadata and documentation
+change, not an automatic result of validation mode.
 
 ## Dry-Run Formatting
 

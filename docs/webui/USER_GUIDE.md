@@ -69,12 +69,11 @@ The WebUI is a local acquisition console. The main areas are:
 - `Live data`: latest reading, trend chart, recent samples, and selected sample
   details.
 
-Select `Supported devices` to see the supported model list:
-
-| Vendor | Model | Notes |
-| --- | --- | --- |
-| Keysight | 34461A | Supported model profile; exact live scope is in Supported Models |
-| Keysight | 34460A | Supported model profile; exact live scope is in Supported Models |
+Select `Supported devices` to see the supported WebUI connection list. The list
+is derived from Core capability and support metadata, so it reflects the
+current supported connection coverage without hard-coding a transient USB/LAN
+matrix. For the exact current Product support scope, see
+[Supported Models](../core/supported-models.md).
 
 ## Browser Language
 

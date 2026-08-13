@@ -59,12 +59,7 @@ WebUI 是一個本機擷取主控台。主要區域包含：
 - `Status` (狀態)：目前的作業狀態、擷取到的樣本數、錯誤、CSV 路徑與日誌。
 - `Live data`（即時資料）：最新讀值、趨勢圖表、最近取樣與所選取樣的詳細資訊。
 
-點擊 `支援裝置` 可查看支援型號清單：
-
-| 廠商 | 型號 | 備註 |
-| --- | --- | --- |
-| Keysight | 34461A | 支援型號設定檔；精確實機範圍請見 Supported Models |
-| Keysight | 34460A | 支援型號設定檔；精確實機範圍請見 Supported Models |
+點擊 `支援裝置` 可查看 WebUI 支援連線清單。此清單由 Core capability 與支援元資料衍生，會反映目前支援的連線範圍，而不會硬編一份暫時的 USB/LAN support matrix。精確的目前 Product support scope 請見 [Supported Models](../core/supported-models.md)。
 
 ## 瀏覽器語言
 
