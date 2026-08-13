@@ -150,23 +150,7 @@ def _add_client_output_arguments(
         )
 
 
-def build_parser(version_provider) -> argparse.ArgumentParser:
-    default_profile = get_default_instrument_profile()
-    supported_models = " or ".join(supported_instrument_models())
-    measurement_choices = ", ".join(
-        format_measurement_type(value) for value in _supported_measurement_types(default_profile)
-    )
-    parser = MetersArgumentParser(
-        prog="meters-tool",
-        formatter_class=MetersHelpFormatter,
-    )
-    parser.add_argument(
-        "--version",
-        action="version",
-        version=f"meters-tool {version_provider()}",
-    )
-    sub = parser.add_subparsers(dest="command", required=True)
-
+def _add_list_resources_parser(sub) -> None:
     list_resources = sub.add_parser(
         "list-resources",
         formatter_class=MetersHelpFormatter,
@@ -208,6 +192,8 @@ def build_parser(version_provider) -> argparse.ArgumentParser:
     )
     list_resources.add_argument("--json", action="store_true", help="alias for --format json")
 
+
+def _add_capabilities_parser(sub, *, supported_models: str) -> None:
     capabilities = sub.add_parser(
         "capabilities",
         formatter_class=MetersHelpFormatter,
@@ -225,6 +211,14 @@ def build_parser(version_provider) -> argparse.ArgumentParser:
     )
     _add_client_output_arguments(capabilities, include_dry_run=False)
 
+
+def _add_start_parser(
+    sub,
+    *,
+    default_profile,
+    supported_models: str,
+    measurement_choices: str,
+) -> None:
     start = sub.add_parser(
         "start-trigger-record",
         formatter_class=MetersHelpFormatter,
@@ -448,6 +442,8 @@ def build_parser(version_provider) -> argparse.ArgumentParser:
         help="VM Comp rear-panel output pulse slope; omit to leave unchanged",
     )
 
+
+def _add_send_command_parser(sub) -> None:
     send_command = sub.add_parser("send-command", formatter_class=MetersHelpFormatter)
     _add_client_connection_arguments(
         send_command,
@@ -468,6 +464,8 @@ def build_parser(version_provider) -> argparse.ArgumentParser:
     send_command.add_argument("--job-id", default=None, help="optional client-generated job id")
     _add_client_output_arguments(send_command, include_dry_run=True)
 
+
+def _add_stop_parser(sub) -> None:
     stop = sub.add_parser("stop", formatter_class=MetersHelpFormatter)
     _add_client_connection_arguments(
         stop,
@@ -476,6 +474,8 @@ def build_parser(version_provider) -> argparse.ArgumentParser:
     )
     _add_client_output_arguments(stop, include_dry_run=True)
 
+
+def _add_status_parser(sub) -> None:
     status = sub.add_parser("status", formatter_class=MetersHelpFormatter)
     _add_client_connection_arguments(
         status,
@@ -484,6 +484,8 @@ def build_parser(version_provider) -> argparse.ArgumentParser:
     )
     _add_client_output_arguments(status, include_dry_run=True)
 
+
+def _add_wait_ready_parser(sub) -> None:
     wait = sub.add_parser("wait-ready", formatter_class=MetersHelpFormatter)
     _add_client_connection_arguments(
         wait,
@@ -491,5 +493,36 @@ def build_parser(version_provider) -> argparse.ArgumentParser:
         timeout_help="overall wait deadline in ms; supported range 100-600000",
     )
     _add_client_output_arguments(wait, include_dry_run=False)
+
+
+def build_parser(version_provider) -> argparse.ArgumentParser:
+    default_profile = get_default_instrument_profile()
+    supported_models = " or ".join(supported_instrument_models())
+    measurement_choices = ", ".join(
+        format_measurement_type(value) for value in _supported_measurement_types(default_profile)
+    )
+    parser = MetersArgumentParser(
+        prog="meters-tool",
+        formatter_class=MetersHelpFormatter,
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"meters-tool {version_provider()}",
+    )
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    _add_list_resources_parser(sub)
+    _add_capabilities_parser(sub, supported_models=supported_models)
+    _add_start_parser(
+        sub,
+        default_profile=default_profile,
+        supported_models=supported_models,
+        measurement_choices=measurement_choices,
+    )
+    _add_send_command_parser(sub)
+    _add_stop_parser(sub)
+    _add_status_parser(sub)
+    _add_wait_ready_parser(sub)
 
     return parser
