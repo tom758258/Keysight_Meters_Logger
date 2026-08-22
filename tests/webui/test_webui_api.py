@@ -745,6 +745,7 @@ class WebUiApiTests(unittest.TestCase):
         response = client.get("/")
 
         self.assertEqual(200, response.status_code)
+        self.assertIn("no-store", response.headers["Cache-Control"])
         self.assertNotIn(APP_JS_CACHEBUSTER_TOKEN, response.text)
         self.assertIn(
             f'/static/app.js?v={get_webui_version()}-{digest}',
@@ -759,13 +760,13 @@ class WebUiApiTests(unittest.TestCase):
         self.assertEqual(200, response.status_code)
         self.assertIn("no-store", response.headers["Cache-Control"])
 
-    def test_static_no_store_header_is_limited_to_javascript_assets(self):
+    def test_static_css_assets_are_not_cached(self):
         client, _csv_path = make_api_client(self)
 
         response = client.get("/static/styles.css")
 
         self.assertEqual(200, response.status_code)
-        self.assertNotIn("no-store", response.headers.get("Cache-Control", ""))
+        self.assertIn("no-store", response.headers["Cache-Control"])
 
     def test_open_current_csv_rejects_idle_status(self):
         client, _csv_path = make_api_client(self)

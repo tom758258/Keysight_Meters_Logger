@@ -36,11 +36,10 @@ from meters_tool_webui._web_payloads import parse_software_trigger_payload
 APP_JS_CACHEBUSTER_TOKEN = "__METERS_TOOL_APP_JS_CACHEBUSTER__"
 
 
-class _NoStoreJavaScriptStaticFiles(StaticFiles):
+class _NoStoreStaticFiles(StaticFiles):
     async def get_response(self, path: str, scope: dict[str, Any]):
         response = await super().get_response(path, scope)
-        if path.lower().endswith(".js"):
-            response.headers["Cache-Control"] = "no-store"
+        response.headers["Cache-Control"] = "no-store"
         return response
 
 
@@ -49,11 +48,14 @@ def create_app(manager: WebRunManager | None = None) -> FastAPI:
     index_html = _render_index_html(static_dir)
     app = FastAPI(title="Meters Tool WebUI")
     app.state.manager = manager or WebRunManager()
-    app.mount("/static", _NoStoreJavaScriptStaticFiles(directory=static_dir), name="static")
+    app.mount("/static", _NoStoreStaticFiles(directory=static_dir), name="static")
 
     @app.get("/")
     def index() -> HTMLResponse:
-        return HTMLResponse(index_html)
+        return HTMLResponse(
+            index_html,
+            headers={"Cache-Control": "no-store"},
+        )
 
     @app.get("/api/capabilities")
     def api_capabilities(model: str | None = None) -> dict[str, Any]:
