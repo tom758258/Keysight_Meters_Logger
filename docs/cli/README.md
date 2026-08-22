@@ -548,6 +548,7 @@ The module form remains an explicit development/fallback alternative:
 | Command | Purpose | Typical use |
 | --- | --- | --- |
 | `capabilities` | Print Core-owned instrument capabilities and Product support metadata without instrument I/O. | Let scripts inspect profiles, measurements, trigger modes, limits, and exact support scopes before constructing a request. |
+| `manifest` | Print the static tool manifest with tool identity and worker protocol compatibility without instrument or runtime I/O. | Let orchestrators introspect `tool_id`, `tool_version`, and supported worker schema versions before launching a worker. |
 | `list-resources` | Print VISA resources discovered by PyVISA. | Find the USB or LAN resource string. Add `--verify` to query `*IDN?`; add `--live-only` to hide stale cached resources; add `--dry-run` to preview discovery actions without touching VISA. |
 | `start-trigger-record` | Connect to the instrument and record samples to CSV. | Main logging command. |
 | `send-command` | POST one `software_trigger` command to the local command endpoint. | Used with `--trigger-mode software`. |
@@ -568,6 +569,35 @@ Root options:
 | `--model MODEL`, `--instrument-model MODEL` | Core fallback profile | Select an offline capability profile through Core model resolution. This performs no live detection and does not override a later live run's detected model. |
 | `--format text\|json` | `text` | Output a concise human summary or one machine-readable capability object. |
 | `--json` | Off | Alias for `--format json`. |
+
+`manifest` options:
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `--format text\|json` | `text` | Output a concise human summary or one machine-readable manifest object. |
+| `--json` | Off | Alias for `--format json`. |
+
+`manifest --json` emits one `event: tool_manifest` object and exits `0`. It
+performs no VISA I/O, starts no runtime session or HTTP server, creates no
+files, and changes no configuration. It describes the tool itself, not
+instrument capabilities; see `capabilities` for model/feature discovery.
+
+```json
+{
+  "event": "tool_manifest",
+  "schema_version": 2,
+  "tool_id": "meters",
+  "tool_version": "3.1.0",
+  "worker_protocol": {
+    "compatibility_policy": "v2-only",
+    "schema_versions": [2]
+  }
+}
+```
+
+The `worker_protocol` field reports the supported Common worker schema
+versions and the compatibility policy. Orchestrators must treat non-v2
+schemas as unsupported instead of negotiating.
 
 `list-resources` options:
 
@@ -700,6 +730,18 @@ the 34461A Auto Input Z behavior. The instrument may display HighZ while Auto
 is active on lower DC voltage ranges.
 
 ## Agent-Friendly CLI Workflows
+
+Inspect the static tool manifest and capabilities without opening VISA or
+creating an artifact:
+
+```powershell
+.\.venv\Scripts\meters-tool.exe manifest --json
+.\.venv\Scripts\meters-tool.exe capabilities --json
+```
+
+`manifest` reports tool identity and worker protocol compatibility only. See
+the `manifest` entry under [Command Reference](#command-reference) for the
+exact payload.
 
 Inspect capabilities before constructing a scheduler request without opening
 VISA or creating an artifact:

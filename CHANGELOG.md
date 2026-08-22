@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## v3.1.0
+
+- Added the `meters-tool manifest --json` machine introspection entry point.
+  It emits one static `event: tool_manifest` object with `tool_id`,
+  `tool_version`, and worker protocol compatibility (`schema_versions: [2]`,
+  `v2-only`) without VISA I/O, runtime sessions, HTTP servers, or artifacts.
+  Instrument/model capability discovery remains the responsibility of the
+  unchanged `capabilities --json` command.
+
 ## v3.0.0
 
 - Adds the Windows Electron Desktop and replaces separate Windows executable

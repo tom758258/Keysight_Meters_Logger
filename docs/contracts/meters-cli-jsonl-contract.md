@@ -94,6 +94,7 @@ These commands accept `--format json` and the `--json` alias:
 
 - `capabilities`
 - `list-resources`
+- `manifest`
 - `send-command`
 - `stop`
 - `status`
@@ -103,6 +104,7 @@ Alias rules:
 
 - `capabilities --json` is the same as `--format json`
 - `list-resources --json` is the same as `--format json`
+- `manifest --json` is the same as `--format json`
 - `send-command --json` is the same as `--format json`
 - `stop --json` is the same as `--format json`
 - `status --json` is the same as `--format json`
@@ -161,6 +163,27 @@ values from `100` to `600000`. Their default is `3000` ms.
 `10000` ms, and is an overall readiness deadline. Each `/status` request made
 by `wait-ready` uses at most `1000` ms and polling uses a fixed 200 ms
 interval.
+
+### Tool Manifest
+
+`manifest --json` emits one `event: tool_manifest` object and exits `0`. The
+command is pure static introspection: it does not create a VISA resource
+manager, enumerate or open resources, query `*IDN?`, start acquisition,
+start a Worker runtime session or HTTP server, create CSV or other output
+files, or modify persistent configuration. It describes the tool itself and
+its protocol compatibility; instrument/model capabilities remain the
+responsibility of `capabilities`.
+
+The manifest object contains:
+
+- `event`: `tool_manifest`.
+- `schema_version`: exact integer `2`, the Common runtime schema version this
+  tool emits.
+- `tool_id`: `meters`.
+- `tool_version`: the single distribution package version.
+- `worker_protocol`: `schema_versions: [2]` with compatibility policy
+  `v2-only`; the Worker command/status protocol accepts Common schema `2`
+  only, without fallback or negotiation.
 
 `send-command` defaults to `--command software_trigger`,
 `--arguments-json {}`, no `--job-id`, `--format text`, and

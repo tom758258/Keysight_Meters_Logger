@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import csv
 import json
+import os
 import tempfile
 import threading
 import time
@@ -276,6 +277,45 @@ class CliStartRuntimeTests(CliCommandHarnessMixin, unittest.TestCase):
                 self.assertEqual(0, rc)
                 events = self._parse_jsonl_events(output)
                 self._assert_success_jsonl_events(events, expected_samples)
+
+    def test_start_simulate_no_csv_jsonl_runtime_conformance(self):
+        parser = build_parser()
+        with tempfile.TemporaryDirectory() as tempdir:
+            previous_cwd = os.getcwd()
+            try:
+                os.chdir(tempdir)
+                args = parser.parse_args(
+                    [
+                        "start-trigger-record",
+                        "--resource",
+                        "SIM::34461A",
+                        "--no-csv",
+                        "--measurement",
+                        "current-dc",
+                        "--simulate",
+                        "--trigger-mode",
+                        "immediate",
+                        "--max-samples",
+                        "2",
+                        "--json",
+                    ]
+                )
+
+                rc, output, stderr = self._run_cmd_start_with_simulate_harness(
+                    args,
+                    csv_writer=None,
+                )
+                remaining_entries = os.listdir(tempdir)
+            finally:
+                os.chdir(previous_cwd)
+
+        self.assertEqual(0, rc)
+        self.assertEqual("", stderr)
+        events = self._parse_jsonl_events(output)
+        self._assert_success_jsonl_events(events, expected_samples=2)
+        summary = [event for event in events if event["event"] == "summary"][-1]
+        self.assertIs(True, summary["ok"])
+        self.assertEqual([], remaining_entries)
 
     def test_start_simulate_external_jsonl_uses_hardware_trigger_event(self):
         parser = build_parser()

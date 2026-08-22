@@ -326,6 +326,35 @@ def cmd_capabilities(
     return 0
 
 
+def cmd_manifest(output_format: str = "text", print_fn=print) -> int:  # noqa: ANN001
+    if output_format not in {"text", "json"}:
+        raise ValueError("output_format must be 'text' or 'json'")
+
+    payload = {
+        "event": "tool_manifest",
+        "schema_version": CLI_EVENT_SCHEMA_VERSION,
+        "tool_id": "meters",
+        "tool_version": get_cli_version(),
+        "worker_protocol": {
+            "compatibility_policy": "v2-only",
+            "schema_versions": [CLI_EVENT_SCHEMA_VERSION],
+        },
+    }
+
+    if output_format == "json":
+        print_fn(json.dumps(payload, sort_keys=True))
+        return 0
+
+    print_fn(f"tool id: {payload['tool_id']}")
+    print_fn(f"tool version: {payload['tool_version']}")
+    print_fn(
+        "worker protocol: "
+        f"schema versions {payload['worker_protocol']['schema_versions']} "
+        f"({payload['worker_protocol']['compatibility_policy']})"
+    )
+    return 0
+
+
 def cmd_list_resources(
     verify: bool = False,
     live_only: bool = False,
@@ -540,6 +569,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.command == "capabilities":
         return cmd_capabilities(args.instrument_model, args.output_format)
+    if args.command == "manifest":
+        return cmd_manifest(args.output_format)
     if args.command == "list-resources":
         return cmd_list_resources(
             verify=args.verify,

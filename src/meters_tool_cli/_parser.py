@@ -88,6 +88,7 @@ def _apply_json_aliases(args: argparse.Namespace, argv: list[str], parser: argpa
     if getattr(args, "command", None) in {
         "capabilities",
         "list-resources",
+        "manifest",
         "send-command",
         "stop",
         "status",
@@ -210,6 +211,18 @@ def _add_capabilities_parser(sub, *, supported_models: str) -> None:
         ),
     )
     _add_client_output_arguments(capabilities, include_dry_run=False)
+
+
+def _add_manifest_parser(sub) -> None:
+    manifest = sub.add_parser(
+        "manifest",
+        formatter_class=MetersHelpFormatter,
+        help=(
+            "print the static tool manifest with tool identity and worker "
+            "protocol compatibility without instrument or runtime I/O"
+        ),
+    )
+    _add_client_output_arguments(manifest, include_dry_run=False)
 
 
 def _add_start_parser(
@@ -514,6 +527,7 @@ def build_parser(version_provider) -> argparse.ArgumentParser:
 
     _add_list_resources_parser(sub)
     _add_capabilities_parser(sub, supported_models=supported_models)
+    _add_manifest_parser(sub)
     _add_start_parser(
         sub,
         default_profile=default_profile,
