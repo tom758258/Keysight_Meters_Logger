@@ -343,8 +343,8 @@ def test_desktop_build_assembles_shared_onedir_into_electron_directory():
     assert '"meters-tool-webui-host.exe"' in script
     assert '"resources\\backend"' in script
     assert "exactly one _internal directory" in script
-    assert "desktop-backend-dist" in script
-    assert "pyinstaller-desktop-backend" in script
+    assert "desktop-backend-dist" not in script
+    assert "pyinstaller-desktop-backend" not in script
 
     assert 'path.dirname(process.execPath), "meters-tool-webui-host.exe"' in main
     assert "process.resourcesPath" not in main

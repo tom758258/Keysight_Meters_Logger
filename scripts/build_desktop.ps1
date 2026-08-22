@@ -30,9 +30,7 @@ $sourceRootPrefix = $sourceRootFull.TrimEnd([System.IO.Path]::DirectorySeparator
 
 foreach ($ownedPath in @(
     $DesktopDist,
-    $SharedBundle,
-    (Join-Path $BuildRoot "desktop-backend-dist"),
-    (Join-Path $BuildRoot "pyinstaller-desktop-backend")
+    $SharedBundle
 )) {
     $ownedPathFull = [System.IO.Path]::GetFullPath($ownedPath)
     if (-not $ownedPathFull.StartsWith(
