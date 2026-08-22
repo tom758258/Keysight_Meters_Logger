@@ -9,6 +9,8 @@
   --accent-strong: #0058b5;
   --danger: #ff3b30;
   --danger-strong: #c9302c;
+  --ok: #2e9e54;
+  --warn: #d89000;
   --field: #ffffff;
   --focus: rgba(0, 113, 227, 0.18);
   --on-accent: #ffffff;
@@ -44,6 +46,8 @@
   --accent-strong: #8bbcf5;
   --danger: #ff6961;
   --danger-strong: #ff817a;
+  --ok: #4cbf78;
+  --warn: #e8a53d;
   --field: #1b1c1f;
   --focus: rgba(105, 170, 245, 0.28);
   --hover-surface: #26384d;
@@ -858,6 +862,72 @@ button:focus {
   letter-spacing: -0.2px;
 }
 
+/* ─── Live Status Indicators ─────────────────────────────────────────────── */
+.live-status-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--line);
+  box-shadow: var(--shadow-sm);
+}
+
+.live-state-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  background: var(--subtle-surface);
+  padding: 8px 12px;
+}
+
+.live-state-field > span {
+  overflow: hidden;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.state-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: auto;
+  min-width: 0;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.state-dot {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 9px;
+  border-radius: 50%;
+  background: var(--disabled-ink);
+}
+
+.state-ok .state-dot {
+  background: var(--ok);
+}
+
+.state-warning .state-dot {
+  background: var(--warn);
+}
+
+.state-error .state-dot {
+  background: var(--danger);
+}
+
+.state-idle .state-dot {
+  background: var(--disabled-ink);
+}
+
 /* ─── Live Latest Grid ───────────────────────────────────────────────────── */
 .live-latest-grid {
   display: grid;
@@ -1226,6 +1296,7 @@ pre:empty {
   .grid,
   .resource-row-body,
   .status-strip,
+  .live-status-row,
   .live-latest-grid,
   .live-stats-grid,
   .live-data-metrics {

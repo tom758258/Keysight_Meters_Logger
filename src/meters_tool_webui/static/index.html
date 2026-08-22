@@ -434,6 +434,30 @@
             </div>
           </div>
 
+          <div class="live-status-row" aria-live="polite">
+            <div class="live-state-field">
+              <span data-i18n="live_data.indicator_webui_state">WebUI State</span>
+              <strong id="webui-state-indicator" class="state-indicator state-warning">
+                <span class="state-dot" aria-hidden="true"></span>
+                <span class="state-text" data-i18n="live_data.indicator_checking">Checking</span>
+              </strong>
+            </div>
+            <div class="live-state-field">
+              <span data-i18n="live_data.indicator_command_state">Command State</span>
+              <strong id="command-state-indicator" class="state-indicator state-ok">
+                <span class="state-dot" aria-hidden="true"></span>
+                <span class="state-text" data-i18n="status.ready">Ready</span>
+              </strong>
+            </div>
+            <div class="live-state-field">
+              <span data-i18n="live_data.indicator_live_state">Live State</span>
+              <strong id="live-state-indicator" class="state-indicator state-idle">
+                <span class="state-dot" aria-hidden="true"></span>
+                <span class="state-text" data-i18n="live_data.indicator_not_monitoring">Not monitoring</span>
+              </strong>
+            </div>
+          </div>
+
           <div class="live-latest-grid">
             <div class="live-latest-value">
               <span data-i18n="live_data.latest">Latest</span>

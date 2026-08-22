@@ -301,6 +301,9 @@ class WebUiStaticTests(unittest.TestCase):
             'id="status-state"',
             'id="status-captured"',
             'id="status-errors"',
+            'id="webui-state-indicator"',
+            'id="command-state-indicator"',
+            'id="live-state-indicator"',
             'id="live-latest-value"',
             'id="live-latest-time"',
             'id="live-latest-trigger"',
@@ -339,6 +342,31 @@ class WebUiStaticTests(unittest.TestCase):
         ]:
             with self.subTest(expected=expected):
                 self.assertIn(expected, live_data_js)
+
+        assert_tag_with_attrs(
+            self,
+            index,
+            "div",
+            {"class": "live-status-row", "aria-live": "polite"},
+        )
+        for indicator_id in (
+            "webui-state-indicator",
+            "command-state-indicator",
+            "live-state-indicator",
+        ):
+            with self.subTest(indicator=indicator_id):
+                assert_tag_with_attrs(
+                    self,
+                    index,
+                    "strong",
+                    {"id": indicator_id},
+                )
+        assert_tag_with_attrs(
+            self,
+            index,
+            "span",
+            {"class": "state-dot", "aria-hidden": "true"},
+        )
 
     def test_static_ui_live_chart_controls_preserve_accessibility_and_form_boundary(self):
         index, _app_js = load_static_ui()

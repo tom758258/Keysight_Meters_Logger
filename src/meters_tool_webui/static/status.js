@@ -1,11 +1,13 @@
 import { api } from "./api.js";
 import {
   cleanupStatus,
+  commandStateIndicator,
   dryRunPlan,
   dryRunPlanResult,
   executionModeInputs,
   fatalError,
   latestStatus,
+  liveStateIndicator,
   openCsvButton,
   rawStatus,
   refreshResourcesButton,
@@ -18,6 +20,7 @@ import {
   stopRunButton,
   toggleStatusDetailsButton,
   triggerModeSelect,
+  webuiStateIndicator,
 } from "./dom.js";
 import { refreshLiveDataPresentation, renderLiveData } from "./live_data.js";
 import { setTranslatedText } from "./dom_i18n.js";
@@ -32,6 +35,12 @@ import {
 const STATUS_LOG_LINE_COUNT = 5;
 const SOFTWARE_TRIGGER_QUEUED_BURST_COUNT = 5;
 const SOFTWARE_TRIGGER_QUEUED_BURST_MS = 2000;
+const INDICATOR_STATE_CLASSES = [
+  "state-ok",
+  "state-warning",
+  "state-error",
+  "state-idle",
+];
 let statusLogEntries = [];
 let lastApiLatestStatus = "";
 let softwareTriggerQueuedTimes = [];
@@ -43,6 +52,15 @@ let loggedSseFallback = false;
 let latestRenderedStatus = null;
 let lastRunControlsActive = false;
 let planPreviewActive = false;
+let webuiIndicatorRender = {
+  cls: "state-warning",
+  key: "live_data.indicator_checking",
+};
+let commandIndicatorRender = { cls: "state-ok", key: "status.ready" };
+let liveIndicatorRender = {
+  cls: "state-idle",
+  key: "live_data.indicator_not_monitoring",
+};
 
 const EMPTY_PLAN_LIVE_DATA = Object.freeze({
   run_id: null,
@@ -209,8 +227,72 @@ function setStatusDetailsVisible(visible) {
   );
 }
 
+function setStateIndicator(indicator, render) {
+  if (!indicator) {
+    return;
+  }
+  for (const candidate of INDICATOR_STATE_CLASSES) {
+    indicator.classList.toggle(candidate, candidate === render.cls);
+  }
+  const text = indicator.querySelector(".state-text");
+  if (text) {
+    setTranslatedText(text, render.key);
+  }
+}
+
+function updateCommandStateIndicator(status) {
+  if (status.fatal_error) {
+    commandIndicatorRender = { cls: "state-error", key: "status.error" };
+  } else if (status.active) {
+    commandIndicatorRender = {
+      cls: "state-warning",
+      key: "live_data.indicator_busy",
+    };
+  } else {
+    commandIndicatorRender = { cls: "state-ok", key: "status.ready" };
+  }
+  setStateIndicator(commandStateIndicator, commandIndicatorRender);
+}
+
+function updateLiveStateIndicator(status) {
+  const samples = Array.isArray(status.recent_samples)
+    ? status.recent_samples
+    : [];
+  if (status.fatal_error) {
+    liveIndicatorRender = { cls: "state-error", key: "status.error" };
+  } else if (status.active) {
+    if (samples.length > 0 || status.latest_sample) {
+      liveIndicatorRender = { cls: "state-ok", key: "live_data.indicator_live" };
+    } else {
+      liveIndicatorRender = {
+        cls: "state-warning",
+        key: "live_data.waiting_samples",
+      };
+    }
+  } else {
+    liveIndicatorRender = {
+      cls: "state-idle",
+      key: "live_data.indicator_not_monitoring",
+    };
+  }
+  setStateIndicator(liveStateIndicator, liveIndicatorRender);
+}
+
+function markWebUiStateReady() {
+  webuiIndicatorRender = { cls: "state-ok", key: "status.ready" };
+  setStateIndicator(webuiStateIndicator, webuiIndicatorRender);
+}
+
+function markWebUiStateError() {
+  webuiIndicatorRender = { cls: "state-error", key: "status.error" };
+  setStateIndicator(webuiStateIndicator, webuiIndicatorRender);
+}
+
 export function renderStatus(status) {
   latestRenderedStatus = status || null;
+  markWebUiStateReady();
+  updateCommandStateIndicator(latestRenderedStatus || {});
+  updateLiveStateIndicator(latestRenderedStatus || {});
   renderPresentation(statusState, runStatePresentation(status.state || "idle"));
   statusCaptured.textContent = String(status.captured ?? 0);
   statusErrors.textContent = String(status.errors ?? 0);
@@ -261,6 +343,9 @@ export function refreshStatusPresentation() {
   renderStatusLog();
   const detailsVisible = !statusDetails.classList.contains("is-hidden");
   setStatusDetailsVisible(detailsVisible);
+  setStateIndicator(webuiStateIndicator, webuiIndicatorRender);
+  setStateIndicator(commandStateIndicator, commandIndicatorRender);
+  setStateIndicator(liveStateIndicator, liveIndicatorRender);
   if (latestRenderedStatus) {
     renderPresentation(
       statusState,
@@ -309,6 +394,7 @@ export async function pollStatus() {
     renderStatus(await api("/api/runs/current"));
   } catch (error) {
     appendBrowserError(error);
+    markWebUiStateError();
   }
 }
 
