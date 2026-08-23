@@ -97,8 +97,10 @@ export function renderLanguageButton(button, label) {
   label.lang = current;
   label.textContent = t(displayKey);
   button.setAttribute("data-i18n-aria-label", accessibleNameKey);
+  button.setAttribute("data-i18n-title", accessibleNameKey);
   button.removeAttribute("data-i18n-params");
   button.setAttribute("aria-label", t(accessibleNameKey));
+  button.setAttribute("title", t(accessibleNameKey));
 }
 
 const initializedButtons = new WeakSet();

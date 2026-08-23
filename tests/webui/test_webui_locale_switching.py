@@ -471,6 +471,9 @@ assert.equal(label.lang, "en");
 assert.equal(label.textContent, i18n.t("locale.display_en"));
 assert.equal(button.getAttribute("data-i18n"), null);
 assert.equal(button.getAttribute("data-i18n-aria-label"), "accessibility.switch_language_to_zh_tw");
+assert.equal(button.getAttribute("data-i18n-title"), "accessibility.switch_language_to_zh_tw");
+assert.equal(button.getAttribute("title"), i18n.t("accessibility.switch_language_to_zh_tw"));
+assert.equal(button.getAttribute("title"), button.getAttribute("aria-label"));
 
 const firstRenderStorage = new Storage("zh-TW");
 const firstRenderButton = new FakeElement();
@@ -504,6 +507,9 @@ assert.equal(label.getAttribute("data-i18n"), "locale.display_zh_tw");
 assert.equal(label.lang, "zh-TW");
 assert.equal(label.textContent, i18n.t("locale.display_zh_tw"));
 assert.equal(button.getAttribute("data-i18n-aria-label"), "accessibility.switch_language_to_en");
+assert.equal(button.getAttribute("data-i18n-title"), "accessibility.switch_language_to_en");
+assert.equal(button.getAttribute("title"), i18n.t("accessibility.switch_language_to_en"));
+assert.equal(button.getAttribute("title"), button.getAttribute("aria-label"));
 assert.deepEqual(storage.writes, [["meters-tool.webui.locale", "zh-TW"]]);
 assert.equal(refreshCount, 1);
 
@@ -579,6 +585,8 @@ def test_locale_toggle_static_machine_contract():
         r'<button\b(?=[^>]*\bid="locale-toggle")'
         r'(?=[^>]*\btype="button")'
         r'(?=[^>]*\bdata-i18n-aria-label="accessibility\.switch_language_to_zh_tw")'
+        r'(?=[^>]*\bdata-i18n-title="accessibility\.switch_language_to_zh_tw")'
+        r'(?=[^>]*\btitle="Switch language to Traditional Chinese")'
         r"[^>]*>",
         index,
     )
