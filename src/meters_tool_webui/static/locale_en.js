@@ -15,7 +15,6 @@ export const EN_MESSAGES = Object.freeze({
   "accessibility.switch_theme_to_system": "Switch theme to System",
   "accessibility.toggle_sample_details": "Toggle details for sample {sequence}",
   "app.appearance": "Appearance",
-  "app.interface_settings": "Interface settings",
   "app.language": "Language",
   "app.title": "Meters Tool",
   "app.unofficial_tool": "Unofficial Tool",

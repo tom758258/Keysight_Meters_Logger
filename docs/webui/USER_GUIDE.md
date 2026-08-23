@@ -77,11 +77,11 @@ matrix. For the exact current Product support scope, see
 
 ## Browser Language
 
-The top-right Interface settings group holds the language and theme controls.
-Use the globe-and-text button to switch between English and Traditional
-Chinese. The button names the current language: English shows `English`, and
-Traditional Chinese shows `繁體中文`. Its screen-reader label describes the
-destination language.
+The top-right appearance and language controls are labeled settings. Use the
+globe-and-text button to switch between English and Traditional Chinese. The
+button names the current language: English shows `English`, and Traditional
+Chinese shows `繁體中文`. Its screen-reader label describes the destination
+language.
 
 The first page load uses a valid saved locale when available, then the browser
 language, then English. Manual choices are saved under
@@ -98,7 +98,7 @@ and Current terminal, and wrap naturally on very narrow screens.
 
 ## Browser Theme
 
-Use the theme button in the Interface settings group to cycle through `System`,
+Use the theme button beside the language button to cycle through `System`,
 `Light`, and `Dark`. `System` follows the browser or operating-system color
 scheme and updates when that setting changes. The selected preference is saved
 in the browser and restored on later visits. Switching theme is immediate and

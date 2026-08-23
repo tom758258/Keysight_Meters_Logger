@@ -153,11 +153,11 @@ locale: the English UI shows `English`, and the Traditional Chinese UI shows
 clicking, and the visible language name has its own `lang` attribute matching
 the current locale.
 
-The language and theme controls sit together in one compact Interface settings
-group in the main toolbar. The group labels are `Interface settings`,
-`Appearance`, and `Language` in English, with `介面設定`, `外觀`, and `語言`
-in Traditional Chinese; they follow the same static translation contract as
-other browser presentation text.
+The language and theme controls sit side by side at the top right of the main
+toolbar, each presented as a labeled setting with the function name above its
+control: `Appearance` and `Language` in English, with `外觀` and `語言` in
+Traditional Chinese. These labels follow the same static translation contract
+as other browser presentation text.
 
 Switching language applies immediately without a page reload. It must not:
 

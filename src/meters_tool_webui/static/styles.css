@@ -110,28 +110,23 @@ textarea {
 }
 
 .interface-settings {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.interface-setting {
   display: grid;
   gap: 6px;
 }
 
-.interface-settings-title,
-.interface-settings-label {
-  margin-bottom: 0;
+.interface-setting-label {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-}
-
-.interface-settings-label {
-  min-width: 78px;
-}
-
-.interface-settings-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
 }
 
 .toolbar-toggle {

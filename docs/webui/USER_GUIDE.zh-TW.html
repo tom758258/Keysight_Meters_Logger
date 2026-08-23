@@ -257,12 +257,12 @@
         <p>點擊 <code>支援裝置</code> 可查看 WebUI 支援連線清單。此清單由 Core capability 與支援元資料衍生，會反映目前支援的連線範圍，而不會硬編一份暫時的 USB/LAN support matrix。精確的目前 Product support scope 請見 <a href="../core/supported-models.md">Supported Models</a>。</p>
 
         <h2>瀏覽器語言</h2>
-        <p>右上角的「介面設定」群組包含語言與外觀控制。使用地球與文字按鈕，在 English 與繁體中文之間切換。該按鈕會顯示目前語言：English 顯示 <code>English</code>，繁體中文顯示 <code>繁體中文</code>；螢幕閱讀器標籤則描述切換後的目的地語言。</p>
+        <p>右上角的外觀與語言控制是各自帶標籤的設定項。使用地球與文字按鈕，在 English 與繁體中文之間切換。該按鈕會顯示目前語言：English 顯示 <code>English</code>，繁體中文顯示 <code>繁體中文</code>；螢幕閱讀器標籤則描述切換後的目的地語言。</p>
         <p>首次載入時，頁面會依序使用有效的已儲存語系、瀏覽器語言，最後才使用 English。手動選擇會儲存在 <code>meters-tool.webui.locale</code>；瀏覽器偵測結果不會自動儲存。切換會立即生效，不重新載入頁面，也不會呼叫 runtime API。表單目前的值、作用中的作業、面板、狀態日誌、Live data 選取項目、圖表設定、資源掃描與支援摘要都會保留。未知的診斷文字保持不變。</p>
         <p>在繁體中文中，Measurement options 控制項顯示 <code>自動量程（Auto range）</code>；摘要使用較短的 <code>自動量程</code>。選用標記在一般桌面寬度下會與欄位標題保持在一起，包括 AC filter 與 Current terminal；在非常窄的螢幕上會自然換行。</p>
 
         <h2>瀏覽器主題</h2>
-        <p>使用「介面設定」群組中的主題按鈕，依序切換 <code>系統</code>、<code>淺色</code> 與 <code>深色</code>。<code>系統</code> 會跟隨瀏覽器或作業系統的色彩配置，並在設定變更時同步更新。選取的偏好會儲存在瀏覽器中，之後開啟頁面時會自動還原。切換主題會立即生效，不會重新載入頁面，也不會重設目前的表單、作業、Live data 或狀態。</p>
+        <p>使用語言按鈕旁的主題按鈕，依序切換 <code>系統</code>、<code>淺色</code> 與 <code>深色</code>。<code>系統</code> 會跟隨瀏覽器或作業系統的色彩配置，並在設定變更時同步更新。選取的偏好會儲存在瀏覽器中，之後開啟頁面時會自動還原。切換主題會立即生效，不會重新載入頁面，也不會重設目前的表單、作業、Live data 或狀態。</p>
         <p>在 Electron Desktop 中，<code>系統</code> 也會讓原生視窗介面跟隨作業系統外觀。選取 <code>淺色</code> 或 <code>深色</code> 時，該偏好也會套用至原生視窗介面，並在之後啟動 Desktop 時還原。</p>
 
         <h2>選擇執行模式</h2>

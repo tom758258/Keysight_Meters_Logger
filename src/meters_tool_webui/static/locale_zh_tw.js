@@ -15,7 +15,6 @@ export const ZH_TW_MESSAGES = Object.freeze({
   "accessibility.switch_theme_to_system": "切換主題至系統",
   "accessibility.toggle_sample_details": "切換取樣 {sequence} 的詳細資料",
   "app.appearance": "外觀",
-  "app.interface_settings": "介面設定",
   "app.language": "語言",
   "app.title": "Meters Tool",
   "app.unofficial_tool": "非官方工具",
