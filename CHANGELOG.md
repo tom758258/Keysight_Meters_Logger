@@ -4,12 +4,21 @@
 
 ## v3.1.0
 
-- Added the `meters-tool manifest --json` machine introspection entry point.
-  It emits one static `event: tool_manifest` object with `tool_id`,
-  `tool_version`, and worker protocol compatibility (`schema_versions: [2]`,
-  `v2-only`) without VISA I/O, runtime sessions, HTTP servers, or artifacts.
-  Instrument/model capability discovery remains the responsibility of the
-  unchanged `capabilities --json` command.
+- Adds the `meters-tool manifest --json` machine introspection command for
+  discovering tool identity, version, and Worker protocol compatibility
+  without opening VISA resources or starting a runtime session.
+
+- Adds WebUI state indicators for WebUI health, command activity, and Live Data
+  monitoring so users can distinguish ready, busy, error, waiting, live, and
+  inactive states at a glance.
+
+- Improves the WebUI appearance and language controls with clearly labeled
+  Appearance and Language settings. The language control now displays the
+  current locale while retaining immediate English / Traditional Chinese
+  switching.
+
+- Prevents stale WebUI pages and static assets from surviving an application
+  update, so the browser reliably loads the current interface after upgrading.
 
 ## v3.0.0
 
