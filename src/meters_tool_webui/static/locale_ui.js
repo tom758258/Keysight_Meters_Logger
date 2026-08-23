@@ -82,18 +82,20 @@ function destinationLocale(locale) {
   return locale === "zh-TW" ? "en" : "zh-TW";
 }
 
+function currentLocaleDisplayKey(locale) {
+  return locale === "zh-TW" ? "locale.display_zh_tw" : "locale.display_en";
+}
+
 export function renderLanguageButton(button, label) {
-  const destination = destinationLocale(getLocale());
-  const labelKey = destination === "zh-TW"
-    ? "locale.switch_to_zh_tw"
-    : "locale.switch_to_en";
-  const accessibleNameKey = destination === "zh-TW"
+  const current = getLocale();
+  const accessibleNameKey = destinationLocale(current) === "zh-TW"
     ? "accessibility.switch_language_to_zh_tw"
     : "accessibility.switch_language_to_en";
-  label.setAttribute("data-i18n", labelKey);
+  const displayKey = currentLocaleDisplayKey(current);
+  label.setAttribute("data-i18n", displayKey);
   label.removeAttribute("data-i18n-params");
-  label.lang = destination;
-  label.textContent = t(labelKey);
+  label.lang = current;
+  label.textContent = t(displayKey);
   button.setAttribute("data-i18n-aria-label", accessibleNameKey);
   button.removeAttribute("data-i18n-params");
   button.setAttribute("aria-label", t(accessibleNameKey));

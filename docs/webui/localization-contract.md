@@ -53,7 +53,7 @@ profile values remain machine values. The latest raw support summary is cached
 so its presentation can be recomputed without another capability request.
 
 `locale_ui.js` provides explicit initial-locale resolution, safe storage
-access, `<html lang>` synchronization, destination-language button rendering,
+access, `<html lang>` synchronization, language-button rendering,
 and one-time click wiring. `app.js` resolves and applies the locale before its
 first `applyStaticTranslations(document)` call. Manual switching re-renders
 static bindings and cached run-form, resource, support-summary, status/log, and
@@ -147,10 +147,17 @@ there are only two maintained locales, it is a one-click toggle, not a
 dropdown.
 
 The button is a normal keyboard-operable `<button>` with a globe SVG and
-visible text. The SVG is `aria-hidden`. The visible text names the destination
-locale: the English UI shows `繁體中文`, and the Traditional Chinese UI shows
-`English`. Its accessible name also describes the destination locale, and the
-destination-language label has its own `lang` attribute.
+visible text. The SVG is `aria-hidden`. The visible text names the current
+locale: the English UI shows `English`, and the Traditional Chinese UI shows
+`繁體中文`. Its accessible name describes the destination locale reached by
+clicking, and the visible language name has its own `lang` attribute matching
+the current locale.
+
+The language and theme controls sit together in one compact Interface settings
+group in the main toolbar. The group labels are `Interface settings`,
+`Appearance`, and `Language` in English, with `介面設定`, `外觀`, and `語言`
+in Traditional Chinese; they follow the same static translation contract as
+other browser presentation text.
 
 Switching language applies immediately without a page reload. It must not:
 
@@ -515,7 +522,8 @@ The active localization control must:
 - update `<html lang>`;
 - keep visible text beside the globe icon and mark the SVG `aria-hidden`;
 - give the language button an accessible destination-language label;
-- place a `lang` attribute on the destination language name;
+- show the current locale name as the visible text with a `lang` attribute
+  matching that locale;
 - use normal `<button>` keyboard behavior and preserve visible focus;
 - localize placeholders, `title`, `aria-label`, empty states, and validation text;
 - never use a flag icon to represent a language;

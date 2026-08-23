@@ -247,10 +247,12 @@ The `Supported devices` button opens a compact WebUI connection list. It display
 ### Browser Language
 
 The permanent globe-and-text button at the top right switches between English
-and Traditional Chinese. Its destination label is `繁體中文` in English and
-`English` in Traditional Chinese. On first load, the WebUI uses a valid saved
-locale, then browser language detection, then English. Manual choices persist
-under `meters-tool.webui.locale`; detected locales are not written
+and Traditional Chinese. Its visible label names the current locale: `English`
+in English and `繁體中文` in Traditional Chinese, while its accessible name
+describes the destination locale. The language and theme controls sit together
+in one compact Interface settings group. On first load, the WebUI uses a valid
+saved locale, then browser language detection, then English. Manual choices
+persist under `meters-tool.webui.locale`; detected locales are not written
 automatically. Switching changes `<html lang>` without reloading or calling a
 runtime endpoint, and preserves the current form, active run, panel, status,
 Live data, chart, resource, and support-summary state. Unknown diagnostics stay

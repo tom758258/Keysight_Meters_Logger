@@ -466,8 +466,9 @@ assert.equal(
   }),
   "en",
 );
-assert.equal(label.getAttribute("data-i18n"), "locale.switch_to_zh_tw");
-assert.equal(label.lang, "zh-TW");
+assert.equal(label.getAttribute("data-i18n"), "locale.display_en");
+assert.equal(label.lang, "en");
+assert.equal(label.textContent, i18n.t("locale.display_en"));
 assert.equal(button.getAttribute("data-i18n"), null);
 assert.equal(button.getAttribute("data-i18n-aria-label"), "accessibility.switch_language_to_zh_tw");
 
@@ -499,8 +500,9 @@ localeUi.initializeLocaleUi({
 });
 button.click();
 assert.equal(documentElement.lang, "zh-TW");
-assert.equal(label.getAttribute("data-i18n"), "locale.switch_to_en");
-assert.equal(label.lang, "en");
+assert.equal(label.getAttribute("data-i18n"), "locale.display_zh_tw");
+assert.equal(label.lang, "zh-TW");
+assert.equal(label.textContent, i18n.t("locale.display_zh_tw"));
 assert.equal(button.getAttribute("data-i18n-aria-label"), "accessibility.switch_language_to_en");
 assert.deepEqual(storage.writes, [["meters-tool.webui.locale", "zh-TW"]]);
 assert.equal(refreshCount, 1);
@@ -582,8 +584,8 @@ def test_locale_toggle_static_machine_contract():
     )
     assert re.search(
         r'<span\b(?=[^>]*\bid="locale-toggle-label")'
-        r'(?=[^>]*\blang="zh-TW")'
-        r'(?=[^>]*\bdata-i18n="locale\.switch_to_zh_tw")'
+        r'(?=[^>]*\blang="en")'
+        r'(?=[^>]*\bdata-i18n="locale\.display_en")'
         r"[^>]*>",
         index,
     )
@@ -747,7 +749,7 @@ const beforeSwitch = {
 };
 assert.equal(
   element("#locale-toggle-label").getAttribute("data-i18n"),
-  "locale.switch_to_zh_tw"
+  "locale.display_en"
 );
 assert.equal(documentElement.lang, "en");
 assert.equal(
@@ -769,7 +771,7 @@ element("#locale-toggle").click();
 assert.equal(documentElement.lang, "zh-TW");
 assert.equal(
   element("#locale-toggle-label").getAttribute("data-i18n"),
-  "locale.switch_to_en"
+  "locale.display_zh_tw"
 );
 assert.equal(
   element("#locale-toggle").getAttribute("data-i18n-aria-label"),
@@ -883,7 +885,7 @@ element("#locale-toggle").click();
 assert.equal(documentElement.lang, "zh-TW");
 assert.equal(
   element("#locale-toggle-label").getAttribute("data-i18n"),
-  "locale.switch_to_en"
+  "locale.display_zh_tw"
 );
 assert.equal(
   element("#locale-toggle").getAttribute("data-i18n-aria-label"),
@@ -1016,7 +1018,7 @@ element("#locale-toggle").click();
 assert.equal(documentElement.lang, "zh-TW");
 assert.equal(
   element("#locale-toggle-label").getAttribute("data-i18n"),
-  "locale.switch_to_en"
+  "locale.display_zh_tw"
 );
 assert.deepEqual(selectState(measurementSelect), fallbackState.measurement);
 assert.deepEqual(selectState(triggerSelect), fallbackState.trigger);

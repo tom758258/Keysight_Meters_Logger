@@ -200,7 +200,7 @@ http://127.0.0.1:8767/
 
 ### 瀏覽器語言
 
-右上角永久顯示的地球與文字按鈕可在 English 與繁體中文之間切換。在 English 中，目的地標籤為 `繁體中文`；在繁體中文中，目的地標籤為 `English`。首次載入時，WebUI 依序使用有效的已儲存語系、瀏覽器語言偵測，最後才使用 English。手動選擇會儲存在 `meters-tool.webui.locale`；偵測到的語系不會自動寫入。切換會改變 `<html lang>`，但不重新載入或呼叫 runtime endpoint，並保留目前的表單、作用中的作業、面板、狀態、Live data、圖表、資源與支援摘要狀態。未知的診斷文字保持原始內容。
+右上角永久顯示的地球與文字按鈕可在 English 與繁體中文之間切換。可見標籤顯示目前語系：English 介面顯示 `English`，繁體中文介面顯示 `繁體中文`；無障礙名稱則描述點擊後的目的地語言。語言與外觀控制位於同一個緊湊的「介面設定」群組。首次載入時，WebUI 依序使用有效的已儲存語系、瀏覽器語言偵測，最後才使用 English。手動選擇會儲存在 `meters-tool.webui.locale`；偵測到的語系不會自動寫入。切換會改變 `<html lang>`，但不重新載入或呼叫 runtime endpoint，並保留目前的表單、作用中的作業、面板、狀態、Live data、圖表、資源與支援摘要狀態。未知的診斷文字保持原始內容。
 
 English／繁體中文呈現使用以下術語規則。繁體中文的 Measurement options 控制項顯示 `自動量程（Auto range）`；精簡摘要繼續使用 `自動量程`。選用標記與欄位標題保持同一行，包括 AC filter 與 Current terminal，僅在 viewport 太窄時自然換行。
 

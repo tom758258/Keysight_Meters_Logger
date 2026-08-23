@@ -109,10 +109,29 @@ textarea {
   padding-bottom: 24px;
 }
 
-.toolbar-actions {
+.interface-settings {
+  display: grid;
+  gap: 6px;
+}
+
+.interface-settings-title,
+.interface-settings-label {
+  margin-bottom: 0;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.interface-settings-label {
+  min-width: 78px;
+}
+
+.interface-settings-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .toolbar-toggle {
