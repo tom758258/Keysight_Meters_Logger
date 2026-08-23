@@ -544,6 +544,38 @@ try {
             -Result $standaloneResult `
             -Message "Standalone CLI simulator CSV did not contain a data row."
     }
+
+    $script:currentStep = "standalone_cli_manifest"
+    $standaloneManifestResult = Invoke-RecordedCommand `
+        -Name $script:currentStep `
+        -FilePath $cliExe.FullName `
+        -Arguments @("manifest", "--json")
+    $standaloneManifestEvents = @(Read-JsonLines -Path $standaloneManifestResult.stdout)
+    if ($standaloneManifestEvents.Count -ne 1) {
+        Set-RecordedCommandFailure `
+            -Result $standaloneManifestResult `
+            -Message "Standalone CLI manifest did not emit exactly one JSON object."
+    }
+    $standaloneManifest = $standaloneManifestEvents[0]
+    if (
+        $standaloneManifest.event -ne "tool_manifest" -or
+        [int]$standaloneManifest.schema_version -ne 2 -or
+        $standaloneManifest.tool_id -ne "meters" -or
+        $standaloneManifest.tool_version -ne $packageVersion
+    ) {
+        Set-RecordedCommandFailure `
+            -Result $standaloneManifestResult `
+            -Message "Standalone CLI manifest payload did not match the expected tool manifest contract."
+    }
+    if (
+        $standaloneManifest.worker_protocol.compatibility_policy -ne "v2-only" -or
+        @($standaloneManifest.worker_protocol.schema_versions).Count -ne 1 -or
+        [int]@($standaloneManifest.worker_protocol.schema_versions)[0] -ne 2
+    ) {
+        Set-RecordedCommandFailure `
+            -Result $standaloneManifestResult `
+            -Message "Standalone CLI manifest worker protocol did not report v2-only compatibility with schema versions [2]."
+    }
     $standaloneCliSmoke = "passed"
 
     $launcherSelfTest = "failed"
