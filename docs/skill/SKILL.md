@@ -1,6 +1,6 @@
 ---
 name: meters-tool-cli-orchestration
-description: Use when modifying, testing, reviewing, or orchestrating Meters Tool CLI/worker subprocess workflows, including start-trigger-record, JSON/JSONL contracts, dry-run, simulate, wait-ready, status, send-command, stop, capabilities --json, POST /command, GET /status, report.json, CSV, --no-csv, csv_enabled, run_id correlation, and live resource safety. Do not use for CSS-only UI styling, general documentation polishing, or unrelated Python refactors.
+description: Use when modifying, testing, reviewing, or orchestrating Meters Tool CLI/worker subprocess workflows, including start-trigger-record, JSON/JSONL contracts, dry-run, simulate, wait-ready, status, send-command, stop, manifest --json, capabilities --json, POST /command, GET /status, report.json, CSV, --no-csv, csv_enabled, run_id correlation, and live resource safety. Do not use for CSS-only UI styling, general documentation polishing, or unrelated Python refactors.
 ---
 
 # Meters Tool CLI Orchestration
@@ -110,6 +110,22 @@ and fail-closed rules.
   feature scope from Core support policy and `supported-models.md`. Defer
   backend and support decisions to the contracts and that reference.
 
+### Tool manifest discovery
+
+- Use `manifest --json` for no-VISA, no-runtime introspection of Meters Tool
+  identity and Worker protocol compatibility. An orchestrator may call it
+  before starting a Worker.
+- Require `event == "tool_manifest"`, exact integer `schema_version == 2`,
+  `tool_id == "meters"`, `worker_protocol.schema_versions == [2]`, and
+  `worker_protocol.compatibility_policy == "v2-only"`. Treat `tool_version`
+  as the version of the currently running Meters Tool distribution; do not
+  hard-code a release version in orchestration rules.
+- Do not treat the manifest as instrument capability discovery, live identity
+  detection, Worker readiness, a Worker runtime session, or Product support
+  proof. Continue to use `capabilities --json` for instrument/model capability
+  and support discovery. Live runtime identity comes from the detected
+  `*IDN?` in the later live workflow; the manifest has no instrument identity.
+
 ### Startup-bound execution context and command envelope
 
 - Meters binds execution context when `start-trigger-record` starts. In live
@@ -200,10 +216,13 @@ Apply these rules before running or preparing executable Meters workflows such a
 5. Require explicit user-selected resources before proposing live runs. Confirm
    the single-client live-instrument prerequisite with the operator; do not
    assume exclusive control or terminate unrelated processes.
-6. Use `capabilities --json` for offline capability and support discovery when
+6. If tool identity or Worker schema compatibility must be confirmed, read
+   `manifest --json` before starting the Worker. It does not replace `ready` or
+   `wait-ready` and does not change the Worker lifecycle.
+7. Use `capabilities --json` for offline capability and support discovery when
    planning; do not treat it as live identity or as a substitute for registered
    live support scope.
-7. Report any contract impact, validation coverage, and remaining live-hardware
+8. Report any contract impact, validation coverage, and remaining live-hardware
    risk explicitly.
 
 ## Bundled simulator helper

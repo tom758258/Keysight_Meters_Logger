@@ -11,11 +11,15 @@
 當您要求 Codex 修改、審查、測試、除錯或調度涉及以下項目的工作時，請使用此 Skill：
 
 - Meters CLI 與 worker 的生命週期行為。
-- `start-trigger-record`、`dry-run`、`simulate`、`wait-ready`、`status`、`send-command`、`stop` 及 `capabilities --json`。
+- `start-trigger-record`、`dry-run`、`simulate`、`wait-ready`、`status`、`send-command`、`stop`、`manifest --json` 及 `capabilities --json`。
 - 執行階段的 JSONL 事件與單一回應 JSON 的客戶端命令。
 - 本機控制端點 (local control endpoints)：`POST /command`、`POST /stop` 及 `GET /status`。
 - 標準輸出 (stdout) JSONL、`/status`、CSV 與 `report.json` 之間的 `run_id` 關聯性。
 - 調度器 (orchestrator) 工作流程與實機資源安全性。
+
+`manifest --json` 提供靜態的工具身分與 Worker protocol 相容性資訊，不會啟動
+Worker。`capabilities --json` 則用於儀器／model capability 與 Product support
+scope discovery。兩者是職責不同的 introspection commands。
 
 請勿將其用於純 CSS 的 UI 樣式設計、無關的 README 措辭變更，或不影響 CLI/worker 合約介面的常規重構。
 

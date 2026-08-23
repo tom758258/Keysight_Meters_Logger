@@ -28,11 +28,16 @@ that touches:
 
 - Meters CLI and worker lifecycle behavior.
 - `start-trigger-record`, `dry-run`, `simulate`, `wait-ready`, `status`,
-  `send-command`, `stop`, and `capabilities --json`.
+  `send-command`, `stop`, `manifest --json`, and `capabilities --json`.
 - Runtime JSONL events and single-response JSON client commands.
 - Local control endpoints: `POST /command`, `POST /stop`, and `GET /status`.
 - `run_id` correlation between stdout JSONL, `/status`, CSV, and `report.json`.
 - Orchestrator workflows and live resource safety.
+
+`manifest --json` provides static tool identity and Worker protocol
+compatibility without starting a Worker. `capabilities --json` provides
+instrument/model capability and Product support scope discovery. They are
+separate introspection commands with different responsibilities.
 
 Do not use it for CSS-only UI styling, unrelated README wording changes, or
 general refactors that do not affect the CLI/worker contract surface.
