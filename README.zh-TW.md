@@ -318,6 +318,9 @@ Windows wrapper 合約的 CI 工作會另外執行
 
 本專案採用 MIT License。詳見 [LICENSE](LICENSE)。
 
+應用程式圖示：Meters Tool 應用程式圖示使用 ChatGPT 中的 OpenAI 圖像生成功能
+產生，並由專案維護者審閱及選定。
+
 本專案是獨立且非官方的專案，未與 Keysight Technologies 建立從屬、背書或贊助關係。
 
 使用者需自行遵守所有適用的 Keysight 軟體、driver、儀器與文件授權條款。

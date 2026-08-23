@@ -304,6 +304,24 @@ def test_windows_bundle_builder_and_spec_define_shared_onedir_contract():
     assert "console=True" in spec
     assert "console=False" in spec
     assert spec.count('contents_directory="_internal"') == 3
+    assert 'application_icon = source_root / "desktop" / "assets" / "meters-icon.ico"' in spec
+    assert spec.count("icon=str(application_icon)") == 2
+    cli_exe = spec[spec.index("cli_exe = EXE(") : spec.index("launcher_analysis = Analysis(")]
+    launcher_exe = spec[
+        spec.index("launcher_exe = EXE(") : spec.index("host_analysis = Analysis(")
+    ]
+    host_exe = spec[spec.index("host_exe = EXE(") : spec.index("bundle = COLLECT(")]
+    assert "icon=str(application_icon)" in cli_exe
+    assert "icon=str(application_icon)" in launcher_exe
+    assert "icon=" not in host_exe
+    launcher_analysis = spec[
+        spec.index("launcher_analysis = Analysis(") : spec.index("launcher_pyz = PYZ(")
+    ]
+    host_analysis = spec[
+        spec.index("host_analysis = Analysis(") : spec.index("host_pyz = PYZ(")
+    ]
+    assert '(str(application_icon), "meters_tool_webui/assets")' in launcher_analysis
+    assert "str(application_icon)" not in host_analysis
     assert '"meters_tool_webui/static"' in spec
     assert '"_internal/meters_tool_webui/static"' not in spec
 
@@ -354,8 +372,11 @@ def test_desktop_build_assembles_shared_onedir_into_electron_directory():
     assert 'path.dirname(process.execPath), "meters-tool-webui-host.exe"' in main
     assert "process.resourcesPath" not in main
     assert '"dist:win": "electron-builder --dir --win --x64"' in package
+    assert '"icon": "assets/meters-icon.ico"' in package
     assert '"extraResources"' not in package
     assert '"portable"' not in package
+    assert (REPO_ROOT / "desktop" / "assets" / "meters-icon.ico").is_file()
+    assert (REPO_ROOT / "desktop" / "assets" / "meters-icon.png").is_file()
 
 
 def test_desktop_native_theme_tracks_the_host_scoped_webui_cookie():

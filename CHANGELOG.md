@@ -7,18 +7,17 @@
 - Adds the `meters-tool manifest --json` machine introspection command for
   discovering tool identity, version, and Worker protocol compatibility
   without opening VISA resources or starting a runtime session.
-
 - Adds WebUI state indicators for WebUI health, command activity, and Live Data
   monitoring so users can distinguish ready, busy, error, waiting, live, and
   inactive states at a glance.
-
 - Improves the WebUI appearance and language controls with clearly labeled
   Appearance and Language settings. The language control now displays the
   current locale while retaining immediate English / Traditional Chinese
   switching.
-
 - Prevents stale WebUI pages and static assets from surviving an application
   update, so the browser reliably loads the current interface after upgrading.
+- Adds a shared Meters application icon to the user-facing Windows Desktop,
+  CLI, and WebUI Launcher executables.
 
 ## v3.0.0
 

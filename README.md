@@ -356,6 +356,10 @@ live behavior require real-instrument validation evidence when applicable.
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE).
 
+Application icon: The Meters Tool application icon was generated with OpenAI
+image generation in ChatGPT, then reviewed and selected by the project
+maintainer.
+
 This project is independent and unofficial. It is not affiliated with,
 endorsed by, or sponsored by Keysight Technologies.
 

@@ -6,6 +6,7 @@ import errno
 from importlib import import_module
 from importlib.resources import files
 import json
+from pathlib import Path
 from queue import Empty, Queue
 import socket
 import sys
@@ -31,6 +32,22 @@ except ImportError:  # pragma: no cover - PyInstaller script entry point
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8767
 AUTO_PORT_ATTEMPTS = 100
+
+
+def _launcher_icon_path() -> Path:
+    bundle_root = getattr(sys, "_MEIPASS", None)
+    if isinstance(bundle_root, str) and bundle_root:
+        return Path(bundle_root) / "meters_tool_webui" / "assets" / "meters-icon.ico"
+    return Path(__file__).resolve().parents[2] / "desktop" / "assets" / "meters-icon.ico"
+
+
+def _apply_window_icon(root: tk.Tk) -> None:
+    icon_path = _launcher_icon_path()
+    try:
+        if icon_path.is_file():
+            root.iconbitmap(default=str(icon_path))
+    except (OSError, tk.TclError):
+        pass
 
 
 def build_local_url(port: int) -> str:
@@ -484,6 +501,7 @@ def main(argv: list[str] | None = None) -> int:
     initial_port = args.port if args.port is not None else DEFAULT_PORT
     auto_port = args.auto_port or args.port is None
     root = tk.Tk()
+    _apply_window_icon(root)
     root.withdraw()
     app = LauncherApp(root, initial_port=initial_port)
     root.after(0, lambda: app.start(auto_port=auto_port))

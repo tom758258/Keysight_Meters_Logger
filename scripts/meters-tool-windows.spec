@@ -10,6 +10,7 @@ args = parser.parse_args()
 
 source_root = Path(args.source_root).resolve()
 source_path = source_root / "src"
+application_icon = source_root / "desktop" / "assets" / "meters-icon.ico"
 
 cli_analysis = Analysis(
     [str(source_path / "meters_tool_cli" / "cli.py")],
@@ -41,6 +42,7 @@ cli_exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon=str(application_icon),
     contents_directory="_internal",
 )
 
@@ -52,7 +54,8 @@ launcher_analysis = Analysis(
         (
             str(source_path / "meters_tool_webui" / "static"),
             "meters_tool_webui/static",
-        )
+        ),
+        (str(application_icon), "meters_tool_webui/assets"),
     ],
     hiddenimports=[],
     hookspath=[],
@@ -79,6 +82,7 @@ launcher_exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon=str(application_icon),
     contents_directory="_internal",
 )
 

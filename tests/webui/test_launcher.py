@@ -75,6 +75,10 @@ class FakeRoot:
         self.withdrawn = False
         self.restored = False
         self.lifted = False
+        self.icon_path = None
+
+    def iconbitmap(self, *, default) -> None:
+        self.icon_path = default
 
     def after(self, _delay, callback) -> None:
         callback()
@@ -176,6 +180,28 @@ class LauncherHelperTests(unittest.TestCase):
             launcher._candidate_ports(65534, auto_port=True),
         )
 
+    def test_window_icon_uses_packaged_asset(self):
+        root = FakeRoot()
+        bundle_root = Path("C:/meters-tool/_internal")
+        icon_path = bundle_root / "meters_tool_webui" / "assets" / "meters-icon.ico"
+        with (
+            patch.object(launcher.sys, "_MEIPASS", str(bundle_root), create=True),
+            patch.object(Path, "is_file", return_value=True),
+        ):
+            launcher._apply_window_icon(root)
+
+        self.assertEqual(str(icon_path), root.icon_path)
+
+    def test_window_icon_failures_do_not_block_startup(self):
+        class FailingRoot:
+            def iconbitmap(self, *, default) -> None:
+                raise launcher.tk.TclError(f"cannot load {default}")
+
+        with patch.object(Path, "is_file", return_value=False):
+            launcher._apply_window_icon(FailingRoot())
+        with patch.object(Path, "is_file", return_value=True):
+            launcher._apply_window_icon(FailingRoot())
+
     def test_self_test_succeeds_with_required_static_resources(self):
         with (
             patch("meters_tool_webui.launcher.import_module"),
@@ -250,6 +276,7 @@ class LauncherHelperTests(unittest.TestCase):
                     self.assertEqual(0, launcher.main(list(argv)))
 
                 self.assertTrue(root.withdrawn)
+                self.assertEqual(str(launcher._launcher_icon_path()), root.icon_path)
                 self.assertEqual(
                     [("init", expected_port), ("start", expected_auto)],
                     calls,
