@@ -428,6 +428,7 @@ pyvisa-py 的 Product-open 範圍記載於 [支援型號](../core/supported-mode
 | 指令 | 目的 | 典型用法 |
 | --- | --- | --- |
 | `capabilities` | 列印由 Core 管理的儀器能力與產品支援中繼資料，不執行儀器 I/O。 | 讓腳本在建構請求前檢查設定檔、量測、觸發模式、限制與精確支援範圍。 |
+| `manifest` | 列印靜態工具 manifest，包含工具識別與 worker protocol 相容性，不執行儀器或執行階段 I/O。 | 讓 orchestrator 在啟動 worker 前檢視 `tool_id`、`tool_version` 與支援的 worker schema 版本。 |
 | `list-resources` | 列印由 PyVISA 偵測到的 VISA 資源。 | 尋找 USB 或 LAN 資源字串。加入 `--verify` 以查詢 `*IDN?`；加入 `--live-only` 以隱藏過期的快取資源；加入 `--dry-run` 以預覽探測動作而不接觸 VISA。 |
 | `start-trigger-record` | 連接到儀器並記錄樣本到 CSV。 | 主要記錄指令。 |
 | `send-command` | 將一個 `software_trigger` 指令 POST 到本機指令端點。 | 與 `--trigger-mode software` 配合使用。 |
@@ -448,6 +449,30 @@ pyvisa-py 的 Product-open 範圍記載於 [支援型號](../core/supported-mode
 | `--model MODEL`、`--instrument-model MODEL` | Core 備援設定檔 | 透過 Core 型號解析選擇離線能力設定檔。這不會執行實機偵測，也不會覆寫後續實機執行所偵測到的型號。 |
 | `--format text\|json` | `text` | 輸出精簡的人類可讀摘要，或單一可供機器讀取的能力物件。 |
 | `--json` | 關閉 | `--format json` 的別名。 |
+
+`manifest` 選項：
+
+| 選項 | 預設值 | 說明 |
+| --- | --- | --- |
+| `--format text\|json` | `text` | 輸出精簡的人類可讀摘要，或單一可供機器讀取的 manifest 物件。 |
+| `--json` | 關閉 | `--format json` 的別名。 |
+
+`manifest --json` 會發出一個 `event: tool_manifest` 物件並以 `0` 結束。它不會執行 VISA I/O、不啟動執行階段工作階段或 HTTP 伺服器、不建立檔案，也不變更設定。它描述工具本身而非儀器能力；型號／功能探索仍由 `capabilities` 負責。
+
+```json
+{
+  "event": "tool_manifest",
+  "schema_version": 2,
+  "tool_id": "meters",
+  "tool_version": "3.1.0",
+  "worker_protocol": {
+    "compatibility_policy": "v2-only",
+    "schema_versions": [2]
+  }
+}
+```
+
+`worker_protocol` 欄位回報支援的 Common worker schema 版本與相容性政策。Orchestrator 必須將非 v2 的 schema 視為不支援，而不是進行協商。
 
 `list-resources` 選項：
 
@@ -564,6 +589,15 @@ pyvisa-py 的 Product-open 範圍記載於 [支援型號](../core/supported-mode
 `--dcv-input-impedance` 僅在 `--measurement voltage-dc` 或 `--measurement voltage-dc-ratio` 時有效。使用 `default` 以保持儀器目前的 Input Z 設定不變，`10m` 強制為 10 MOhm，或 `auto` 啟用 34461A 的 Auto Input Z 行為。當 Auto 作用於較低 DC 電壓範圍時，儀器可能會顯示 HighZ。
 
 ## 友善 Agent 的 CLI 工作流程
+
+在不開啟 VISA 或建立產物的情況下檢查靜態工具 manifest 與能力：
+
+```powershell
+.\.venv\Scripts\meters-tool.exe manifest --json
+.\.venv\Scripts\meters-tool.exe capabilities --json
+```
+
+`manifest` 僅回報工具識別與 worker protocol 相容性。確切 payload 請參閱「指令參考」一節中的 `manifest` 條目。
 
 在不開啟 VISA 或建立產物的情況下，先檢查能力再建構排程器請求：
 

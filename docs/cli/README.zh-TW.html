@@ -546,6 +546,11 @@ uv run meters-tool start-trigger-record `
                     <td>讓腳本在建構請求前檢查設定檔、量測、觸發模式、限制與精確支援範圍。</td>
                 </tr>
                 <tr>
+                    <td><code>manifest</code></td>
+                    <td>列印靜態工具 manifest，包含工具識別與 worker protocol 相容性，不執行儀器或執行階段 I/O。</td>
+                    <td>讓 orchestrator 在啟動 worker 前檢視 <code>tool_id</code>、<code>tool_version</code> 與支援的 worker schema 版本。</td>
+                </tr>
+                <tr>
                     <td><code>list-resources</code></td>
                     <td>列印由 PyVISA 偵測到的 VISA 資源。</td>
                     <td>尋找 USB 或 LAN 資源字串。加入 <code>--verify</code> 以查詢 <code>*IDN?</code>；加入 <code>--live-only</code> 以隱藏過期的快取資源；加入 <code>--dry-run</code> 以預覽探測動作而不接觸 VISA。</td>
@@ -621,6 +626,42 @@ uv run meters-tool start-trigger-record `
                 </tr>
             </tbody>
         </table>
+
+        <p><code>manifest</code> 選項：</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>選項</th>
+                    <th>預設值</th>
+                    <th>說明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>--format text|json</code></td>
+                    <td><code>text</code></td>
+                    <td>輸出精簡的人類可讀摘要，或單一可供機器讀取的 manifest 物件。</td>
+                </tr>
+                <tr>
+                    <td><code>--json</code></td>
+                    <td>關閉</td>
+                    <td><code>--format json</code> 的別名。</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p><code>manifest --json</code> 會發出一個 <code>event: tool_manifest</code> 物件並以 <code>0</code> 結束。它不會執行 VISA I/O、不啟動執行階段工作階段或 HTTP 伺服器、不建立檔案，也不變更設定。它描述工具本身而非儀器能力；型號／功能探索仍由 <code>capabilities</code> 負責。</p>
+        <div class="code-wrapper"><pre><code class="language-json">{
+  "event": "tool_manifest",
+  "schema_version": 2,
+  "tool_id": "meters",
+  "tool_version": "3.1.0",
+  "worker_protocol": {
+    "compatibility_policy": "v2-only",
+    "schema_versions": [2]
+  }
+}</code></pre></div>
+        <p><code>worker_protocol</code> 欄位回報支援的 Common worker schema 版本與相容性政策。Orchestrator 必須將非 v2 的 schema 視為不支援，而不是進行協商。</p>
 
         <p><code>list-resources</code> 選項：</p>
         <table>
@@ -1119,6 +1160,10 @@ uv run meters-tool start-trigger-record `
         <code>--dcv-input-impedance</code> 僅在 <code>--measurement voltage-dc</code> 或 <code>--measurement voltage-dc-ratio</code> 時有效。使用 <code>default</code> 以保持儀器目前的 Input Z 設定不變，<code>10m</code> 強制為 10 MOhm，或 <code>auto</code> 啟用 34461A 的 Auto Input Z 行為。當 Auto 作用於較低 DC 電壓範圍時，儀器可能會顯示 HighZ。</p>
 
         <h2>友善 Agent 的 CLI 工作流程</h2>
+        <p>在不開啟 VISA 或建立產物的情況下檢查靜態工具 manifest 與能力：</p>
+        <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool.exe manifest --json
+.\.venv\Scripts\meters-tool.exe capabilities --json</code></pre></div>
+        <p><code>manifest</code> 僅回報工具識別與 worker protocol 相容性。確切 payload 請參閱「指令參考」一節中的 <code>manifest</code> 條目。</p>
         <p>在不開啟 VISA 或建立產物的情況下，先檢查能力再建構排程器請求：</p>
         <div class="code-wrapper"><pre><code>.\.venv\Scripts\meters-tool.exe capabilities --json
 .\.venv\Scripts\meters-tool.exe capabilities --model 34461A --json</code></pre></div>
