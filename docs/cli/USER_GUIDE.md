@@ -85,13 +85,10 @@ Core policy. Unsupported combinations fail closed instead of being unlocked by
 For the exact current support matrix, see [Supported Models](../core/supported-models.md).
 
 By default, the CLI uses the computer's System VISA runtime, such as Keysight
-IO Libraries Suite or NI-VISA. In a source checkout, virtual environment, or
-installed Python environment, `--visa-library` is an advanced CLI option for a
-compatible PyVISA backend when it is installed and loadable. This does not
-change SCPI, trigger, cleanup, or Core model validation. The official
-standalone CLI executable supports only the fixed System VISA path and does not
-bundle optional backends. Normal WebUI runs also use the fixed System VISA
-path.
+IO Libraries Suite or NI-VISA. Backend selection does not change or expand
+Product support. The official standalone CLI executable supports only the fixed
+System VISA path and does not bundle optional backends. Normal WebUI runs also
+use the fixed System VISA path.
 
 ## Choosing A Measurement
 
@@ -143,11 +140,8 @@ PowerShell examples, set `$env:METER_RESOURCE` once and pass
 `--resource "$env:METER_RESOURCE"` so copied commands continue to use
 the selected instrument.
 
-`--visa-library` is an advanced CLI PyVISA backend selector. Omit it for normal
-use. In an installed Python environment, `--visa-library "@py"` can be used for
-optional pyvisa-py acquisition scopes only when pyvisa-py is installed, loadable,
-and the target scope is registered as Product-open in [Supported Models](../core/supported-models.md).
-This option does not make optional backends available in the standalone executable.
+`--visa-library` is an advanced CLI backend selector. Omit it for normal Product use and rely on System VISA.
+Selecting a backend does not unlock unsupported models, transports, measurements, or other Product support.
 
 `list-resources --verify` opens discovered VISA resources and queries `*IDN?`.
 `list-resources --live-only` implies verification and hides stale entries.
