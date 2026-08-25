@@ -195,9 +195,11 @@ current terminal used on the instrument.
 protective timeout path is used. Increase it only when the measurement setup
 intentionally waits longer.
 
-For exact accepted values, ranges, and defaults, run
+For command options and CLI-level accepted values, ranges, and defaults, run
 `meters-tool <command> --help` (for example,
 `.\meters-tool.exe start-trigger-record --help`).
+Model-specific support and limits remain subject to Core validation and the
+Supported Models scope described above.
 
 ## CSV Output
 

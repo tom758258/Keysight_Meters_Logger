@@ -45,6 +45,7 @@ http://127.0.0.1:8767/
 ```
 
 實際 Port 可能較高；請以 Launcher 視窗顯示的 URL 為準。
+
 ## 畫面總覽
 
 WebUI 是一個本機擷取主控台。主要區域包含：
@@ -190,6 +191,7 @@ WebUI 使用電腦固定的預設 System VISA runtime。它不提供 PyVISA back
 
 在 Launcher 的 Running／Quit 小視窗中使用 `Quit` 來停止本機 WebUI
 伺服器並關閉 Launcher。僅關閉瀏覽器分頁不會停止伺服器。
+
 ## 常見問題
 
 ### 瀏覽器未開啟

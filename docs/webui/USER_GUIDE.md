@@ -50,6 +50,7 @@ http://127.0.0.1:8767/
 ```
 
 The actual port may be higher; use the URL shown in the launcher window.
+
 ## Screen Overview
 
 The WebUI is a local acquisition console. The main areas are:
@@ -327,6 +328,7 @@ the latest readings visible after the run stops so you can review them.
 
 Use `Quit` in the small running launcher window to stop the local WebUI server
 and close the launcher. Closing only the browser tab does not stop the server.
+
 ## Common Problems
 
 ### The browser does not open

@@ -121,7 +121,7 @@ CLI 預設使用電腦的 System VISA runtime，例如 Keysight IO Libraries Sui
 
 `--trigger-timeout-ms` (觸發逾時) 控制觸發工作流程在進入保護性逾時路徑前的等待時間。只有在量測設定刻意要等待更長時間時，才調高此值。
 
-若需要精確的可接受值、範圍與預設值，請執行 `meters-tool <command> --help`（例如 `.\meters-tool.exe start-trigger-record --help`）。
+若需要指令選項及 CLI 層級的可接受值、範圍與預設值，請執行 `meters-tool <command> --help`（例如 `.\meters-tool.exe start-trigger-record --help`）。型號特定的支援與限制仍以 Core 驗證及前述「支援型號」範圍為準。
 
 ## CSV 輸出
 
