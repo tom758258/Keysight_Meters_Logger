@@ -87,8 +87,7 @@ For the exact current support matrix, see [Supported Models](../core/supported-m
 By default, the CLI uses the computer's System VISA runtime, such as Keysight
 IO Libraries Suite or NI-VISA. Backend selection does not change or expand
 Product support. The official standalone CLI executable supports only the fixed
-System VISA path and does not bundle optional backends. Normal WebUI runs also
-use the fixed System VISA path.
+System VISA path and does not bundle optional backends.
 
 ## Choosing A Measurement
 

@@ -58,7 +58,7 @@ live 啟動省略 `--model` 時，連接儀器的 `*IDN?` 決定 runtime profile
 
 精確的目前支援矩陣，請參閱 [支援型號](../core/supported-models.md)。
 
-CLI 預設使用電腦的 System VISA runtime，例如 Keysight IO Libraries Suite 或 NI-VISA。backend 選擇不會改變或擴充 Product 支援。官方 standalone CLI 執行檔只支援固定的 System VISA 路徑，不 bundle 選用 backend。一般的 WebUI 執行同樣使用固定的 System VISA 路徑。
+CLI 預設使用電腦的 System VISA runtime，例如 Keysight IO Libraries Suite 或 NI-VISA。backend 選擇不會改變或擴充 Product 支援。官方 standalone CLI 執行檔只支援固定的 System VISA 路徑，不 bundle 選用 backend。
 
 ## 選擇量測類型
 
