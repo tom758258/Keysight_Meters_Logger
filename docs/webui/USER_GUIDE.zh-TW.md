@@ -45,9 +45,6 @@ http://127.0.0.1:8767/
 ```
 
 實際 Port 可能較高；請以 Launcher 視窗顯示的 URL 為準。
-
-開發人員或從原始碼簽出 (source-checkout) 的使用者，應參閱 [WebUI README](README.zh-TW.md) 以取得終端機指令、API 行為與建置的詳細資訊。
-
 ## 畫面總覽
 
 WebUI 是一個本機擷取主控台。主要區域包含：
@@ -123,7 +120,7 @@ WebUI 會在啟動作業前檢查各項設定。如果 `Start` 被封鎖無法�
 
 `VISA resource` (VISA 資源) 是作業將使用的儀器位址。建議使用透過 `Scan Device` 找到的資源，或手動輸入由操作人員或測試程序提供的已知資源。當可能連接多台儀器時，請勿用猜測的方式填寫資源。
 
-WebUI 使用電腦固定的預設 System VISA runtime。它不提供 PyVISA backend 選擇器，resource scan 與 run API 也不接受 backend override。精確的實機型號與連線支援由 Core policy 決定，並記載於 [Supported Models](../core/supported-models.md)。若需要了解 CLI 的選用 backend，例如 `@py`，請參閱 [CLI 使用者指南](../cli/USER_GUIDE.zh-TW.md)。
+WebUI 使用電腦固定的預設 System VISA runtime。它不提供 PyVISA backend 選擇器，resource scan 與 run API 也不接受 backend override。精確的實機型號與連線支援由 Core policy 決定，並記載於 [Supported Models](../core/supported-models.md)。
 
 `Live resource`（實機資源）顯示最後一次掃描回應的結果。請先用它確認是哪台儀器回應，再複製或選取資源以進行作業。當掃描辨識出支援的 34460A 或 34461A IDN 時，WebUI 可能會載入特定型號的選項以供顯示，同時保持 `Expected model` 在 `Auto-detect`。
 
@@ -193,9 +190,6 @@ WebUI 使用電腦固定的預設 System VISA runtime。它不提供 PyVISA back
 
 在 Launcher 的 Running／Quit 小視窗中使用 `Quit` 來停止本機 WebUI
 伺服器並關閉 Launcher。僅關閉瀏覽器分頁不會停止伺服器。
-
-如果您是從開發人員終端機而非啟動器執行 WebUI，請參閱 [WebUI README](README.zh-TW.md) 以取得關閉細節。
-
 ## 常見問題
 
 ### 瀏覽器未開啟
@@ -253,8 +247,3 @@ fallback 視窗輸入其他合法 Port；每次手動重試只會嘗試該 Port�
 - 除非需要固定量程，否則請保持啟用自動量程 (Auto Range)。
 - 請將外部觸發的接線與極性視為量測設定的一部分。
 - 在可行的情況下，請在斷開儀器連接前先停止測量作業。
-
-## 更多 WebUI 文件
-
-- [WebUI README](README.zh-TW.md)：工程設定、WebUI API 行為、建置說明與整合邊界。
-- [WebUI 變更日誌 (Changelog)](../../CHANGELOG.md)：專案版本發佈說明。

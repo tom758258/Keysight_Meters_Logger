@@ -1,6 +1,6 @@
 # Meters Tool CLI 使用者指南
 
-本指南適用於取得已建置之 CLI 執行檔或已安裝的 `meters-tool` 指令，並使用它來記錄支援的數位萬用電表量測資料的操作人員。本指南專注於正常的量測工作流程與常見設定。如需開發人員設定、JSON/JSONL 輸出與自動化合約，請參閱 [CLI README](README.zh-TW.md)。
+本指南適用於取得已建置之 CLI 執行檔或已安裝的 `meters-tool` 指令，並使用它來記錄支援的數位萬用電表量測資料的操作人員。本指南專注於正常的量測工作流程與常見設定。
 
 ## 啟動 CLI
 
@@ -11,7 +11,7 @@
 .\meters-tool.exe --version
 ```
 
-版本號位於 bundle 資料夾名稱中；資料夾內的執行檔名稱不含版本號。開發人員或從原始碼簽出 (source-checkout) 的使用者，應參閱 [CLI README](README.zh-TW.md) 以取得虛擬環境、模組與建置指令。
+版本號位於 bundle 資料夾名稱中；資料夾內的執行檔名稱不含版本號。
 
 ## 首次實機執行
 
@@ -99,7 +99,7 @@ CLI 預設使用電腦的 System VISA runtime，例如 Keysight IO Libraries Sui
 
 `list-resources --verify` 會開啟偵測到的 VISA 資源並查詢 `*IDN?`。`list-resources --live-only` 暗示了驗證並隱藏過期的項目。ASRL/RS-232 驗證使用短暫的有界限逾時，因此過期的序列埠項目不會阻擋後續的 USB 或 TCPIP 資源。序列埠結束字元選項 `--serial-read-termination` 與 `--serial-write-termination` 是僅用於 ASRL 驗證的 CLI 偵測相容性設定；它們不是擷取設定。
 
-`--csv` 是輸出檔案路徑。若省略此項，CLI 會自動建立一個帶有時間戳記的 CSV 路徑。當您需要可預測的檔案位置以便進行檢閱或自動化處理時，請使用明確的路徑。當外部 orchestrator 保存 JSONL `sample` events 時，可使用 `--no-csv` 停用本次 CSV 輸出；`--csv` 與 `--no-csv` 不可同時使用。
+`--csv` 是輸出檔案路徑。若省略此項，CLI 會自動建立一個帶有時間戳記的 CSV 路徑。當您需要可預測的檔案位置以便進行檢閱或自動化處理時，請使用明確的路徑。可使用 `--no-csv` 停用本次 CSV 輸出；`--csv` 與 `--no-csv` 不可同時使用。
 
 `--max-samples` 用來限制簡單作業的執行次數。在進行快速功能健檢與驗證時請使用它，讓指令能自行停止。
 
@@ -121,7 +121,7 @@ CLI 預設使用電腦的 System VISA runtime，例如 Keysight IO Libraries Sui
 
 `--trigger-timeout-ms` (觸發逾時) 控制觸發工作流程在進入保護性逾時路徑前的等待時間。只有在量測設定刻意要等待更長時間時，才調高此值。
 
-有關完整的可接受值與驗證限制，請參閱 [已驗證引數限制](README.zh-TW.md#已驗證引數限制)。
+若需要精確的可接受值、範圍與預設值，請執行 `meters-tool <command> --help`（例如 `.\meters-tool.exe start-trigger-record --help`）。
 
 ## CSV 輸出
 
@@ -162,10 +162,3 @@ CLI 預設使用電腦的 System VISA runtime，例如 Keysight IO Libraries Sui
 如果在開啟儀器前作業就被阻擋，請閱讀驗證錯誤訊息，並調整其指出的選項設定。CLI 會在進行實機 I/O 之前驗證常見設定。
 
 如果硬體觸發作業似乎在等待，請確認實體觸發訊號、斜率 (slope)、延遲 (delay) 與逾時 (timeout) 設定。遺失觸發邊緣 (trigger edges) 訊號會導致作業根據設定的逾時行為繼續等待或重新準備 (re-arm)。
-
-## 更多 CLI 文件
-
-- [CLI README](README.zh-TW.md)：完整的指令參考、範例、引數限制與自動化工作流程。
-- [CLI 整合](cli-integration.md)：CLI 配接器的維護邊界說明。
-- [Meters CLI JSON / JSONL 合約](../contracts/meters-cli-jsonl-contract.md)：用於自動化的結構化輸出 schema。
-- [Meters Worker 合約](../contracts/meters-worker-contract.md)：工作器控制面與產物合約。

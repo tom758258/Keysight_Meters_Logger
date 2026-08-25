@@ -50,10 +50,6 @@ http://127.0.0.1:8767/
 ```
 
 The actual port may be higher; use the URL shown in the launcher window.
-
-Developers or source-checkout users should use the [WebUI README](README.md)
-for terminal commands, API behavior, and build details.
-
 ## Screen Overview
 
 The WebUI is a local acquisition console. The main areas are:
@@ -187,8 +183,7 @@ connected.
 The WebUI uses the computer's fixed default System VISA runtime. It does not
 include a PyVISA backend selector, and its resource scan and run API accept no
 backend override. Exact live model and connection support is governed by Core
-policy and documented in [Supported Models](../core/supported-models.md). For
-optional CLI backend details such as `@py`, see the [CLI User Guide](../cli/USER_GUIDE.md).
+policy and documented in [Supported Models](../core/supported-models.md).
 
 `Live resource` shows the result of the last scan. Use it to confirm which
 instrument answered before copying or selecting a resource for the run. When
@@ -332,10 +327,6 @@ the latest readings visible after the run stops so you can review them.
 
 Use `Quit` in the small running launcher window to stop the local WebUI server
 and close the launcher. Closing only the browser tab does not stop the server.
-
-If you are running the WebUI from a developer terminal instead of the launcher,
-use the [WebUI README](README.md) for shutdown details.
-
 ## Common Problems
 
 ### The browser does not open
@@ -406,9 +397,3 @@ timeout behavior.
 - Keep Auto Range enabled unless a fixed range is required.
 - Treat external trigger wiring and polarity as part of the measurement setup.
 - Stop the run before disconnecting the instrument when practical.
-
-## More WebUI Documentation
-
-- [WebUI README](README.md): engineering setup, WebUI API behavior, build notes,
-  and integration boundaries.
-- [Changelog](../../CHANGELOG.md): project release notes.

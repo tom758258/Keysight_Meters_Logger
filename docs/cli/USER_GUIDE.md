@@ -2,9 +2,7 @@
 
 This guide is for operators who receive the built CLI executable or an
 already-installed `meters-tool` command and use it to record measurements
-from a supported digital multimeter. It focuses on the normal measurement workflow and
-common settings. For developer setup, JSON/JSONL output,
-and automation contracts, see the [CLI README](README.md).
+from a supported digital multimeter. It focuses on the normal measurement workflow and common settings.
 
 ## Start The CLI
 
@@ -16,8 +14,6 @@ PowerShell in the extracted `meters-tool-<version>` folder, and check the CLI:
 ```
 
 The executable name remains unversioned inside the versioned bundle folder.
-Developers or source-checkout users should use the [CLI README](README.md) for
-virtual environment, module, and build commands.
 
 ## First Live Run
 
@@ -163,9 +159,7 @@ settings.
 
 `--csv` is the output file path. If omitted, the CLI creates a timestamped CSV
 path. Use an explicit path when you need predictable file locations for review
-or automation. Use `--no-csv` to disable CSV for a run when an external
-orchestrator stores the JSONL `sample` events; `--csv` and `--no-csv` cannot be
-used together.
+or automation. Use `--no-csv` to disable CSV output for a run; it cannot be combined with `--csv`.
 
 `--max-samples` bounds simple runs. Use it during smoke tests and validation so
 the command stops by itself.
@@ -201,8 +195,9 @@ current terminal used on the instrument.
 protective timeout path is used. Increase it only when the measurement setup
 intentionally waits longer.
 
-For complete accepted values and validation limits, see
-[Validated Argument Limits](README.md#validated-argument-limits).
+For exact accepted values, ranges, and defaults, run
+`meters-tool <command> --help` (for example,
+`.\meters-tool.exe start-trigger-record --help`).
 
 ## CSV Output
 
@@ -257,13 +252,3 @@ adjust the option it names. The CLI validates common settings before live I/O.
 If a hardware trigger run appears to wait, confirm the physical trigger signal,
 slope, delay, and timeout. Missing trigger edges can make the run wait or re-arm
 according to the configured timeout behavior.
-
-## More CLI Documentation
-
-- [CLI README](README.md): full command reference, examples,
-  argument limits, and automation workflows.
-- [CLI Integration](cli-integration.md): CLI adapter maintenance boundary.
-- [Meters CLI JSON / JSONL Contract](../contracts/meters-cli-jsonl-contract.md):
-  structured output schema for automation.
-- [Meters Worker Contract](../contracts/meters-worker-contract.md): worker
-  control plane and artifact contract.
