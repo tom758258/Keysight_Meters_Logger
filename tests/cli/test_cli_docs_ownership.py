@@ -97,6 +97,23 @@ def test_cli_docs_do_not_link_removed_or_webui_guides():
         assert value not in text
 
 
+def test_cli_user_guides_do_not_depend_on_developer_or_webui_docs():
+    forbidden_paths = (
+        "README.md",
+        "README.zh-TW.md",
+        "cli-integration.md",
+        "../core/integration.md",
+        "../contracts/",
+        "../webui/",
+        "../../CHANGELOG.md",
+    )
+
+    for filename in ("USER_GUIDE.md", "USER_GUIDE.zh-TW.md"):
+        text = read_doc(filename)
+        for path in forbidden_paths:
+            assert path not in text
+
+
 def test_common_worker_protocol_is_lifecycle_only():
     text = read_contract("common-worker-protocol.md")
 

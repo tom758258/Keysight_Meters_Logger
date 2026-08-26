@@ -67,6 +67,24 @@ def test_webui_docs_point_to_new_import_and_static_paths():
     assert "src/meters_tool_webui/static" in text
 
 
+def test_webui_user_guides_do_not_depend_on_developer_or_cli_docs():
+    forbidden_paths = (
+        "README.md",
+        "README.zh-TW.md",
+        "localization-contract.md",
+        "web-ui-change-rules.md",
+        "../core/integration.md",
+        "../contracts/",
+        "../cli/",
+        "../../CHANGELOG.md",
+    )
+
+    for filename in ("USER_GUIDE.md", "USER_GUIDE.zh-TW.md"):
+        text = read_doc(filename)
+        for path in forbidden_paths:
+            assert path not in text
+
+
 def test_webui_maintainer_docs_link_to_localization_contract():
     link = "[WebUI Localization Contract](localization-contract.md)"
 
