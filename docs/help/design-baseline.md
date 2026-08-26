@@ -49,8 +49,9 @@ inventory:
 - An opening paragraph introduces audience and purpose before detailed
   settings.
 - Startup or entry instructions appear early.
-- A first-use / first-live workflow appears before advanced detail, including
-  bounded smoke runs and front-panel comparison.
+- A first-use / first-live workflow appears before advanced detail, with
+  new setups kept bounded or otherwise operator-controlled while they are
+  validated.
 - Support boundaries are explained near the workflows they affect.
 - Organization is workflow-oriented, not organized by code or implementation
   module.
@@ -205,10 +206,11 @@ Observed differences:
   itself is otherwise effectively identical across the two files.
 
 Known content requirements for the future shared presentation (not observed
-legacy traits): Supported Models contains h3 sections and wide tables whose
-cells include inline code. The future presentation must render these
-readably even though neither legacy USER_GUIDE page currently demonstrates
-tables or content-level h3 styling.
+shared legacy traits): Supported Models contains h3 sections and wide tables
+whose cells include inline code. The future presentation must render these
+readably. Neither legacy USER_GUIDE page demonstrates wide-table
+presentation, and only the WebUI legacy page demonstrates content-level h3
+styling.
 
 None of these values are permanent design tokens or test contracts; they are
 current implementation references to unify deliberately in the shared Help
@@ -250,8 +252,10 @@ Real gaps relevant to upcoming Help stages:
   wording removed from the current guide, references anchors outside the
   guide, and both legacy pages link to raw `.md` targets instead of Help
   pages.
-- Supported Models requires readable wide-table and h3 presentation that no
-  current legacy page demonstrates.
+- Supported Models requires readable wide-table presentation and consistent
+  h3 support; wide-table presentation is not demonstrated by the legacy
+  USER_GUIDEs, and h3 styling currently exists only in the WebUI legacy
+  page.
 - Help packaging and application integration are not implemented yet.
 - Help language chrome will need EN / zh-TW values later.
 
