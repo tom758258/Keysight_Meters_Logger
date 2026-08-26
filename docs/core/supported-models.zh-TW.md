@@ -9,7 +9,7 @@ Meters Tool 目前支援以下儀器型號：
 
 | Model ID | 儀器 | 讀值記憶體 | 最大電流 | 外部觸發 |
 | --- | --- | ---: | ---: | --- |
-| `keysight-34461a` | Keysight 34461A | 10000 | 使用 10A terminal 時最高 10 A | supported |
+| `keysight-34461a` | Keysight 34461A | 10000 | 使用 10A terminal 時最高 10 A | 支援 |
 | `keysight-34460a` | Keysight 34460A | 1000 | 3 A | base scope 不支援 |
 
 CLI 與 WebUI 的 live 執行在未指定 model 時，會依連接儀器身分偵測 34460A/34461A。
@@ -31,15 +31,15 @@ Dry-run 與 simulator 執行使用 selected/no-hardware planning profile，不�
 
 | 能力 / workflow | 34461A | 34460A |
 | --- | --- | --- |
-| 立即 DC/AC 電壓/電流 | Open | Open on USB/system-VISA |
-| 2W/4W 電阻 | Open | Open on USB/system-VISA |
-| Software trigger/timer | Open | Open on USB/system-VISA |
-| Custom buffered workflows | Open | Open，受限於 1000-reading memory |
-| Frequency | Open | Open on USB/system-VISA |
-| Period | Open, no Period timeout option | Open, no Period timeout option |
-| External simple/custom | Open | base 34460A profile 未支援 |
-| DCV Ratio | Open | 僅 USB/system-VISA 支援 |
-| 10 A / current-terminal | Open，需操作人員確認接線 | Not supported |
+| 立即 DC/AC 電壓/電流 | 支援 | USB/system-VISA 範圍支援 |
+| 2W/4W 電阻 | 支援 | USB/system-VISA 範圍支援 |
+| Software trigger/timer | 支援 | USB/system-VISA 範圍支援 |
+| Custom buffered workflows | 支援 | 支援，受限於 1000-reading memory |
+| Frequency | 支援 | USB/system-VISA 範圍支援 |
+| Period | 支援，不提供 Period timeout 選項 | 支援，不提供 Period timeout 選項 |
+| External simple/custom | 支援 | base 34460A profile 未支援 |
+| DCV Ratio | 支援 | 僅 USB/system-VISA 支援 |
+| 10 A / current-terminal | 支援，需操作人員確認接線 | 不支援 |
 | 超過 model memory 的 buffer drain | 最高 10000 readings | 超過 1000 不支援 |
 | LAN/TCPIP 搭配 system VISA | 34461A 支援 | 目前不支援 |
 | LAN/TCPIP 搭配 pyvisa-py `@py` | 選用的 CLI-only 34461A 範圍支援 | 目前不支援 |
@@ -61,8 +61,6 @@ WebUI 不提供 backend selector。
 
 34460A 與 34461A profiles 目前提供相同的量測名稱，順序如下：
 
-每個受支援量測都有下表列出的 model-specific 範圍與限制。
-
 - `current-dc`
 - `voltage-dc`
 - `voltage-dc-ratio`
@@ -72,6 +70,8 @@ WebUI 不提供 backend selector。
 - `period`
 - `resistance-2w`
 - `resistance-4w`
+
+每個受支援量測都有下表列出的 model-specific 範圍與限制。
 
 | Measurement | 34461A 範圍選項 | 34460A 範圍選項 | NPLC 選項 | AC filter | Gate time | Frequency timeout | Current terminal | DCV input Z | Auto Zero |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -85,8 +85,8 @@ WebUI 不提供 backend selector。
 | `resistance-2w` | 100, 1000, 10000, 100000, 1000000, 10000000, 100000000 Ohm | 同 34461A | 0.02, 0.2, 1, 10, 100 | none | none | none | none | none | on, off, once |
 | `resistance-4w` | 100, 1000, 10000, 100000, 1000000, 10000000, 100000000 Ohm | 同 34461A | 0.02, 0.2, 1, 10, 100 | none | none | none | none | none | none |
 
-
-Auto Zero 支援 current-dc、voltage-dc 與 resistance-2w 的 on、off、once。
+Auto Zero 支援 `current-dc`、`voltage-dc` 與 `resistance-2w` 的 `on`、`off`、`once`。
+`voltage-dc-ratio` 的 Auto Zero 僅接受 `default`／`on` 狀態。
 AC、Frequency 與 Period 量測不使用 NPLC 或 Auto Zero。Resistance 4-wire 拒絕 once Auto Zero 選項。
 
 DCV input impedance 適用於 voltage-dc 與 voltage-dc-ratio。允許值為 default、10m、auto；default 保留目前儀器設定狀態。
