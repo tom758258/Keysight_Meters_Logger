@@ -1,63 +1,22 @@
 # Supported Models
 
-This file is the Core profile and model capability reference. Update it when
-Core profile data, supported measurements, model limits, or current Product
-support scope change.
-
-This document describes current Product-open support for normal users and
-integrators. The support-policy tokens and enforcing contract are documented in
-[Core Integration](integration.md), and contributor validation and promotion
-are documented in [Contributing](../CONTRIBUTING.md).
+This document describes current Product-open support for Meters Tool users.
+It is the shared user-facing reference for supported models, connections,
+backends, measurements, triggers, and important limits.
 
 ## Model Profiles
 
-Core currently provides these instrument profiles:
+Meters Tool currently supports these instrument models:
 
 | Model ID | Instrument | Reading memory | Current max | External trigger |
 | --- | --- | ---: | ---: | --- |
 | `keysight-34461a` | Keysight 34461A | 10000 | 10 A with 10A terminal | supported |
 | `keysight-34460a` | Keysight 34460A | 1000 | 3 A | base profile disabled; optional LAN/external trigger not assumed |
 
-Core distinguishes stable profile identity from instrument and presentation
-text:
-
-| Concept | Example | Responsibility |
-| --- | --- | --- |
-| model | `34461A` | Canonical physical instrument token and existing model contract |
-| model ID | `keysight-34461a` | Stable machine-readable profile identifier |
-| selected/requested model | `34461A` or another accepted profile identity | Offline profile selector or live expected-model guard |
-| detected model | `34461A` | Model resolved from live `*IDN?` |
-| display model | `Keysight 34461A` | Presentation text only |
-
-Every maintained `InstrumentProfile` explicitly owns both `model` and
-`model_id`. Profile lookup accepts the canonical model, stable model ID, and
-existing aliases case-insensitively. Canonical requested-model normalization
-continues to return `model`, while stable-ID normalization returns `model_id`.
-Neither value is generated from display text at runtime.
-
-CLI and WebUI live starts auto-detect 34460A/34461A from `*IDN?` when the model
-request is omitted. Explicit model selection is an expected-model guard for
-live starts: Core validates it against the detected IDN and fails before setup
-SCPI if the connected IDN reports a different supported model. The selected
-model never overrides the live IDN-selected profile. Dry-run and simulator
-starts use the selected model profile unless the simulator resource encodes a
-single supported model token such as `SIM::34460A` or `SIM::34461A`.
-
-Core profile logic normalizes requested profile identities, including lowercase
-model input such as `34460a` or `34461a` and stable IDs such as
-`keysight-34460a` or `keysight-34461a`. Existing requested-model contracts
-still receive the canonical model token. Unknown identities are rejected with
-a validation message that lists the supported models from the profile registry.
-
-Core capabilities expose `model_id` alongside the existing `model`, including
-in each available-profile entry. The stable ID is additive identity metadata;
-it does not by itself indicate live support or open a transport/backend or
-feature scope. The 34460A and 34461A profile limits above remain independent
-of model identity metadata. The current Product-open workflow scope is
-documented below.
-
-A selected model in live mode is never a feature unlock; Core support policy and
-the `run_start_session()` final gate use the detected `*IDN?` profile.
+CLI and WebUI live runs detect 34460A/34461A from the connected instrument
+identity when no model request is supplied. An explicitly selected model is an
+expected-model check: a mismatch fails before setup instead of unlocking another
+support scope. Dry-run and simulation may use the selected planning model.
 
 ## Exact-Scope Live Support
 
@@ -70,8 +29,7 @@ TCPIP/pyvisa-py. Hard model/profile limits remain enforced.
 
 Requests outside the current Product-open matrix, including unknown models,
 unsupported connections or feature combinations, and hard safety limits, fail
-closed. See [Core Integration](integration.md#validation-flow) for the
-support-policy enforcement contract.
+closed.
 
 In live mode, CLI `--model` and WebUI `Expected model` are expected-model
 guards only. The runtime driver/profile is selected from the connected
@@ -97,29 +55,17 @@ do not query live hardware.
 ### Exact-Scope Details
 
 - **Wiring Safety & 10 A Path**: Selecting the 10 A current terminal requires manual operator confirmation of physical lead wiring to prevent hardware damage.
-- **Reading Memory Limits**: 34461A custom runs above 10,000 readings and 34460A custom runs above 1,000 readings require explicit `--allow-buffer-overflow-risk`. `--buffer-drain-size` remains capped at the profile reading memory limit.
-- **Fail-Closed Policy**: Any model, transport, backend, measurement, or trigger combination not explicitly marked as open in the matrix above is unsupported and fails closed (see [Core Integration](integration.md#validation-flow)).
+- **Reading Memory Limits**: 34461A custom runs above 10,000 readings and 34460A custom runs above 1,000 readings require explicit overflow-risk acknowledgement. Buffer drain remains capped at the model reading-memory limit.
+- **Fail-Closed Policy**: Any model, transport, backend, measurement, or trigger combination not explicitly marked as open in the matrix above is unsupported and fails closed.
 
-## VISA Backend Selection
+## VISA Backend Support
 
-VISA backend selection is not a model capability. When `visa_library` is unset,
-Core creates live resource managers with `pyvisa.ResourceManager()` and uses the
-system default VISA runtime. CLI commands that directly open VISA resources can
-pass a PyVISA library/backend string such as `@py`; this only changes resource
-manager creation to `pyvisa.ResourceManager("@py")`. It does not change SCPI
-setup, trigger behavior, cleanup, CSV/JSONL schemas, or 34460A/34461A profile
-validation.
-
-The WebUI leaves `visa_library` unset and uses the default system VISA runtime.
-For pyvisa-py diagnostics, LAN/TCPIP is the recommended first path to try.
-USBTMC on Windows may require WinUSB/libusb setup. The `PYVISA_LIBRARY`
-environment variable remains PyVISA-level behavior, but explicit CLI
-`--visa-library "@py"` is preferred for reproducible tests.
-
-LAN/TCPIP and pyvisa-py `@py` remain separate support scopes evaluated against
-the exact-scope matrix above. USB/system-VISA support does not automatically open
-optional backend scopes. pyvisa-py is not required for normal system VISA usage,
-and the WebUI does not expose a backend selector.
+VISA backend support is part of the exact connection scope, not a model
+capability. Normal Product operation uses the computer System VISA runtime
+unless an interface explicitly exposes another supported backend. Optional
+backend scopes remain independent: selecting another backend does not unlock
+unsupported models, transports, measurements, or other Product support. The
+WebUI does not expose a backend selector.
 
 ## Measurement Capability
 
@@ -136,10 +82,8 @@ profile order:
 - `resistance-2w`
 - `resistance-4w`
 
-Profile data owns per-measurement range, NPLC, AC bandwidth/filter, gate time,
-Frequency timeout, current terminal, DCV input impedance, and Auto Zero
-validation where applicable. Adapters can retrieve the same Core-owned facts
-through `get_core_capabilities()` instead of reading profile internals.
+Each supported measurement has the model-specific ranges and limits listed in
+the table below.
 
 | Measurement | 34461A range choices | 34460A range choices | NPLC choices | AC filter | Gate time | Frequency timeout | Current terminal | DCV input Z | Auto Zero |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -153,26 +97,9 @@ through `get_core_capabilities()` instead of reading profile internals.
 | `resistance-2w` | 100, 1000, 10000, 100000, 1000000, 10000000, 100000000 Ohm | same as 34461A | 0.02, 0.2, 1, 10, 100 | none | none | none | none | none | on, off, once |
 | `resistance-4w` | 100, 1000, 10000, 100000, 1000000, 10000000, 100000000 Ohm | same as 34461A | 0.02, 0.2, 1, 10, 100 | none | none | none | none | none | none |
 
-Auto Zero supports `on`, `off`, and `once` for `current-dc`, `voltage-dc`, and
-`resistance-2w`. `voltage-dc-ratio` accepts only the default/on Auto Zero
-request state and does not emit Auto Zero SCPI because the instrument does not
-allow Auto Zero configuration after DCV Ratio is enabled. AC, Frequency, and
-Period measurements do not use NPLC or Auto Zero. Resistance 4-wire uses the
-`FRES` SCPI family and does not write Auto Zero SCPI, so
-`auto_zero="once"` is rejected for `resistance-4w`.
+Auto Zero supports `on`, `off`, and `once` for `current-dc`, `voltage-dc`, and `resistance-2w`. `voltage-dc-ratio` accepts only the default/on Auto Zero request state. AC, Frequency, and Period measurements do not use NPLC or Auto Zero. Resistance 4-wire rejects the `once` Auto Zero choice.
 
-DCV input impedance is available for `voltage-dc` and `voltage-dc-ratio`
-through `dcv_input_impedance`. Allowed values are `default`, `10m`, and `auto`.
-`default` preserves the current configured instrument state; `10m` writes
-`VOLT:DC:IMP:AUTO OFF`; `auto` writes `VOLT:DC:IMP:AUTO ON`.
-
-DCV Ratio stores the primary ratio in `MeasurementSample.value` with unit
-`ratio`. Each ratio sample also stores `measurement_metadata` with
-`signal_voltage_v`, `reference_voltage_v`, and `secondary_source="SENS:DATA"`.
-Simple ratio reads use `READ?` or hardware-triggered `FETC?`, then `DATA2?`.
-Custom buffered ratio modes drain one reading at a time with `DATA:REMove? 1`
-and query `DATA2?` per sample so the secondary signal/reference voltages stay
-paired with each ratio value.
+DCV input impedance is available for `voltage-dc` and `voltage-dc-ratio`. Allowed values are `default`, `10m`, and `auto`; `default` preserves the current configured instrument state.
 
 AC bandwidth/filter selection is available for `current-ac`, `voltage-ac`,
 `frequency`, and `period` through `ac_bandwidth_hz`. Allowed values are `3`,
@@ -189,64 +116,46 @@ instrument's Period timeout state unchanged. Explicit Period timeout values are
 rejected before instrument I/O. Frequency samples use unit `Hz`; Period samples
 use unit `s`.
 
-The [Keysight Truevolt Series DMM Operating and Service Guide](https://www.keysight.com/us/en/assets/9018-03876/service-manuals/9018-03876.pdf)
-contains ambiguous timeout syntax. The implementation does not send the
-unsupported Period header and leaves the instrument's Period timeout state
-unchanged.
 
-Current terminal selection is available only for the 34461A `current-dc` and
-`current-ac` profiles. Selecting the 10 A current range requires
-`current_terminal=10`; selecting `current_terminal=10` requires the 10 A range
-when a manual range is supplied. When the 10 A terminal is explicit, Core
-writes `CURR:{DC|AC}:TERM 10` and does not write `CURR:{DC|AC}:RANG 10`.
 
-The 34460A current profiles support up to 3 A only. They do not expose
-`current_terminal` because the 34460A does not have the 34461A-style 10 A
-terminal path.
+Current terminal selection is available only for the 34461A current profiles.
+Selecting the 10 A range also selects or requires the 10 A terminal; operators
+must confirm range, terminal, and physical lead wiring to prevent hardware
+damage. The 34460A current profiles support up to 3 A only and do not expose a
+34461A-style 10 A terminal path.
 
 ## Trigger Capability
 
-Core validation and planning derive trigger modes from the selected profile.
+The 34461A supports:
 
-The 34461A profile supports:
+- software
+- software timer through timer_interval_s
+- external
+- immediate
+- immediate-custom
+- software-custom
+- external-custom
 
-- `software`
-- software timer through `timer_interval_s`
-- `external`
-- `immediate`
-- `immediate-custom`
-- `software-custom`
-- `external-custom`
+The 34460A base scope supports:
 
-The 34460A base profile supports:
+- software
+- software timer through timer_interval_s
+- immediate
+- immediate-custom
+- software-custom
 
-- `software`
-- software timer through `timer_interval_s`
-- `immediate`
-- `immediate-custom`
-- `software-custom`
-
-Simple software and immediate reads use `READ?`. Simple external-triggered
-reads use `FETC?` after the hardware trigger adapter arms and completes the
-measurement. Custom and buffered modes use the existing buffered acquisition
-path.
-
-The 34460A base profile does not offer external trigger modes because
-LAN/LXI/external trigger capability is optional on that model. External trigger
-is not currently supported for the base profile.
+The 34460A base scope does not support external trigger modes because LAN/LXI/external trigger capability is optional on that model.
 
 ## Reading Memory
 
-Custom modes compare `trigger_count * sample_count` with the selected
-profile's `reading_memory_limit`.
+Custom runs compare the requested reading count with the model reading-memory limit.
 
-- 34461A requests above 10000 readings require `--allow-buffer-overflow-risk`.
-- 34460A requests above 1000 readings require `--allow-buffer-overflow-risk`.
-- `--buffer-drain-size` remains capped at the profile reading memory and is not
-  relaxed by `--allow-buffer-overflow-risk`.
-
+- 34461A custom runs above 10000 readings require explicit overflow-risk acknowledgement.
+- 34460A custom runs above 1000 readings require explicit overflow-risk acknowledgement.
+- Buffer drain remains capped at the model reading-memory limit and is not relaxed by that acknowledgement.
 ## Unsupported Scope
 
 Models not listed in this document are not currently supported in Product mode.
-A connection, measurement, trigger mode, or workflow combination not listed as
-Product-open is also unsupported.
+A model, connection/backend, measurement, trigger mode, or workflow combination
+not listed as Product-open is unsupported. Unsupported combinations are rejected
+rather than implicitly enabled.
