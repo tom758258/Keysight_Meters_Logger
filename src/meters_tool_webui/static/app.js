@@ -1,7 +1,7 @@
 import { api } from "./api.js";
 import { applyStaticTranslations, setTranslatedText, setTranslatedAriaLabel } from "./dom_i18n.js";
-import { t } from "./i18n.js";
-import { initializeLocaleUi } from "./locale_ui.js";
+import { getLocale, t } from "./i18n.js";
+import { helpPathForLocale, initializeLocaleUi } from "./locale_ui.js";
 import {
   acBandwidthSelect,
   autoRangeCheckbox,
@@ -20,6 +20,7 @@ import {
   form,
   freqPeriodTimeoutSelect,
   gateTimeSelect,
+  helpButton,
   instrumentModelSelect,
   localeToggle,
   localeToggleLabel,
@@ -671,6 +672,12 @@ openCsvButton.addEventListener("click", async () => {
     appendBrowserError(error);
   }
 });
+
+if (helpButton) {
+  helpButton.addEventListener("click", () => {
+    window.open(helpPathForLocale(getLocale()), "_blank", "noopener");
+  });
+}
 
 function refreshLocalizedPresentation() {
   applyStaticTranslations(document);

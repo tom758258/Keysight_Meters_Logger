@@ -3,7 +3,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const readline = require("node:readline");
 
-const { app, BrowserWindow, dialog, nativeTheme, screen, session } = require("electron");
+const { app, BrowserWindow, dialog, nativeTheme, screen, session, shell } = require("electron");
 
 const SHUTDOWN_COMMAND = `${JSON.stringify({ command: "shutdown" })}\n`;
 const THEME_COOKIE_NAME = "meters-tool.webui.theme";
@@ -174,7 +174,19 @@ async function createMainWindow(readyUrl) {
   };
   window.webContents.on("will-navigate", guardNavigation);
   window.webContents.on("will-redirect", guardNavigation);
-  window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+  window.webContents.setWindowOpenHandler(({ url }) => {
+    try {
+      const target = new URL(url);
+      if (target.origin === allowedOrigin && target.pathname.startsWith("/help/")) {
+        void shell.openExternal(url).catch((error) => {
+          console.error(`Could not open Help: ${error.message}`);
+        });
+      }
+    } catch {
+      // Invalid URLs remain denied.
+    }
+    return { action: "deny" };
+  });
 
   window.on("close", (event) => {
     if (allowAppExit || !backendIsRunning()) {

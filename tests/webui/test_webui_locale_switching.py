@@ -1090,3 +1090,20 @@ process.stdout.write(JSON.stringify({ ok: true }));
         f"stdout:\n{completed.stdout}\nstderr:\n{completed.stderr}"
     )
     assert completed.stdout == '{"ok":true}'
+
+
+@pytest.mark.skipif(NODE is None, reason="Node.js is required for ES-module runtime tests")
+def test_help_path_for_locale():
+    script = r'''
+import assert from "node:assert/strict";
+const [localeUiUrl] = process.argv.slice(1);
+const localeUi = await import(localeUiUrl);
+assert.equal(localeUi.helpPathForLocale("en"), "/help/");
+assert.equal(localeUi.helpPathForLocale("zh-TW"), "/help/webui.zh-TW.html");
+process.stdout.write(JSON.stringify({ ok: true }));
+'''
+    completed = run_node(script, STATIC_DIR / "locale_ui.js")
+    assert completed.returncode == 0, (
+        f"Help path locale contract failed\nstdout:\n{completed.stdout}\nstderr:\n{completed.stderr}"
+    )
+    assert completed.stdout == '{"ok":true}'

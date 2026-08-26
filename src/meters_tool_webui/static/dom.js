@@ -17,6 +17,7 @@ export const localeToggle = document.querySelector("#locale-toggle");
 export const localeToggleLabel = document.querySelector("#locale-toggle-label");
 export const themeToggle = document.querySelector("#theme-toggle");
 export const themeToggleLabel = document.querySelector("#theme-toggle-label");
+export const helpButton = document.querySelector("#help-button");
 export const liveDataSummary = document.querySelector("#live-data-summary");
 export const liveLatestValue = document.querySelector("#live-latest-value");
 export const liveLatestTime = document.querySelector("#live-latest-time");

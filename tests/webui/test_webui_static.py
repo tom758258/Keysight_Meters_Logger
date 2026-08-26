@@ -678,5 +678,15 @@ class WebUiStaticTests(unittest.TestCase):
                     ):
                         self.assertIn(imported_name, exported_names)
 
+    def test_static_ui_exposes_help_button(self):
+        index, _ = load_static_ui()
+
+        assert_tag_with_attrs(
+            self,
+            index,
+            "button",
+            {"id": "help-button", "type": "button", "data-i18n": "app.help"},
+        )
+
 if __name__ == "__main__":
     unittest.main()

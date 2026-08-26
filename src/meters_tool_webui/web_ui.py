@@ -9,7 +9,7 @@ from typing import Any
 
 try:
     from fastapi import FastAPI, HTTPException, Request
-    from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
+    from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
     from fastapi.staticfiles import StaticFiles
     from pydantic import ValidationError
 except ImportError as exc:  # pragma: no cover - exercised only without web deps
@@ -43,12 +43,30 @@ class _NoStoreStaticFiles(StaticFiles):
         return response
 
 
-def create_app(manager: WebRunManager | None = None) -> FastAPI:
+def create_app(
+    manager: WebRunManager | None = None,
+    *,
+    help_dir: Path | None = None,
+) -> FastAPI:
     static_dir = Path(__file__).with_name("static")
+    if help_dir is None:
+        help_dir = static_dir / "help"
+    else:
+        help_dir = Path(help_dir)
     index_html = _render_index_html(static_dir)
     app = FastAPI(title="Meters Tool WebUI")
     app.state.manager = manager or WebRunManager()
+
+    @app.get("/help/", include_in_schema=False)
+    def help_index() -> FileResponse:
+        target = help_dir / "webui.html"
+        if not target.is_file():
+            raise HTTPException(status_code=404, detail="Help not found")
+        return FileResponse(str(target), headers={"Cache-Control": "no-store"})
+
     app.mount("/static", _NoStoreStaticFiles(directory=static_dir), name="static")
+    if help_dir.is_dir():
+        app.mount("/help", _NoStoreStaticFiles(directory=help_dir, html=False), name="help")
 
     @app.get("/")
     def index() -> HTMLResponse:

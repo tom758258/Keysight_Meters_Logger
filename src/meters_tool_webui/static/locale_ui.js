@@ -78,6 +78,10 @@ export function persistLocale(storage, locale) {
   }
 }
 
+export function helpPathForLocale(locale) {
+  return locale === "zh-TW" ? "/help/webui.zh-TW.html" : "/help/";
+}
+
 function destinationLocale(locale) {
   return locale === "zh-TW" ? "en" : "zh-TW";
 }
