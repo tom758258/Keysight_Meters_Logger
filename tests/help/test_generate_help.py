@@ -51,20 +51,26 @@ def test_generated_bundle_contract(tmp_path: Path) -> None:
     zh_pages = ["cli.zh-TW.html", "webui.zh-TW.html", "supported-models.zh-TW.html"]
 
     for name in en_pages:
-        page = (output_dir / name).read_text(encoding="utf-8")
+        page_bytes = (output_dir / name).read_bytes()
+        assert b"\r\n" not in page_bytes
+        page = page_bytes.decode("utf-8")
         assert 'lang="en"' in page
         assert "{{HELP_" not in page
         assert 'href="help.css"' in page
         assert "<h1" in page
 
     for name in zh_pages:
-        page = (output_dir / name).read_text(encoding="utf-8")
+        page_bytes = (output_dir / name).read_bytes()
+        assert b"\r\n" not in page_bytes
+        page = page_bytes.decode("utf-8")
         assert 'lang="zh-TW"' in page
         assert "{{HELP_" not in page
         assert 'href="help.css"' in page
         assert "<h1" in page
 
-    assert (output_dir / "help.css").read_bytes() == CSS_SOURCE.read_bytes()
+    generated_css = (output_dir / "help.css").read_bytes()
+    assert b"\r\n" not in generated_css
+    assert generated_css == CSS_SOURCE.read_bytes()
 
 
 def test_internal_help_links_and_markdown_structures(tmp_path: Path) -> None:
@@ -138,8 +144,8 @@ def test_tracked_webui_help_runtime_bundle_matches_generator(tmp_path: Path) -> 
         "help.css",
     ]
     for name in webui_runtime_files:
-        fresh = (output_dir / name).read_text(encoding="utf-8")
-        tracked = (runtime_help_dir / name).read_text(encoding="utf-8")
+        fresh = (output_dir / name).read_bytes()
+        tracked = (runtime_help_dir / name).read_bytes()
         assert fresh == tracked, f"tracked WebUI Help asset is stale: {name}"
         # Also guard that no cli artifacts were copied into WebUI static tree
     assert not (runtime_help_dir / "cli.html").exists()

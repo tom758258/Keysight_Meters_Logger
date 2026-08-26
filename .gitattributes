@@ -1,0 +1,4 @@
+docs/help/*.html text eol=lf
+docs/help/*.css text eol=lf
+src/meters_tool_webui/static/help/*.html text eol=lf
+src/meters_tool_webui/static/help/*.css text eol=lf
