@@ -11,7 +11,7 @@ Meters Tool currently supports these instrument models:
 | Model ID | Instrument | Reading memory | Current max | External trigger |
 | --- | --- | ---: | ---: | --- |
 | `keysight-34461a` | Keysight 34461A | 10000 | 10 A with 10A terminal | supported |
-| `keysight-34460a` | Keysight 34460A | 1000 | 3 A | base profile disabled; optional LAN/external trigger not assumed |
+| `keysight-34460a` | Keysight 34460A | 1000 | 3 A | Not supported in base scope |
 
 CLI and WebUI live runs detect 34460A/34461A from the connected instrument
 identity when no model request is supplied. An explicitly selected model is an
@@ -33,7 +33,7 @@ closed.
 
 In live mode, CLI `--model` and WebUI `Expected model` are expected-model
 guards only. The runtime driver/profile is selected from the connected
-instrument `*IDN?`. A selected/detected mismatch fails before setup SCPI.
+instrument `*IDN?`. A selected/detected mismatch fails before instrument setup.
 Dry-run and simulator runs use the selected/no-hardware planning profile and
 do not query live hardware.
 
@@ -44,7 +44,7 @@ do not query live hardware.
 | Software trigger/timer | Open | Open on USB/system-VISA |
 | Custom buffered workflows | Open | Open, limited by 1000-reading memory |
 | Frequency | Open | Open on USB/system-VISA |
-| Period | Open, no Period timeout SCPI | Open, no Period timeout SCPI |
+| Period | Open, no Period timeout option | Open, no Period timeout option |
 | External simple/custom | Open | Not open in base 34460A profile |
 | DCV Ratio | Open | Open only on USB/system-VISA |
 | 10 A / current-terminal | Open with operator-confirmed wiring | Not supported |
@@ -89,7 +89,7 @@ the table below.
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `current-dc` | 0.0001, 0.001, 0.01, 0.1, 1, 3, 10 A | 0.0001, 0.001, 0.01, 0.1, 1, 3 A | 0.02, 0.2, 1, 10, 100 | none | none | none | 34461A: 3, 10; 34460A: none | none | on, off, once |
 | `voltage-dc` | 0.1, 1, 10, 100, 1000 V | same as 34461A | 0.02, 0.2, 1, 10, 100 | none | none | none | none | default, 10m, auto | on, off, once |
-| `voltage-dc-ratio` | 0.1, 1, 10, 100, 1000 V | same as 34461A | 0.02, 0.2, 1, 10, 100 | none | none | none | none | default, 10m, auto | on/default only; no Auto Zero SCPI |
+| `voltage-dc-ratio` | 0.1, 1, 10, 100, 1000 V | same as 34461A | 0.02, 0.2, 1, 10, 100 | none | none | none | none | default, 10m, auto | on/default only |
 | `current-ac` | 0.0001, 0.001, 0.01, 0.1, 1, 3, 10 A | 0.0001, 0.001, 0.01, 0.1, 1, 3 A | none | 3, 20, 200 Hz | none | none | 34461A: 3, 10; 34460A: none | none | none |
 | `voltage-ac` | 0.1, 1, 10, 100, 750 V | same as 34461A | none | 3, 20, 200 Hz | none | none | none | none | none |
 | `frequency` | 0.1, 1, 10, 100, 750 V | same as 34461A | none | 3, 20, 200 Hz; default 20 | 0.01, 0.1, 1 s; default 0.1 | auto, 1s; default auto | none | none | none |
@@ -102,25 +102,23 @@ Auto Zero supports `on`, `off`, and `once` for `current-dc`, `voltage-dc`, and `
 DCV input impedance is available for `voltage-dc` and `voltage-dc-ratio`. Allowed values are `default`, `10m`, and `auto`; `default` preserves the current configured instrument state.
 
 AC bandwidth/filter selection is available for `current-ac`, `voltage-ac`,
-`frequency`, and `period` through `ac_bandwidth_hz`. Allowed values are `3`,
+`frequency`, and `period`. Allowed values are `3`,
 `20`, and `200` Hz. Leaving the field unset preserves the existing AC
 current/voltage behavior. Frequency and Period instead apply the effective
 default `20` Hz filter.
 
 Frequency and Period use voltage range choices of `0.1`, `1`, `10`, `100`, and
-`750` V. Auto Range is the default. `gate_time_s` accepts `0.01`, `0.1`, or
-`1.0` seconds and defaults to `0.1`. For Frequency,
-`freq_period_timeout` accepts `auto` or `1s` and defaults to `auto`. Period
-does not expose a timeout option and sends no timeout SCPI, leaving the
-instrument's Period timeout state unchanged. Explicit Period timeout values are
-rejected before instrument I/O. Frequency samples use unit `Hz`; Period samples
-use unit `s`.
+`750` V. Auto Range is the default.
 
+Gate time accepts `0.01`, `0.1`, or `1.0` seconds and defaults to `0.1`.
 
+Frequency timeout accepts `auto` or `1s` and defaults to `auto`. Period does
+not expose a timeout option. Explicit Period timeout values are rejected.
 
 Current terminal selection is available only for the 34461A current profiles.
-Selecting the 10 A range also selects or requires the 10 A terminal; operators
-must confirm range, terminal, and physical lead wiring to prevent hardware
+Selecting the 10 A range requires the 10 A terminal, and selecting the 10 A
+terminal with a manual range requires the 10 A range. Operators must confirm
+the range, terminal, and physical lead wiring to prevent hardware
 damage. The 34460A current profiles support up to 3 A only and do not expose a
 34461A-style 10 A terminal path.
 
@@ -129,7 +127,7 @@ damage. The 34460A current profiles support up to 3 A only and do not expose a
 The 34461A supports:
 
 - software
-- software timer through timer_interval_s
+- software timer
 - external
 - immediate
 - immediate-custom
@@ -139,7 +137,7 @@ The 34461A supports:
 The 34460A base scope supports:
 
 - software
-- software timer through timer_interval_s
+- software timer
 - immediate
 - immediate-custom
 - software-custom
@@ -153,6 +151,7 @@ Custom runs compare the requested reading count with the model reading-memory li
 - 34461A custom runs above 10000 readings require explicit overflow-risk acknowledgement.
 - 34460A custom runs above 1000 readings require explicit overflow-risk acknowledgement.
 - Buffer drain remains capped at the model reading-memory limit and is not relaxed by that acknowledgement.
+
 ## Unsupported Scope
 
 Models not listed in this document are not currently supported in Product mode.
