@@ -57,7 +57,7 @@ WebUI 是一個本機擷取主控台。主要區域包含：
 - `Status` (狀態)：目前的作業狀態、擷取到的樣本數、錯誤、CSV 路徑與日誌。
 - `Live data`（即時資料）：最新讀值、趨勢圖表、最近取樣與所選取樣的詳細資訊。
 
-點擊 `支援裝置` 可查看 WebUI 支援連線清單。此清單由 Core capability 與支援元資料衍生，會反映目前支援的連線範圍，而不會硬編一份暫時的 USB/LAN support matrix。精確的目前 Product support scope 請見 [Supported Models](../core/supported-models.md)。
+點擊 `支援裝置` 可查看 WebUI 支援連線清單。此清單由 Core capability 與支援元資料衍生，會反映目前支援的連線範圍，而不會硬編一份暫時的 USB/LAN support matrix。精確的目前 Product support scope 請見 [Supported Models](../core/supported-models.zh-TW.md)。
 
 ## 瀏覽器語言
 
@@ -121,7 +121,7 @@ WebUI 會在啟動作業前檢查各項設定。如果 `Start` 被封鎖無法�
 
 `VISA resource` (VISA 資源) 是作業將使用的儀器位址。建議使用透過 `Scan Device` 找到的資源，或手動輸入由操作人員或測試程序提供的已知資源。當可能連接多台儀器時，請勿用猜測的方式填寫資源。
 
-WebUI 使用電腦固定的預設 System VISA runtime。它不提供 PyVISA backend 選擇器，resource scan 與 run API 也不接受 backend override。精確的實機型號與連線支援由 Core policy 決定，並記載於 [Supported Models](../core/supported-models.md)。
+WebUI 使用電腦固定的預設 System VISA runtime。它不提供 PyVISA backend 選擇器，resource scan 與 run API 也不接受 backend override。精確的實機型號與連線支援由 Core policy 決定，並記載於 [Supported Models](../core/supported-models.zh-TW.md)。
 
 `Live resource`（實機資源）顯示最後一次掃描回應的結果。請先用它確認是哪台儀器回應，再複製或選取資源以進行作業。當掃描辨識出支援的 34460A 或 34461A IDN 時，WebUI 可能會載入特定型號的選項以供顯示，同時保持 `Expected model` 在 `Auto-detect`。
 

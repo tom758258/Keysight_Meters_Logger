@@ -56,7 +56,7 @@ live 啟動省略 `--model` 時，連接儀器的 `*IDN?` 決定 runtime profile
 
 某個 VISA resource 能回應 `*IDN?` 或出現在 `list-resources` 中，本身不代表所有型號與 transport/backend 組合都已 Product-open。型號、transport、backend、量測與觸發支援都是精確範圍，且必須符合 Core policy。未列出的組合會 fail closed，而不是透過 `--model` 或掃描結果被解鎖。
 
-精確的目前支援矩陣，請參閱 [支援型號](../core/supported-models.md)。
+精確的目前支援矩陣，請參閱 [支援型號](../core/supported-models.zh-TW.md)。
 
 CLI 預設使用電腦的 System VISA runtime，例如 Keysight IO Libraries Suite 或 NI-VISA。backend 選擇不會改變或擴充 Product 支援。官方 standalone CLI 執行檔只支援固定的 System VISA 路徑，不 bundle 選用 backend。
 

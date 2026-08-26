@@ -254,7 +254,7 @@
             <li><code>Status</code> (狀態)：目前的作業狀態、擷取到的樣本數、錯誤、CSV 路徑與日誌。</li>
             <li><code>Live data</code>（即時資料）：最新讀值、趨勢圖表、最近取樣與所選取樣的詳細資訊。</li>
         </ul>
-        <p>點擊 <code>支援裝置</code> 可查看 WebUI 支援連線清單。此清單由 Core capability 與支援元資料衍生，會反映目前支援的連線範圍，而不會硬編一份暫時的 USB/LAN support matrix。精確的目前 Product support scope 請見 <a href="../core/supported-models.md">Supported Models</a>。</p>
+        <p>點擊 <code>支援裝置</code> 可查看 WebUI 支援連線清單。此清單由 Core capability 與支援元資料衍生，會反映目前支援的連線範圍，而不會硬編一份暫時的 USB/LAN support matrix。精確的目前 Product support scope 請見 <a href="../core/supported-models.zh-TW.md">Supported Models</a>。</p>
 
         <h2>瀏覽器語言</h2>
         <p>右上角的外觀與語言控制是各自帶標籤的設定項。使用地球與文字按鈕，在 English 與繁體中文之間切換。該按鈕會顯示目前語言：English 顯示 <code>English</code>，繁體中文顯示 <code>繁體中文</code>；螢幕閱讀器標籤則描述切換後的目的地語言。</p>
@@ -303,7 +303,7 @@
         <h2>設定參考</h2>
         <p>WebUI 會在啟動作業前檢查各項設定。如果 <code>Start</code> 被封鎖無法點擊，請閱讀 Status 日誌並調整其指出的欄位。</p>
         <p><code>VISA resource</code> (VISA 資源) 是作業將使用的儀器位址。建議使用透過 <code>Scan Device</code> 找到的資源，或手動輸入由操作人員或測試程序提供的已知資源。當可能連接多台儀器時，請勿用猜測的方式填寫資源。</p>
-        <p>WebUI 使用電腦固定的預設 System VISA runtime。它不提供 PyVISA backend 選擇器，resource scan 與 run API 也不接受 backend override。精確的實機型號與連線支援由 Core policy 決定，並記載於 <a href="../core/supported-models.md">Supported Models</a>。若需要了解 CLI 的選用 backend，例如 <code>@py</code>，請參閱 <a href="../cli/USER_GUIDE.zh-TW.html">CLI 使用者指南</a>。</p>
+        <p>WebUI 使用電腦固定的預設 System VISA runtime。它不提供 PyVISA backend 選擇器，resource scan 與 run API 也不接受 backend override。精確的實機型號與連線支援由 Core policy 決定，並記載於 <a href="../core/supported-models.zh-TW.md">Supported Models</a>。若需要了解 CLI 的選用 backend，例如 <code>@py</code>，請參閱 <a href="../cli/USER_GUIDE.zh-TW.html">CLI 使用者指南</a>。</p>
         <p><code>Live resource</code>（實機資源）顯示最後一次掃描回應的結果。請先用它確認是哪台儀器回應，再複製或選取資源以進行作業。當掃描辨識出支援的 34460A 或 34461A IDN 時，WebUI 可能會載入特定型號的選項以供顯示，同時保持 <code>Expected model</code> 在 <code>Auto-detect</code>。</p>
         <p><code>CSV 輸出</code> 預設為勾選。啟用時，<code>CSV path</code> (CSV 路徑) 是讀值寫入的位置。請使用 <code>Select</code> 選擇資料夾並讓 WebUI 產生帶有時間戳記的檔案名稱，或在點擊 <code>Start</code> 前手動輸入特定的檔案路徑。</p>
         <p><strong>執行次數與取樣限制</strong>欄位用來控制作業可以持續多久。在檢查接線、量測類型與觸發行為時，請為新的設定保持有界限 (bounded，即設定次數上限)。</p>
