@@ -115,8 +115,8 @@ def test_tracked_webui_help_runtime_bundle_matches_generator(tmp_path: Path) -> 
         "help.css",
     ]
     for name in webui_runtime_files:
-        fresh = (output_dir / name).read_bytes()
-        tracked = (runtime_help_dir / name).read_bytes()
+        fresh = (output_dir / name).read_text(encoding="utf-8")
+        tracked = (runtime_help_dir / name).read_text(encoding="utf-8")
         assert fresh == tracked, f"tracked WebUI Help asset is stale: {name}"
         # Also guard that no cli artifacts were copied into WebUI static tree
     assert not (runtime_help_dir / "cli.html").exists()
