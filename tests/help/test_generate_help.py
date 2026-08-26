@@ -99,6 +99,22 @@ def test_javascript_label_escaping_roundtrip() -> None:
     assert json.loads('"' + escaped + '"') == sample
 
 
+def test_help_theme_preference_bridge(tmp_path: Path) -> None:
+    output_dir = tmp_path / "help"
+    result = run_generator(output_dir)
+    assert result.returncode == 0, result.stderr
+
+    css = (output_dir / "help.css").read_text(encoding="utf-8")
+    assert ':root[data-theme="dark"]' in css
+    assert "prefers-color-scheme: dark" in css
+    assert ':root[data-theme="system"]' in css
+
+    for name in ("webui.html", "webui.zh-TW.html", "supported-models.html", "supported-models.zh-TW.html"):
+        page = (output_dir / name).read_text(encoding="utf-8")
+        assert "meters-tool.webui.theme" in page
+        assert page.index("meters-tool.webui.theme") < page.index('href="help.css"')
+
+
 def test_tracked_webui_help_runtime_bundle_matches_generator(tmp_path: Path) -> None:
     output_dir = tmp_path / "help"
     result = run_generator(output_dir)

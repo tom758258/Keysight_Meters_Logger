@@ -4,6 +4,7 @@
    implementation references, not frozen design tokens. */
 
 :root {
+    color-scheme: light;
     --primary: #2563eb;
     --primary-hover: #1d4ed8;
     --bg-body: #ffffff;
@@ -14,6 +15,42 @@
     --bg-code: #1e293b;
     --text-code: #f8fafc;
     --bg-inline-code: #f1f5f9;
+    --bg-toc-active: #e2e8f0;
+    --text-inline-code: #be123c;
+}
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --primary: #69aaf5;
+    --primary-hover: #8bbcf5;
+    --bg-body: #17181a;
+    --bg-sidebar: #222326;
+    --text-main: #f2f2f4;
+    --text-muted: #a8a8ae;
+    --border-color: #414348;
+    --bg-code: #1e293b;
+    --text-code: #f8fafc;
+    --bg-inline-code: #292a2e;
+    --bg-toc-active: #26384d;
+    --text-inline-code: #fb7185;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root[data-theme="system"] {
+        color-scheme: dark;
+        --primary: #69aaf5;
+        --primary-hover: #8bbcf5;
+        --bg-body: #17181a;
+        --bg-sidebar: #222326;
+        --text-main: #f2f2f4;
+        --text-muted: #a8a8ae;
+        --border-color: #414348;
+        --bg-code: #1e293b;
+        --text-code: #f8fafc;
+        --bg-inline-code: #292a2e;
+        --bg-toc-active: #26384d;
+        --text-inline-code: #fb7185;
+    }
 }
 
 * {
@@ -75,7 +112,7 @@ nav {
 
 .toc-link:hover,
 .toc-link.active {
-    background-color: #e2e8f0;
+    background-color: var(--bg-toc-active);
     color: var(--primary);
     font-weight: 500;
 }
@@ -147,7 +184,7 @@ code {
 
 :not(pre) > code {
     background-color: var(--bg-inline-code);
-    color: #be123c;
+    color: var(--text-inline-code);
     padding: 0.2em 0.4em;
     border-radius: 4px;
 }

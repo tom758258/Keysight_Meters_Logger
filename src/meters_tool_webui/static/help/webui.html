@@ -4,6 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meters Tool WebUI User Guide</title>
+    <script>
+        (() => {
+            let preference = "system";
+            try {
+                const prefix = "meters-tool.webui.theme=";
+                const saved = document.cookie
+                    .split(";")
+                    .map((part) => part.trim())
+                    .find((part) => part.startsWith(prefix))
+                    ?.slice(prefix.length);
+                if (["system", "light", "dark"].includes(saved)) preference = saved;
+            } catch (_error) {}
+            document.documentElement.dataset.theme = preference;
+        })();
+    </script>
     <link rel="stylesheet" href="help.css">
 </head>
 <body>
