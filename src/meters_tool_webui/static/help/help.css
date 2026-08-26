@@ -1,0 +1,255 @@
+/* Meters Tool shared Help presentation styles.
+   Extracted from the legacy USER_GUIDE HTML visual baseline
+   (see docs/help/design-baseline.md). Values are current
+   implementation references, not frozen design tokens. */
+
+:root {
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --bg-body: #ffffff;
+    --bg-sidebar: #f8fafc;
+    --text-main: #0f172a;
+    --text-muted: #475569;
+    --border-color: #e2e8f0;
+    --bg-code: #1e293b;
+    --text-code: #f8fafc;
+    --bg-inline-code: #f1f5f9;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans TC", sans-serif;
+    line-height: 1.7;
+    color: var(--text-main);
+    background-color: var(--bg-body);
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar navigation */
+.help-sidebar {
+    width: 280px;
+    background-color: var(--bg-sidebar);
+    border-right: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 2rem 1.5rem;
+    flex-shrink: 0;
+}
+
+.help-sidebar-title {
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+}
+
+nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.toc-link {
+    text-decoration: none;
+    color: var(--text-main);
+    font-size: 0.95rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.toc-link.toc-h3 {
+    padding-left: 1.75rem;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.toc-link:hover,
+.toc-link.active {
+    background-color: #e2e8f0;
+    color: var(--primary);
+    font-weight: 500;
+}
+
+/* Main content */
+main {
+    flex: 1;
+    padding: 3rem 4rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.02em;
+}
+
+h2 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-top: 3rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+    scroll-margin-top: 2rem;
+}
+
+h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    color: var(--text-main);
+    scroll-margin-top: 2rem;
+}
+
+p {
+    margin-bottom: 1.25rem;
+    color: var(--text-muted);
+}
+
+ul,
+ol {
+    margin-bottom: 1.25rem;
+    padding-left: 1.5rem;
+    color: var(--text-muted);
+}
+
+li {
+    margin-bottom: 0.5rem;
+}
+
+a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Code blocks and inline code */
+code {
+    font-family: "Fira Code", "Consolas", monospace;
+    font-size: 0.9em;
+}
+
+:not(pre) > code {
+    background-color: var(--bg-inline-code);
+    color: #be123c;
+    padding: 0.2em 0.4em;
+    border-radius: 4px;
+}
+
+.code-wrapper {
+    position: relative;
+    margin-bottom: 1.5rem;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: var(--bg-code);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+pre {
+    margin: 0;
+    padding: 1.25rem;
+    overflow-x: auto;
+}
+
+pre code {
+    color: var(--text-code);
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+}
+
+.copy-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.copy-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.copy-btn.copied {
+    background: rgba(16, 185, 129, 0.8);
+}
+
+/* Tables */
+.table-wrapper {
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+}
+
+.table-wrapper table {
+    margin-bottom: 0;
+}
+
+th,
+td {
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    vertical-align: top;
+}
+
+th {
+    background-color: var(--bg-sidebar);
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+/* Focus visibility */
+a:focus-visible,
+.copy-btn:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* Responsive stacking */
+@media (max-width: 768px) {
+    body {
+        flex-direction: column;
+    }
+
+    .help-sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        padding: 1.5rem;
+    }
+
+    main {
+        padding: 1.5rem;
+    }
+}

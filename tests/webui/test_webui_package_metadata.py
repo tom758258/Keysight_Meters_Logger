@@ -99,7 +99,13 @@ def test_webui_distribution_uses_adapter_metadata_and_console_script():
     assert scripts["meters-tool-webui"] == "meters_tool_webui.web_ui:main"
     assert scripts["meters-tool-webui-launcher"] == "meters_tool_webui.launcher:main"
     assert pyproject["tool"]["setuptools"]["package-data"] == {
-        "meters_tool_webui": ["static/*.html", "static/*.css", "static/*.js"]
+        "meters_tool_webui": [
+            "static/*.html",
+            "static/*.css",
+            "static/*.js",
+            "static/help/*.html",
+            "static/help/*.css",
+        ]
     }
     assert importlib.util.find_spec("meters_tool") is None
     assert importlib.util.find_spec("meters_tool_webui") is not None

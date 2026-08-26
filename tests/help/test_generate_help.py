@@ -97,3 +97,27 @@ def test_javascript_label_escaping_roundtrip() -> None:
     sample = '複製 "value" \\ path\n下一行'
     escaped = generator.escape_javascript_string(sample)
     assert json.loads('"' + escaped + '"') == sample
+
+
+def test_tracked_webui_help_runtime_bundle_matches_generator(tmp_path: Path) -> None:
+    output_dir = tmp_path / "help"
+    result = run_generator(output_dir)
+    assert result.returncode == 0, result.stderr
+
+    runtime_help_dir = REPO_ROOT / "src" / "meters_tool_webui" / "static" / "help"
+    assert runtime_help_dir.is_dir(), f"WebUI runtime Help directory is missing: {runtime_help_dir}"
+
+    webui_runtime_files = [
+        "webui.html",
+        "webui.zh-TW.html",
+        "supported-models.html",
+        "supported-models.zh-TW.html",
+        "help.css",
+    ]
+    for name in webui_runtime_files:
+        fresh = (output_dir / name).read_bytes()
+        tracked = (runtime_help_dir / name).read_bytes()
+        assert fresh == tracked, f"tracked WebUI Help asset is stale: {name}"
+        # Also guard that no cli artifacts were copied into WebUI static tree
+    assert not (runtime_help_dir / "cli.html").exists()
+    assert not (runtime_help_dir / "cli.zh-TW.html").exists()

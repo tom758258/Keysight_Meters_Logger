@@ -51,6 +51,8 @@ meters_tool_webui = [
     "static/*.html",
     "static/*.css",
     "static/*.js",
+    "static/help/*.html",
+    "static/help/*.css",
 ]
 
 [tool.pytest.ini_options]

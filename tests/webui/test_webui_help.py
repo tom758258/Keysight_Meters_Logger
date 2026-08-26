@@ -66,6 +66,29 @@ class WebUiHelpTests(unittest.TestCase):
             response = client.get("/help/help.css")
             self.assertEqual(response.status_code, 404)
 
+    def test_default_webui_runtime_serves_real_help_bundle(self):
+        client = TestClient(create_app())
+
+        response = client.get("/help/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers.get("Cache-Control"), "no-store")
+        self.assertNotIn("{{HELP_", response.text)
+        self.assertIn('href="help.css"', response.text)
+
+        for path in (
+            "/help/webui.zh-TW.html",
+            "/help/supported-models.html",
+            "/help/supported-models.zh-TW.html",
+            "/help/help.css",
+        ):
+            with self.subTest(path=path):
+                resp = client.get(path)
+                self.assertEqual(resp.status_code, 200)
+                self.assertNotIn("{{HELP_", resp.text if "css" not in path else "")
+                if path.endswith(".css"):
+                    self.assertTrue(len(resp.text) > 100)
+
+
 
 if __name__ == "__main__":
     unittest.main()

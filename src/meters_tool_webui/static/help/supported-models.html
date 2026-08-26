@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supported Models</title>
+    <link rel="stylesheet" href="help.css">
+</head>
+<body>
+
+    <aside class="help-sidebar">
+        <div class="help-sidebar-title" id="toc-title">Contents</div>
+        <nav id="toc" aria-labelledby="toc-title"></nav>
+    </aside>
+
+    <main id="help-content">
+<h1 id="supported-models">Supported Models</h1>
+<p>This document describes current Product-open support for Meters Tool users.
+It is the shared user-facing reference for supported models, connections,
+backends, measurements, triggers, and important limits.</p>
+<h2 id="model-profiles">Model Profiles</h2>
+<p>Meters Tool currently supports these instrument models:</p>
+<table>
+<thead>
+<tr>
+<th>Model ID</th>
+<th>Instrument</th>
+<th style="text-align: right;">Reading memory</th>
+<th style="text-align: right;">Current max</th>
+<th>External trigger</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>keysight-34461a</code></td>
+<td>Keysight 34461A</td>
+<td style="text-align: right;">10000</td>
+<td style="text-align: right;">10 A with 10A terminal</td>
+<td>supported</td>
+</tr>
+<tr>
+<td><code>keysight-34460a</code></td>
+<td>Keysight 34460A</td>
+<td style="text-align: right;">1000</td>
+<td style="text-align: right;">3 A</td>
+<td>Not supported in base scope</td>
+</tr>
+</tbody>
+</table>
+<p>CLI and WebUI live runs detect 34460A/34461A from the connected instrument
+identity when no model request is supplied. An explicitly selected model is an
+expected-model check: a mismatch fails before setup instead of unlocking another
+support scope. Dry-run and simulation may use the selected planning model.</p>
+<h2 id="exact-scope-live-support">Exact-Scope Live Support</h2>
+<p>Live Product support is exact-scope based. Meters currently exposes one
+independently supported Product workflow, <code>start-trigger-record</code>. A live run is
+Product-open only when the detected model, workflow, exact transport/backend
+connection scope, measurement, and trigger mode are supported together. Support
+does not transfer between USB/system-VISA, TCPIP/system-VISA, and
+TCPIP/pyvisa-py. Hard model/profile limits remain enforced.</p>
+<p>Requests outside the current Product-open matrix, including unknown models,
+unsupported connections or feature combinations, and hard safety limits, fail
+closed.</p>
+<p>In live mode, CLI <code>--model</code> and WebUI <code>Expected model</code> are expected-model
+guards only. The runtime driver/profile is selected from the connected
+instrument <code>*IDN?</code>. A selected/detected mismatch fails before instrument setup.
+Dry-run and simulator runs use the selected/no-hardware planning profile and
+do not query live hardware.</p>
+<table>
+<thead>
+<tr>
+<th>Capability / workflow</th>
+<th>34461A</th>
+<th>34460A</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Immediate DC/AC voltage/current</td>
+<td>Open</td>
+<td>Open on USB/system-VISA</td>
+</tr>
+<tr>
+<td>2W/4W resistance</td>
+<td>Open</td>
+<td>Open on USB/system-VISA</td>
+</tr>
+<tr>
+<td>Software trigger/timer</td>
+<td>Open</td>
+<td>Open on USB/system-VISA</td>
+</tr>
+<tr>
+<td>Custom buffered workflows</td>
+<td>Open</td>
+<td>Open, limited by 1000-reading memory</td>
+</tr>
+<tr>
+<td>Frequency</td>
+<td>Open</td>
+<td>Open on USB/system-VISA</td>
+</tr>
+<tr>
+<td>Period</td>
+<td>Open, no Period timeout option</td>
+<td>Open, no Period timeout option</td>
+</tr>
+<tr>
+<td>External simple/custom</td>
+<td>Open</td>
+<td>Not open in base 34460A profile</td>
+</tr>
+<tr>
+<td>DCV Ratio</td>
+<td>Open</td>
+<td>Open only on USB/system-VISA</td>
+</tr>
+<tr>
+<td>10 A / current-terminal</td>
+<td>Open with operator-confirmed wiring</td>
+<td>Not supported</td>
+</tr>
+<tr>
+<td>Buffer drain above profile memory</td>
+<td>Up to 10000 readings</td>
+<td>Not supported above 1000</td>
+</tr>
+<tr>
+<td>LAN/TCPIP with system VISA</td>
+<td>Open for 34461A</td>
+<td>Not currently supported</td>
+</tr>
+<tr>
+<td>LAN/TCPIP with pyvisa-py <code>@py</code></td>
+<td>Open for optional CLI-only 34461A scope</td>
+<td>Not currently supported</td>
+</tr>
+</tbody>
+</table>
+<h3 id="exact-scope-details">Exact-Scope Details</h3>
+<ul>
+<li><strong>Wiring Safety &amp; 10 A Path</strong>: Selecting the 10 A current terminal requires manual operator confirmation of physical lead wiring to prevent hardware damage.</li>
+<li><strong>Reading Memory Limits</strong>: 34461A custom runs above 10,000 readings and 34460A custom runs above 1,000 readings require explicit overflow-risk acknowledgement. Buffer drain remains capped at the model reading-memory limit.</li>
+<li><strong>Fail-Closed Policy</strong>: Any model, transport, backend, measurement, or trigger combination not explicitly marked as open in the matrix above is unsupported and fails closed.</li>
+</ul>
+<h2 id="visa-backend-support">VISA Backend Support</h2>
+<p>VISA backend support is part of the exact connection scope, not a model
+capability. Normal Product operation uses the computer System VISA runtime
+unless an interface explicitly exposes another supported backend. Optional
+backend scopes remain independent: selecting another backend does not unlock
+unsupported models, transports, measurements, or other Product support. The
+WebUI does not expose a backend selector.</p>
+<h2 id="measurement-capability">Measurement Capability</h2>
+<p>The 34460A and 34461A profiles currently expose the same measurement names, in
+profile order:</p>
+<ul>
+<li><code>current-dc</code></li>
+<li><code>voltage-dc</code></li>
+<li><code>voltage-dc-ratio</code></li>
+<li><code>current-ac</code></li>
+<li><code>voltage-ac</code></li>
+<li><code>frequency</code></li>
+<li><code>period</code></li>
+<li><code>resistance-2w</code></li>
+<li><code>resistance-4w</code></li>
+</ul>
+<p>Each supported measurement has the model-specific ranges and limits listed in
+the table below.</p>
+<table>
+<thead>
+<tr>
+<th>Measurement</th>
+<th>34461A range choices</th>
+<th>34460A range choices</th>
+<th>NPLC choices</th>
+<th>AC filter</th>
+<th>Gate time</th>
+<th>Frequency timeout</th>
+<th>Current terminal</th>
+<th>DCV input Z</th>
+<th>Auto Zero</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>current-dc</code></td>
+<td>0.0001, 0.001, 0.01, 0.1, 1, 3, 10 A</td>
+<td>0.0001, 0.001, 0.01, 0.1, 1, 3 A</td>
+<td>0.02, 0.2, 1, 10, 100</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>34461A: 3, 10; 34460A: none</td>
+<td>none</td>
+<td>on, off, once</td>
+</tr>
+<tr>
+<td><code>voltage-dc</code></td>
+<td>0.1, 1, 10, 100, 1000 V</td>
+<td>same as 34461A</td>
+<td>0.02, 0.2, 1, 10, 100</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>default, 10m, auto</td>
+<td>on, off, once</td>
+</tr>
+<tr>
+<td><code>voltage-dc-ratio</code></td>
+<td>0.1, 1, 10, 100, 1000 V</td>
+<td>same as 34461A</td>
+<td>0.02, 0.2, 1, 10, 100</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>default, 10m, auto</td>
+<td>on/default only</td>
+</tr>
+<tr>
+<td><code>current-ac</code></td>
+<td>0.0001, 0.001, 0.01, 0.1, 1, 3, 10 A</td>
+<td>0.0001, 0.001, 0.01, 0.1, 1, 3 A</td>
+<td>none</td>
+<td>3, 20, 200 Hz</td>
+<td>none</td>
+<td>none</td>
+<td>34461A: 3, 10; 34460A: none</td>
+<td>none</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>voltage-ac</code></td>
+<td>0.1, 1, 10, 100, 750 V</td>
+<td>same as 34461A</td>
+<td>none</td>
+<td>3, 20, 200 Hz</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>frequency</code></td>
+<td>0.1, 1, 10, 100, 750 V</td>
+<td>same as 34461A</td>
+<td>none</td>
+<td>3, 20, 200 Hz; default 20</td>
+<td>0.01, 0.1, 1 s; default 0.1</td>
+<td>auto, 1s; default auto</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>period</code></td>
+<td>0.1, 1, 10, 100, 750 V</td>
+<td>same as 34461A</td>
+<td>none</td>
+<td>3, 20, 200 Hz; default 20</td>
+<td>0.01, 0.1, 1 s; default 0.1</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>resistance-2w</code></td>
+<td>100, 1000, 10000, 100000, 1000000, 10000000, 100000000 Ohm</td>
+<td>same as 34461A</td>
+<td>0.02, 0.2, 1, 10, 100</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>on, off, once</td>
+</tr>
+<tr>
+<td><code>resistance-4w</code></td>
+<td>100, 1000, 10000, 100000, 1000000, 10000000, 100000000 Ohm</td>
+<td>same as 34461A</td>
+<td>0.02, 0.2, 1, 10, 100</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+</tr>
+</tbody>
+</table>
+<p>Auto Zero supports <code>on</code>, <code>off</code>, and <code>once</code> for <code>current-dc</code>, <code>voltage-dc</code>, and <code>resistance-2w</code>. <code>voltage-dc-ratio</code> accepts only the default/on Auto Zero request state. AC, Frequency, and Period measurements do not use NPLC or Auto Zero. Resistance 4-wire rejects the <code>once</code> Auto Zero choice.</p>
+<p>DCV input impedance is available for <code>voltage-dc</code> and <code>voltage-dc-ratio</code>. Allowed values are <code>default</code>, <code>10m</code>, and <code>auto</code>; <code>default</code> preserves the current configured instrument state.</p>
+<p>AC bandwidth/filter selection is available for <code>current-ac</code>, <code>voltage-ac</code>,
+<code>frequency</code>, and <code>period</code>. Allowed values are <code>3</code>,
+<code>20</code>, and <code>200</code> Hz. Leaving the field unset preserves the existing AC
+current/voltage behavior. Frequency and Period instead apply the effective
+default <code>20</code> Hz filter.</p>
+<p>Frequency and Period use voltage range choices of <code>0.1</code>, <code>1</code>, <code>10</code>, <code>100</code>, and
+<code>750</code> V. Auto Range is the default.</p>
+<p>Gate time accepts <code>0.01</code>, <code>0.1</code>, or <code>1.0</code> seconds and defaults to <code>0.1</code>.</p>
+<p>Frequency timeout accepts <code>auto</code> or <code>1s</code> and defaults to <code>auto</code>. Period does
+not expose a timeout option. Explicit Period timeout values are rejected.</p>
+<p>DCV Ratio readings use unit <code>ratio</code>. Frequency readings use <code>Hz</code>, and Period readings use <code>s</code>.</p>
+<p>Current terminal selection is available only for the 34461A current profiles.
+Selecting the 10 A range requires the 10 A terminal, and selecting the 10 A
+terminal with a manual range requires the 10 A range. Operators must confirm
+the range, terminal, and physical lead wiring to prevent hardware
+damage. The 34460A current profiles support up to 3 A only and do not expose a
+34461A-style 10 A terminal path.</p>
+<h2 id="trigger-capability">Trigger Capability</h2>
+<p>The 34461A supports:</p>
+<ul>
+<li>software</li>
+<li>software timer</li>
+<li>external</li>
+<li>immediate</li>
+<li>immediate-custom</li>
+<li>software-custom</li>
+<li>external-custom</li>
+</ul>
+<p>The 34460A base scope supports:</p>
+<ul>
+<li>software</li>
+<li>software timer</li>
+<li>immediate</li>
+<li>immediate-custom</li>
+<li>software-custom</li>
+</ul>
+<p>The 34460A base scope does not support external trigger modes because LAN/LXI/external trigger capability is optional on that model.</p>
+<h2 id="reading-memory">Reading Memory</h2>
+<p>Custom runs compare the requested reading count with the model reading-memory limit.</p>
+<ul>
+<li>34461A custom runs above 10000 readings require explicit overflow-risk acknowledgement.</li>
+<li>34460A custom runs above 1000 readings require explicit overflow-risk acknowledgement.</li>
+<li>Buffer drain remains capped at the model reading-memory limit and is not relaxed by that acknowledgement.</li>
+</ul>
+<h2 id="unsupported-scope">Unsupported Scope</h2>
+<p>Models not listed in this document are not currently supported in Product mode.
+A model, connection/backend, measurement, trigger mode, or workflow combination
+not listed as Product-open is unsupported. Unsupported combinations are rejected
+rather than implicitly enabled.</p>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const content = document.getElementById("help-content");
+
+            // Wrap plain <pre><code> blocks in the presentation wrapper.
+            content.querySelectorAll("pre").forEach(pre => {
+                if (!pre.parentElement.classList.contains("code-wrapper")) {
+                    const wrapper = document.createElement("div");
+                    wrapper.className = "code-wrapper";
+                    pre.parentNode.insertBefore(wrapper, pre);
+                    wrapper.appendChild(pre);
+                }
+            });
+
+            // Add one copy button per code block.
+            const copyLabel = "Copy";
+            const copiedLabel = "Copied";
+            content.querySelectorAll(".code-wrapper").forEach(wrapper => {
+                if (wrapper.querySelector(".copy-btn")) {
+                    return;
+                }
+                const pre = wrapper.querySelector("pre");
+                if (!pre) {
+                    return;
+                }
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "copy-btn";
+                btn.innerText = copyLabel;
+                let resetTimer = null;
+                btn.addEventListener("click", () => {
+                    if (!navigator.clipboard) {
+                        console.warn("Clipboard is unavailable in this context.");
+                        return;
+                    }
+                    navigator.clipboard.writeText(pre.innerText).then(() => {
+                        btn.classList.add("copied");
+                        btn.innerText = copiedLabel;
+                        if (resetTimer) {
+                            clearTimeout(resetTimer);
+                        }
+                        resetTimer = setTimeout(() => {
+                            btn.classList.remove("copied");
+                            btn.innerText = copyLabel;
+                        }, 2000);
+                    }).catch(() => {
+                        console.warn("Copy to clipboard failed.");
+                    });
+                });
+                wrapper.appendChild(btn);
+            });
+
+            // Build the sidebar TOC from content h2/h3 headings.
+            // Renderer-provided heading IDs are preserved; a simple
+            // deterministic fallback ID is assigned otherwise.
+            const toc = document.getElementById("toc");
+            const headings = content.querySelectorAll("h2, h3");
+            const usedIds = new Set();
+            content.querySelectorAll("[id]").forEach(el => usedIds.add(el.id));
+            headings.forEach(heading => {
+                let id = heading.id;
+                if (!id) {
+                    const base = heading.textContent.trim().toLowerCase().replace(/\s+/g, "-") || "section";
+                    id = base;
+                    let suffix = 2;
+                    while (usedIds.has(id)) {
+                        id = base + "-" + suffix;
+                        suffix += 1;
+                    }
+                    heading.id = id;
+                }
+                usedIds.add(id);
+                const link = document.createElement("a");
+                link.href = "#" + id;
+                link.innerText = heading.textContent;
+                link.className = "toc-link" + (heading.tagName === "H3" ? " toc-h3" : "");
+                toc.appendChild(link);
+            });
+
+            // Wrap tables so wide ones scroll horizontally.
+            content.querySelectorAll("table").forEach(table => {
+                if (!table.parentElement.classList.contains("table-wrapper")) {
+                    const wrapper = document.createElement("div");
+                    wrapper.className = "table-wrapper";
+                    table.parentNode.insertBefore(wrapper, table);
+                    wrapper.appendChild(table);
+                }
+            });
+
+            // Highlight the active section while scrolling.
+            const tocLinks = toc.querySelectorAll(".toc-link");
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        tocLinks.forEach(link => {
+                            link.classList.toggle(
+                                "active",
+                                link.getAttribute("href") === "#" + entry.target.id
+                            );
+                        });
+                    }
+                });
+            }, { rootMargin: "0px 0px -80% 0px", threshold: 0 });
+            headings.forEach(heading => observer.observe(heading));
+        });
+    </script>
+</body>
+</html>

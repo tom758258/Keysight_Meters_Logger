@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meters Tool WebUI 使用者指南</title>
+    <link rel="stylesheet" href="help.css">
+</head>
+<body>
+
+    <aside class="help-sidebar">
+        <div class="help-sidebar-title" id="toc-title">章節導覽</div>
+        <nav id="toc" aria-labelledby="toc-title"></nav>
+    </aside>
+
+    <main id="help-content">
+<h1 id="meters-tool-webui-使用者指南">Meters Tool WebUI 使用者指南</h1>
+<p>本指南適用於取得已建置之 WebUI 啟動器，並使用它來記錄支援的數位萬用電表量測資料的操作人員。本指南避開了開發人員細節，專注於標準的量測工作流程。</p>
+<h2 id="webui-的功能">WebUI 的功能</h2>
+<p>WebUI 會啟動一個本機瀏覽器頁面，用於設定與監控擷取作業 (acquisition run)。它的功能包含：</p>
+<ul>
+<li>尋找已連線的 VISA 儀器。</li>
+<li>每次啟動一個量測作業。</li>
+<li>將讀值記錄到 CSV 檔案中。</li>
+<li>在作業執行期間顯示最新與最近的讀值。</li>
+<li>當所選的觸發模式需要時，發送軟體觸發訊號。</li>
+<li>停止目前的作業並開啟已完成 CSV 檔案。</li>
+</ul>
+<p>WebUI 執行於與儀器連接的同一台 Windows 電腦上。它不是一項雲端服務。</p>
+<h2 id="啟動-webui">啟動 WebUI</h2>
+<p>使用發佈版本時，請解壓縮 <code>meters-tool-&lt;version&gt;-windows-x64.zip</code>，開啟
+<code>meters-tool-&lt;version&gt;</code> 資料夾，然後雙擊：</p>
+<pre><code class="language-text">meters-tool-webui-launcher.exe
+</code></pre>
+<p>版本號位於 bundle 資料夾名稱中；資料夾內的執行檔名稱不含版本號。</p>
+<p>Launcher 會自動啟動。它會從 <code>8767</code> 開始，必要時最多嘗試 100 個本機
+Port，等待 WebUI ready 後，再以實際成功 bind 的 Port 開啟瀏覽器。其他已
+執行的 Meters Tool WebUI 會被視為 Port 擁有者，不會被重用。</p>
+<p>正常啟動期間不需要 Port 視窗或 Start 操作。啟動後會顯示一個包含實際 URL
+與 <code>Quit</code> 的小視窗。使用完畢時請按 <code>Quit</code>，讓作用中 run 的清理完成後再
+關閉本機伺服器。</p>
+<p>只有全部自動候選都被占用時，才會顯示完整 Port 視窗。請輸入 <code>1</code> 到
+<code>65535</code> 的其他 Port 並按 <code>Start</code>。每次手動重試只會嘗試該 Port 一次；
+失敗時視窗會保留，供您修改後重試。</p>
+<p>如果瀏覽器沒有自動開啟，請手動開啟此網址：</p>
+<pre><code class="language-text">http://127.0.0.1:8767/
+</code></pre>
+<p>實際 Port 可能較高；請以 Launcher 視窗顯示的 URL 為準。</p>
+<h2 id="畫面總覽">畫面總覽</h2>
+<p>WebUI 是一個本機擷取主控台。主要區域包含：</p>
+<ul>
+<li><code>Device / Resource</code> (裝置/資源列)：儀器位址、最近一次掃描回應的實機資源、<code>Scan Device</code> 按鈕、<code>支援裝置</code> 清單，以及 <code>Device options</code> 齒輪中的執行模式與型號選擇器。此列預設展開，可收合成能辨識目前執行模式的摘要。</li>
+<li><code>Run Setup</code> (作業設定)：CSV 輸出路徑與執行次數設定。</li>
+<li><code>Measurement</code> (量測)：量測類型與相關選項。</li>
+<li><code>Trigger</code> (觸發)：觸發模式與觸發相關選項。</li>
+<li><code>Status</code> (狀態)：目前的作業狀態、擷取到的樣本數、錯誤、CSV 路徑與日誌。</li>
+<li><code>Live data</code>（即時資料）：最新讀值、趨勢圖表、最近取樣與所選取樣的詳細資訊。</li>
+</ul>
+<p>點擊 <code>支援裝置</code> 可查看 WebUI 支援連線清單。此清單由 Core capability 與支援元資料衍生，會反映目前支援的連線範圍，而不會硬編一份暫時的 USB/LAN support matrix。精確的目前 Product support scope 請見 <a href="supported-models.zh-TW.html">Supported Models</a>。</p>
+<h2 id="瀏覽器語言">瀏覽器語言</h2>
+<p>右上角的外觀與語言控制是各自帶標籤的設定項。使用地球與文字按鈕，在 English 與繁體中文之間切換。該按鈕會顯示目前語言：English 顯示 <code>English</code>，繁體中文顯示 <code>繁體中文</code>；螢幕閱讀器標籤則描述切換後的目的地語言。</p>
+<p>首次載入時，頁面會依序使用有效的已儲存語系、瀏覽器語言，最後才使用 English。手動選擇會儲存在 <code>meters-tool.webui.locale</code>；瀏覽器偵測結果不會自動儲存。切換會立即生效，不重新載入頁面，也不會呼叫 runtime API。表單目前的值、作用中的作業、面板、狀態日誌、Live data 選取項目、圖表設定、資源掃描與支援摘要都會保留。未知的診斷文字保持不變。</p>
+<p>在繁體中文中，Measurement options 控制項顯示 <code>自動量程（Auto range）</code>；摘要使用較短的 <code>自動量程</code>。選用標記在一般桌面寬度下會與欄位標題保持在一起，包括 AC filter 與 Current terminal；在非常窄的螢幕上會自然換行。</p>
+<h2 id="瀏覽器主題">瀏覽器主題</h2>
+<p>使用語言按鈕旁的主題按鈕，依序切換 <code>系統</code>、<code>淺色</code> 與 <code>深色</code>。<code>系統</code> 會跟隨瀏覽器或作業系統的色彩配置，並在設定變更時同步更新。選取的偏好會儲存在瀏覽器中，之後開啟頁面時會自動還原。切換主題會立即生效，不會重新載入頁面，也不會重設目前的表單、作業、Live data 或狀態。</p>
+<p>在 Electron Desktop 中，<code>系統</code> 也會讓原生視窗介面跟隨作業系統外觀。選取 <code>淺色</code> 或 <code>深色</code> 時，該偏好也會套用至原生視窗介面，並在之後啟動 Desktop 時還原。</p>
+<h2 id="選擇執行模式">選擇執行模式</h2>
+<p>開啟 <code>Device options</code> 並選擇一種模式：</p>
+<ul>
+<li><code>Real</code> 使用設定的 VISA resource，並維持一般的掃描、identity check、擷取、觸發、CSV、Stop 與清理工作流程。</li>
+<li><code>Simulate</code> 必須選擇 <code>34460A</code> 或 <code>34461A</code>，且不使用或查詢真實 VISA hardware。Deterministic simulated instrument 會完整執行 acquisition runtime，因此 Live data 的最新讀值、圖表、統計資料、最近 sample、Stop 與正常 CSV 輸出都可運作。</li>
+<li><code>Dry-run</code> 必須選擇 planning model，並將 Start 改為 <code>Preview plan</code>。它只驗證 Core plan 並顯示於 Status details，不啟動 acquisition、不建立 active run、不執行真實 VISA I/O，也不產生 Live data sample。Preview plan 會清除前一次 runtime 留在畫面上的 sample。</li>
+</ul>
+<p>Execution mode 僅存在於目前頁面，Start／Preview request pending 或 active run 期間不可切換，而且不會持久化；重新載入頁面一律回到 <code>Real</code>。Simulation 與 Dry-run 可用於無硬體檢查，但都不能當作實機驗證證據。</p>
+<h2 id="首次執行">首次執行</h2>
+<p>進行基本的立即量測 (immediate measurement)，請採用以下流程：</p>
+<p>進行實機執行前，請確認沒有其他 Meters CLI、WebUI、logger、測試程序或外部 VISA 應用程式正在控制同一台實體儀器。同時控制可能干擾 SCPI 回應或儀器狀態。Meters Tool 不會以自動鎖定強制此前提。</p>
+<ol>
+<li>開啟 Keysight 34460A 或 34461A 電源並將其連接至電腦。</li>
+<li>啟動 WebUI。</li>
+<li>點擊 <code>Scan Device</code>。</li>
+<li>選取或將偵測到的 VISA 資源複製到 <code>VISA resource</code> 欄位中。</li>
+<li>只有在需要強制指定型號時，才在 <code>Device options</code> 中將 <code>Expected model</code> 改選 <code>Require 34460A</code> 或 <code>Require 34461A</code>；否則請維持 <code>Auto-detect</code>。</li>
+<li>選擇量測類型，例如直流電壓 (DC voltage) 或直流電流 (DC current)。</li>
+<li>在 <code>Run Setup</code> 中，選擇 CSV 檔案位置。使用 <code>Select</code> (選擇) 挑選一個資料夾，讓系統產生帶有時間戳記的 CSV 路徑。</li>
+<li>除非您特別需要軟體或外部觸發，否則請將觸發模式保持在立即／預設模式 (immediate/default mode)。</li>
+<li>檢閱反白顯示的設定。</li>
+<li>點擊 <code>Start</code> (啟動)。</li>
+<li>觀察 <code>Captured</code> (已擷取)、<code>Status</code> (狀態) 及 <code>Live data</code>（即時資料）。</li>
+<li>當需要結束作業時，點擊 <code>Stop</code> (停止)。</li>
+<li>啟用 CSV 的作業停止後，點擊 <code>Open CSV</code> (開啟 CSV) 以開啟已完成的 CSV 檔案。</li>
+</ol>
+<p>一次只能執行一個作業。啟動新作業將會清除畫面上前次作業的最近樣本。</p>
+<h2 id="選擇觸發模式">選擇觸發模式</h2>
+<p>最簡單的工作流程請使用<strong>立即模式 (immediate mode)</strong>。作業一啟動，儀器就會立即取得讀值。</p>
+<p>當作業需要等待操作人員從 WebUI 執行動作時，請使用<strong>軟體觸發模式 (software trigger mode)</strong>。作業啟動後，點擊 <code>Trigger</code> (觸發) 來發送每次的軟體觸發訊號。</p>
+<p>只有在實體觸發訊號已連接且儀器設定完成的情況下，才使用<strong>外部 (external)</strong> 或<strong>硬體 (hardware)</strong> 觸發模式。硬體觸發逾時 (timeout) 是一種保護性的重新準備 (re-arm) 條件，並非自動代表量測失敗。</p>
+<p>除非量測設定有此需求，且操作人員了解對儀器造成的影響，否則請勿更改觸發時序、觸發延遲、NPLC、自動量程 (Auto Range)、自動歸零 (Auto Zero)、VM Comp 或電流端子的設定。</p>
+<h2 id="設定參考">設定參考</h2>
+<p>WebUI 會在啟動作業前檢查各項設定。如果 <code>Start</code> 被封鎖無法點擊，請閱讀 Status 日誌並調整其指出的欄位。</p>
+<p><code>VISA resource</code> (VISA 資源) 是作業將使用的儀器位址。建議使用透過 <code>Scan Device</code> 找到的資源，或手動輸入由操作人員或測試程序提供的已知資源。當可能連接多台儀器時，請勿用猜測的方式填寫資源。</p>
+<p>WebUI 使用電腦固定的預設 System VISA runtime。它不提供 PyVISA backend 選擇器，resource scan 與 run API 也不接受 backend override。精確的實機型號與連線支援由 Core policy 決定，並記載於 <a href="supported-models.zh-TW.html">Supported Models</a>。</p>
+<p><code>Live resource</code>（實機資源）顯示最後一次掃描回應的結果。請先用它確認是哪台儀器回應，再複製或選取資源以進行作業。當掃描辨識出支援的 34460A 或 34461A IDN 時，WebUI 可能會載入特定型號的選項以供顯示，同時保持 <code>Expected model</code> 在 <code>Auto-detect</code>。</p>
+<p><code>CSV 輸出</code> 預設為勾選。啟用時，<code>CSV path</code> (CSV 路徑) 是讀值寫入的位置。請使用 <code>Select</code> 選擇資料夾並讓 WebUI 產生帶有時間戳記的檔案名稱，或在點擊 <code>Start</code> 前手動輸入特定的檔案路徑。</p>
+<p><strong>執行次數與取樣限制</strong>欄位用來控制作業可以持續多久。在檢查接線、量測類型與觸發行為時，請為新的設定保持有界限 (bounded，即設定次數上限)。</p>
+<p><code>Expected model</code>（預期型號）是 <code>Device options</code> 中的選用檢查。Auto-detect 在 Start 時使用最新的 IDN preflight 來解析連接的儀器。只有當您希望 Start 讀取 IDN，且在連接的儀器不回報該支援型號就失敗時，才選擇 <code>Require 34460A</code> 或 <code>Require 34461A</code>。若要求 34460A，WebUI 會隱藏 10 A 電流量程、電流端子選擇與外接觸發模式；自訂模式的讀值記憶體為 1000 筆。這些停用的控制項僅供指引。選取的型號是預期型號防護與顯示上下文；它不會覆寫偵測到的 IDN、解鎖另一台儀器的功能，或取代 Core 的安全檢查。</p>
+<p><code>Measurement type</code> (量測類型) 用來選擇儀器要量測的項目：直流或交流電壓、直流或交流電流、直流電壓比、頻率、週期，或是 2 線/4 線式電阻。在啟動作業前，請確保這與儀器的實體接線相符。</p>
+<p><code>Auto Range</code>（自動量程）讓儀器自行選擇量測量程。除非量測程序要求固定量程，否則首次執行時請保持啟用。</p>
+<p>當自動量程停用時會使用<strong>手動量程</strong>欄位。請選擇一個能安全涵蓋預期訊號的量程。</p>
+<p><code>NPLC</code> 控制直流與電阻量測的積分時間。較高的數值速度較慢，但可能更穩定。AC、頻率與週期模式則改用其 AC 濾波器設定。</p>
+<p><code>Auto Zero</code> (自動歸零) 控制直流與電阻量測的偏移處理。它可以提高精確度，但可能會減慢讀取速度。除非量測程序要求更改，否則請保持在正常的設定值。</p>
+<p><code>AC filter</code> (AC 濾波器) 適用於交流電壓、交流電流、頻率與週期。對於交流電壓與交流電流，<code>Keep current setting</code> (保持目前設定) 不會改變儀器目前的濾波器設定；頻率與週期預設選取 <code>20 Hz</code>，摘要中可能會顯示為 <code>&gt;20 Hz</code>。</p>
+<p><code>Gate time</code> (閘門時間) 僅適用於頻率與週期。預設為 <code>0.1 s</code>；可選項為 <code>0.01</code>、<code>0.1</code> 與 <code>1 s</code>。</p>
+<p>量測選項中的 <code>Timeout</code> (逾時) 僅適用於頻率。除非程序要求 <code>1 s</code> 行為，否則請保持 <code>Auto</code>。週期會隱藏此控制項，且不會傳送逾時指令。</p>
+<p>頻率數值會以 <code>Hz</code> 顯示與儲存。週期數值會以 <code>s</code> 顯示與儲存；WebUI 不會自動縮放這些單位。</p>
+<p><code>Current terminal</code> (電流端子) 適用於電流量測。啟動作業前，請確認實體導線已連接至相符的電流端子。</p>
+<p><strong>直流電壓比 (DC voltage ratio)</strong> 與 <strong>VM Comp</strong> 設定是特殊的量測控制選項。只有當測試設定明確要求進行比值量測或電壓量測補償時才使用。</p>
+<p><code>Trigger mode</code> (觸發模式) 控制取樣的時間點。立即模式 (Immediate mode) 是最簡單的首選。軟體模式 (Software mode) 會等待 WebUI 的 <code>Trigger</code> 按鈕。外部或硬體觸發模式則需要實體的觸發訊號。</p>
+<p><code>Trigger delay</code> (觸發延遲) 在觸發後會等待一段時間才進行量測。除非外部設定需要延遲，否則請保持不變。</p>
+<p><code>Trigger timeout</code> (觸發逾時) 控制觸發工作流程在進入保護性逾時路徑前的等待時間。只有在量測設定刻意要等待更長時間時，才調高此值。</p>
+<p><code>External trigger slope</code> (外部觸發斜率) 用於選擇實體觸發的邊緣 (edge)。請與連接到儀器的訊號源保持一致。</p>
+<h2 id="即時資料圖表縮放-live-data-chart-scale">即時資料圖表縮放 (Live Data Chart Scale)</h2>
+<p><code>Live data</code>（即時資料）面板在 <code>Trend</code> 區域有圖表縮放控制項。這些設定僅影響瀏覽器圖表顯示。它們不影響儀器設定、SCPI 指令、CSV 輸出或記錄的數值。</p>
+<p>趨勢圖表使用作用中的縮放模式，在每條網格線的左側顯示 Y 軸標籤。</p>
+<p><code>Auto deviation</code>（自動偏差）是預設值。它將圖表中心定位在執行中的第一個數值樣本上，並將後續樣本顯示為與第一個樣本的差異。這最適合觀察微小漂移或穩定性變化。它不是絕對 Y 軸圖表。如果第一個樣本是 <code>5.0000 V</code>，後續樣本是 <code>5.0002 V</code> 和 <code>4.9998 V</code>，則圖表顯示相對於第一個樣本的 <code>+0.0002 V</code> 和 <code>-0.0002 V</code>。</p>
+<p><code>Auto absolute</code>（自動絕對值）使用可見的最近樣本的實際最小值和最大值。這最適合觀察量測範圍。如果樣本範圍從 <code>4.9998 V</code> 到 <code>5.0004 V</code>，圖表範圍將基於這些實際值。極端值可能會縮放圖表，使微小變化看起來更平坦。</p>
+<p><code>Manual span</code>（手動跨度）使用第一個數值取樣為中心，以及操作人員輸入的固定正數跨度。跨度使用原始量測單位：<code>V</code> 代表伏特，<code>A</code> 代表安培，<code>Ohm</code> 代表歐姆，<code>Hz</code> 代表赫茲，<code>s</code> 代表秒。對於電壓，<code>0.01</code> 代表 <code>0.01 V</code>，而不是 <code>0.01 mV</code>。如果第一個取樣是 <code>5.000 V</code> 且手動跨度是 <code>0.010 V</code>，則圖表顯示 <code>4.990 V</code> 到 <code>5.010 V</code>。超出 <code>baseline +/- span</code> 的值會被裁切到圖表邊界，目前版本不會另外顯示 <code>clipped indicator</code>。</p>
+<p><code>Range step</code>（量程步進）使用手動選取的 <code>Range</code> 作為圖表顯示跨度。僅在 <code>Auto Range</code> 關閉且選取手動量程時可用。它不反映儀器的實際自動選擇量程，因為在啟用自動量程時 WebUI 無法得知該硬體量程。如果第一個取樣是 <code>5.000 V</code> 且選取的手動 Range 是 <code>0.010 V</code>，則圖表顯示 <code>4.990 V</code> 到 <code>5.010 V</code>。超出 <code>baseline +/- selected Range</code> 的值可能會被裁切到圖表邊界。與其他圖表縮放模式一樣，Range step 僅影響瀏覽器圖表顯示，不會改變儀器設定、SCPI 指令、CSV 輸出或記錄的數值。</p>
+<h2 id="csv-輸出">CSV 輸出</h2>
+<p>在 <code>Run Setup</code> 中顯示的 CSV 路徑就是當點擊 <code>Start</code> 時將寫入資料的檔案。</p>
+<p><code>Select</code> 會在執行 WebUI 的 Windows 電腦上開啟一個資料夾選擇器。選擇資料夾後，WebUI 會在該資料夾內填入帶有時間戳記的 CSV 檔案路徑。您也可以在點擊 <code>Start</code> 之前手動編輯該路徑。</p>
+<p><code>CSV 輸出</code> 預設為勾選。取消勾選會停用 <code>CSV path</code> 與 <code>Select</code>，但保留目前的路徑值；重新勾選後可繼續使用。停用 CSV 不影響即時資料、已擷取樣本、狀態、Stop 或 cleanup。</p>
+<p><code>Open CSV</code> 僅在作業停止且產生 CSV 路徑時可用。它會使用 Windows 的預設應用程式開啟上一次完成作業的 CSV。在作業執行期間或停用 CSV 的作業完成後，此按鈕會處於停用狀態。</p>
+<h2 id="停止與離開">停止與離開</h2>
+<p>在瀏覽器中使用 <code>Stop</code> 來停止目前的擷取作業。WebUI 會在作業停止後保留畫面上最新的讀值，以供您檢視。</p>
+<p>在 Launcher 的 Running／Quit 小視窗中使用 <code>Quit</code> 來停止本機 WebUI
+伺服器並關閉 Launcher。僅關閉瀏覽器分頁不會停止伺服器。</p>
+<h2 id="常見問題">常見問題</h2>
+<h3 id="瀏覽器未開啟">瀏覽器未開啟</h3>
+<p>請手動開啟 Launcher 視窗顯示的執行中 URL。預設起始網址為：</p>
+<pre><code class="language-text">http://127.0.0.1:8767/
+</code></pre>
+<p>如果頁面仍然無法載入，請回到啟動器並檢查是否顯示啟動錯誤。</p>
+<h3 id="啟動器顯示連接埠已被佔用">啟動器顯示連接埠已被佔用</h3>
+<p>預設 Launcher 模式會自動嘗試下一個 Port。即使占用者是另一個 Meters Tool
+WebUI，也會採用相同行為，因為不同儀器可能需要不同的 WebUI 執行個體。
+固定的 <code>--port</code> 會回報衝突而不遞增。若 100 個自動候選全部用完，請在
+fallback 視窗輸入其他合法 Port；每次手動重試只會嘗試該 Port。</p>
+<h3 id="scan-device-找不到任何裝置">Scan Device 找不到任何裝置</h3>
+<p>請檢查：</p>
+<ul>
+<li>儀器電源已開啟。</li>
+<li>已經接上 USB/LAN/GPIB 連線。</li>
+<li>VISA 驅動程式能看見該儀器。</li>
+<li>沒有其他程式正在佔用該儀器的連線。</li>
+</ul>
+<p>您仍然可以手動輸入已知的 VISA 資源。</p>
+<h3 id="scan-device-無法推斷型號">Scan Device 無法推斷型號</h3>
+<p>將 <code>Expected model</code> 保持在 Auto-detect 並點擊 <code>Start</code>；後端會執行新的 IDN preflight。只有當您希望在連接的儀器不回報 34460A 或 34461A 時就使 Start 失敗，才強制要求型號。</p>
+<h3 id="start-顯示選取的型號與-idn-不符">Start 顯示選取的型號與 IDN 不符</h3>
+<p>從 <code>Device options</code> 選擇訊息中命名的型號，或將 <code>Expected model</code> 設回 Auto-detect。這表示連接的儀器 IDN 明確匹配了與 WebUI 要求不同的支援型號。</p>
+<h3 id="start-被封鎖">Start 被封鎖</h3>
+<p>請確保已填寫 <code>VISA resource</code>，且反白顯示的設定皆具有有效值。Status 日誌會顯示需要注意的設定。</p>
+<h3 id="open-csv-按鈕被停用">Open CSV 按鈕被停用</h3>
+<p><code>Open CSV</code> 將被停用，直到啟用 CSV 的作業停止並產生完整的 CSV 路徑為止。在作業執行期間或取消勾選 <code>CSV 輸出</code> 時，它也會保持停用狀態。</p>
+<h3 id="硬體觸發作業似乎在等待">硬體觸發作業似乎在等待</h3>
+<p>外部觸發模式會等待實體觸發訊號。如果觸發訊號遺失，作業可能會依照設定的逾時行為繼續等待或重新準備 (re-arm)。</p>
+<h2 id="操作人員安全注意事項">操作人員安全注意事項</h2>
+<ul>
+<li>在量測電流之前，請先確認儀器的輸入接線與電流端子。</li>
+<li>檢查新的設定時，請先使用立即模式 (immediate mode)。</li>
+<li>除非需要固定量程，否則請保持啟用自動量程 (Auto Range)。</li>
+<li>請將外部觸發的接線與極性視為量測設定的一部分。</li>
+<li>在可行的情況下，請在斷開儀器連接前先停止測量作業。</li>
+</ul>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const content = document.getElementById("help-content");
+
+            // Wrap plain <pre><code> blocks in the presentation wrapper.
+            content.querySelectorAll("pre").forEach(pre => {
+                if (!pre.parentElement.classList.contains("code-wrapper")) {
+                    const wrapper = document.createElement("div");
+                    wrapper.className = "code-wrapper";
+                    pre.parentNode.insertBefore(wrapper, pre);
+                    wrapper.appendChild(pre);
+                }
+            });
+
+            // Add one copy button per code block.
+            const copyLabel = "複製";
+            const copiedLabel = "已複製";
+            content.querySelectorAll(".code-wrapper").forEach(wrapper => {
+                if (wrapper.querySelector(".copy-btn")) {
+                    return;
+                }
+                const pre = wrapper.querySelector("pre");
+                if (!pre) {
+                    return;
+                }
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "copy-btn";
+                btn.innerText = copyLabel;
+                let resetTimer = null;
+                btn.addEventListener("click", () => {
+                    if (!navigator.clipboard) {
+                        console.warn("Clipboard is unavailable in this context.");
+                        return;
+                    }
+                    navigator.clipboard.writeText(pre.innerText).then(() => {
+                        btn.classList.add("copied");
+                        btn.innerText = copiedLabel;
+                        if (resetTimer) {
+                            clearTimeout(resetTimer);
+                        }
+                        resetTimer = setTimeout(() => {
+                            btn.classList.remove("copied");
+                            btn.innerText = copyLabel;
+                        }, 2000);
+                    }).catch(() => {
+                        console.warn("Copy to clipboard failed.");
+                    });
+                });
+                wrapper.appendChild(btn);
+            });
+
+            // Build the sidebar TOC from content h2/h3 headings.
+            // Renderer-provided heading IDs are preserved; a simple
+            // deterministic fallback ID is assigned otherwise.
+            const toc = document.getElementById("toc");
+            const headings = content.querySelectorAll("h2, h3");
+            const usedIds = new Set();
+            content.querySelectorAll("[id]").forEach(el => usedIds.add(el.id));
+            headings.forEach(heading => {
+                let id = heading.id;
+                if (!id) {
+                    const base = heading.textContent.trim().toLowerCase().replace(/\s+/g, "-") || "section";
+                    id = base;
+                    let suffix = 2;
+                    while (usedIds.has(id)) {
+                        id = base + "-" + suffix;
+                        suffix += 1;
+                    }
+                    heading.id = id;
+                }
+                usedIds.add(id);
+                const link = document.createElement("a");
+                link.href = "#" + id;
+                link.innerText = heading.textContent;
+                link.className = "toc-link" + (heading.tagName === "H3" ? " toc-h3" : "");
+                toc.appendChild(link);
+            });
+
+            // Wrap tables so wide ones scroll horizontally.
+            content.querySelectorAll("table").forEach(table => {
+                if (!table.parentElement.classList.contains("table-wrapper")) {
+                    const wrapper = document.createElement("div");
+                    wrapper.className = "table-wrapper";
+                    table.parentNode.insertBefore(wrapper, table);
+                    wrapper.appendChild(table);
+                }
+            });
+
+            // Highlight the active section while scrolling.
+            const tocLinks = toc.querySelectorAll(".toc-link");
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        tocLinks.forEach(link => {
+                            link.classList.toggle(
+                                "active",
+                                link.getAttribute("href") === "#" + entry.target.id
+                            );
+                        });
+                    }
+                });
+            }, { rootMargin: "0px 0px -80% 0px", threshold: 0 });
+            headings.forEach(heading => observer.observe(heading));
+        });
+    </script>
+</body>
+</html>
