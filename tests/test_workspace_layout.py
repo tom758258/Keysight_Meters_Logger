@@ -30,6 +30,7 @@ TRADITIONAL_MARKDOWN_PATHS = (
     "docs/cli/README.zh-TW.md",
     "docs/cli/USER_GUIDE.zh-TW.md",
     "docs/core/README.zh-TW.md",
+    "docs/core/supported-models.zh-TW.md",
     "docs/skill/EXAMPLES.zh-TW.md",
     "docs/skill/README.zh-TW.md",
     "docs/webui/README.zh-TW.md",

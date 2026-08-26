@@ -7,10 +7,10 @@
 
 Meters Tool 目前支援以下儀器型號：
 
-| Model ID | Instrument | Reading memory | Current max | External trigger |
+| Model ID | 儀器 | 讀值記憶體 | 最大電流 | 外部觸發 |
 | --- | --- | ---: | ---: | --- |
-| `keysight-34461a` | Keysight 34461A | 10000 | 10 A with 10A terminal | supported |
-| `keysight-34460a` | Keysight 34460A | 1000 | 3 A | Not supported in base scope |
+| `keysight-34461a` | Keysight 34461A | 10000 | 使用 10A terminal 時最高 10 A | supported |
+| `keysight-34460a` | Keysight 34460A | 1000 | 3 A | base scope 不支援 |
 
 CLI 與 WebUI 的 live 執行在未指定 model 時，會依連接儀器身分偵測 34460A/34461A。
 明確選擇 model 只是 expected-model check：不一致時會在設定前失敗，不會解鎖其他支援範圍。
@@ -29,25 +29,25 @@ live Product 支援採精確範圍制。Meters 目前提供一個獨立支援的
 runtime driver/profile 由連接儀器 `*IDN?` 決定。selected/detected 不一致會在儀器設定前失敗。
 Dry-run 與 simulator 執行使用 selected/no-hardware planning profile，不查詢實機。
 
-| Capability / workflow | 34461A | 34460A |
+| 能力 / workflow | 34461A | 34460A |
 | --- | --- | --- |
-| Immediate DC/AC voltage/current | Open | Open on USB/system-VISA |
-| 2W/4W resistance | Open | Open on USB/system-VISA |
+| 立即 DC/AC 電壓/電流 | Open | Open on USB/system-VISA |
+| 2W/4W 電阻 | Open | Open on USB/system-VISA |
 | Software trigger/timer | Open | Open on USB/system-VISA |
-| Custom buffered workflows | Open | Open, limited by 1000-reading memory |
+| Custom buffered workflows | Open | Open，受限於 1000-reading memory |
 | Frequency | Open | Open on USB/system-VISA |
 | Period | Open, no Period timeout option | Open, no Period timeout option |
-| External simple/custom | Open | Not open in base 34460A profile |
-| DCV Ratio | Open | Open only on USB/system-VISA |
-| 10 A / current-terminal | Open with operator-confirmed wiring | Not supported |
-| Buffer drain above profile memory | Up to 10000 readings | Not supported above 1000 |
-| LAN/TCPIP with system VISA | Open for 34461A | Not currently supported |
-| LAN/TCPIP with pyvisa-py `@py` | Open for optional CLI-only 34461A scope | Not currently supported |
+| External simple/custom | Open | base 34460A profile 未支援 |
+| DCV Ratio | Open | 僅 USB/system-VISA 支援 |
+| 10 A / current-terminal | Open，需操作人員確認接線 | Not supported |
+| 超過 model memory 的 buffer drain | 最高 10000 readings | 超過 1000 不支援 |
+| LAN/TCPIP 搭配 system VISA | 34461A 支援 | 目前不支援 |
+| LAN/TCPIP 搭配 pyvisa-py `@py` | 選用的 CLI-only 34461A 範圍支援 | 目前不支援 |
 
 ### 精確範圍詳細資訊
 
 - **接線安全與 10 A 路徑**：選擇 10 A current terminal 需要操作人員手動確認實體導線接線，以避免硬體損壞。
-- **讀值記憶體限制**：34461A custom runs 超過 10,000 readings、34460A custom runs 超過 1,000 readings 時，都需要明確確認 overflow-risk。
+- **讀值記憶體限制**：34461A custom runs 超過 10,000 readings、34460A custom runs 超過 1,000 readings 時，都需要明確確認 overflow-risk。Buffer drain 仍受限於 model reading-memory limit。
 - **Fail-Closed Policy**：上方 matrix 中未明確標示為 open 的任何 model、transport、backend、量測或觸發組合，均為未支援並 fail closed。
 
 ## VISA Backend 支援
@@ -73,41 +73,41 @@ WebUI 不提供 backend selector。
 - `resistance-2w`
 - `resistance-4w`
 
-| Measurement | 34461A range choices | 34460A range choices | NPLC choices | AC filter | Gate time | Frequency timeout | Current terminal | DCV input Z | Auto Zero |
+| Measurement | 34461A 範圍選項 | 34460A 範圍選項 | NPLC 選項 | AC filter | Gate time | Frequency timeout | Current terminal | DCV input Z | Auto Zero |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `current-dc` | 0.0001, 0.001, 0.01, 0.1, 1, 3, 10 A | 0.0001, 0.001, 0.01, 0.1, 1, 3 A | 0.02, 0.2, 1, 10, 100 | none | none | none | 34461A: 3, 10; 34460A: none | none | on, off, once |
-| `voltage-dc` | 0.1, 1, 10, 100, 1000 V | same as 34461A | 0.02, 0.2, 1, 10, 100 | none | none | none | none | default, 10m, auto | on, off, once |
-| `voltage-dc-ratio` | 0.1, 1, 10, 100, 1000 V | same as 34461A | 0.02, 0.2, 1, 10, 100 | none | none | none | none | default, 10m, auto | on/default only |
+| `voltage-dc` | 0.1, 1, 10, 100, 1000 V | 同 34461A | 0.02, 0.2, 1, 10, 100 | none | none | none | none | default, 10m, auto | on, off, once |
+| `voltage-dc-ratio` | 0.1, 1, 10, 100, 1000 V | 同 34461A | 0.02, 0.2, 1, 10, 100 | none | none | none | none | default, 10m, auto | on/default only |
 | `current-ac` | 0.0001, 0.001, 0.01, 0.1, 1, 3, 10 A | 0.0001, 0.001, 0.01, 0.1, 1, 3 A | none | 3, 20, 200 Hz | none | none | 34461A: 3, 10; 34460A: none | none | none |
-| `voltage-ac` | 0.1, 1, 10, 100, 750 V | same as 34461A | none | 3, 20, 200 Hz | none | none | none | none | none |
-| `frequency` | 0.1, 1, 10, 100, 750 V | same as 34461A | none | 3, 20, 200 Hz; default 20 | 0.01, 0.1, 1 s; default 0.1 | auto, 1s; default auto | none | none | none |
-| `period` | 0.1, 1, 10, 100, 750 V | same as 34461A | none | 3, 20, 200 Hz; default 20 | 0.01, 0.1, 1 s; default 0.1 | none | none | none | none |
-| `resistance-2w` | 100, 1000, 10000, 100000, 1000000, 10000000, 100000000 Ohm | same as 34461A | 0.02, 0.2, 1, 10, 100 | none | none | none | none | none | on, off, once |
-| `resistance-4w` | 100, 1000, 10000, 100000, 1000000, 10000000, 100000000 Ohm | same as 34461A | 0.02, 0.2, 1, 10, 100 | none | none | none | none | none | none |
+| `voltage-ac` | 0.1, 1, 10, 100, 750 V | 同 34461A | none | 3, 20, 200 Hz | none | none | none | none | none |
+| `frequency` | 0.1, 1, 10, 100, 750 V | 同 34461A | none | 3, 20, 200 Hz; default 20 | 0.01, 0.1, 1 s; default 0.1 | auto, 1s; default auto | none | none | none |
+| `period` | 0.1, 1, 10, 100, 750 V | 同 34461A | none | 3, 20, 200 Hz; default 20 | 0.01, 0.1, 1 s; default 0.1 | none | none | none | none |
+| `resistance-2w` | 100, 1000, 10000, 100000, 1000000, 10000000, 100000000 Ohm | 同 34461A | 0.02, 0.2, 1, 10, 100 | none | none | none | none | none | on, off, once |
+| `resistance-4w` | 100, 1000, 10000, 100000, 1000000, 10000000, 100000000 Ohm | 同 34461A | 0.02, 0.2, 1, 10, 100 | none | none | none | none | none | none |
 
 
-Auto Zero supports on, off, and once for current-dc, voltage-dc, and resistance-2w. voltage-dc-ratio accepts only the default/on Auto Zero request state.
-AC, Frequency, and Period measurements do not use NPLC or Auto Zero. Resistance 4-wire rejects the once Auto Zero choice.
+Auto Zero 支援 current-dc、voltage-dc 與 resistance-2w 的 on、off、once。
+AC、Frequency 與 Period 量測不使用 NPLC 或 Auto Zero。Resistance 4-wire 拒絕 once Auto Zero 選項。
 
-DCV input impedance is available for voltage-dc and voltage-dc-ratio. Allowed values are default, 10m, and auto; default preserves the current configured instrument state.
+DCV input impedance 適用於 voltage-dc 與 voltage-dc-ratio。允許值為 default、10m、auto；default 保留目前儀器設定狀態。
 
-AC bandwidth/filter selection is available for `current-ac`, `voltage-ac`, `frequency`, and `period`. Allowed values are `3`, `20`, and `200` Hz.
-Leaving the field unset preserves the existing AC current/voltage behavior. Frequency and Period instead apply the effective default `20` Hz filter.
+AC bandwidth/filter selection 適用於 `current-ac`、`voltage-ac`、`frequency` 與 `period`。允許值為 `3`、`20`、`200` Hz。
+未設定時保留既有 AC current/voltage 行為。Frequency 與 Period 則套用有效 default `20` Hz filter。
 
-Frequency and Period use voltage range choices of `0.1`, `1`, `10`, `100`, and `750` V. Auto Range is the default.
-Gate time accepts `0.01`, `0.1`, or `1.0` seconds and defaults to `0.1`.
-Frequency timeout accepts `auto` or `1s` and defaults to `auto`. Period does not expose a timeout option. Explicit Period timeout values are rejected.
+Frequency 與 Period 使用電壓範圍選項 `0.1`、`1`、`10`、`100`、`750` V。Auto Range 是 default。
+Gate time 可選 `0.01`、`0.1` 或 `1.0` 秒，default 為 `0.1`。
+Frequency timeout 可選 `auto` 或 `1s`，default 為 `auto`。Period 不提供 timeout 選項。明確指定 Period timeout 值會被拒絕。
 
-DCV Ratio readings use unit `ratio`. Frequency readings use `Hz`, and Period readings use `s`.
+DCV Ratio 讀值單位為 `ratio`。Frequency 讀值使用 `Hz`，Period 使用 `s`。
 
-Current terminal selection is available only for the 34461A current profiles.
-Selecting the 10 A range requires the 10 A terminal, and selecting the 10 A terminal with a manual range requires the 10 A range.
-Operators must confirm the range, terminal, and physical lead wiring to prevent hardware damage.
-The 34460A current profiles support up to 3 A only and do not expose a 34461A-style 10 A terminal path.
+Current terminal selection 僅適用於 34461A current profiles。
+選擇 10 A range 需要使用 10 A terminal；在 manual range 下選擇 10 A terminal 則需要 10 A range。
+操作人員必須確認 range、terminal 與實體導線接線，以避免硬體損壞。
+34460A current profiles 最高僅支援 3 A，且沒有 34461A 式的 10 A terminal 路徑。
 
 ## 觸發能力
 
-The 34461A supports:
+34461A 支援：
 
 - software
 - software timer
@@ -117,7 +117,7 @@ The 34461A supports:
 - software-custom
 - external-custom
 
-The 34460A base scope supports:
+34460A base scope 支援：
 
 - software
 - software timer
@@ -125,18 +125,18 @@ The 34460A base scope supports:
 - immediate-custom
 - software-custom
 
-The 34460A base scope does not support external trigger modes because LAN/LXI/external trigger capability is optional on that model.
+34460A base scope 不支援外部觸發模式，因為該型號的 LAN/LXI/external trigger 能力為選配。
 
 ## 讀值記憶體
 
-Custom runs compare the requested reading count with the model reading-memory limit.
+Custom runs 會比較要求的 reading count 與 model reading-memory limit。
 
-- 34461A custom runs above 10000 readings require explicit overflow-risk acknowledgement.
-- 34460A custom runs above 1000 readings require explicit overflow-risk acknowledgement.
-- Buffer drain remains capped at the model reading-memory limit and is not relaxed by that acknowledgement.
+- 34461A custom runs 超過 10000 readings 時，需要明確確認 overflow-risk。
+- 34460A custom runs 超過 1000 readings 時，需要明確確認 overflow-risk。
+- Buffer drain 仍受限於 model reading-memory limit，不會因該確認而放寬。
 
 ## 未支援範圍
 
-Models not listed in this document are not currently supported in Product mode.
-A model, connection/backend, measurement, trigger mode, or workflow combination not listed as Product-open is unsupported.
-Unsupported combinations are rejected rather than implicitly enabled.
+本文件未列出的 model 目前不支援 Product mode。
+未列為 Product-open 的 model、connection/backend、量測、trigger mode 或 workflow 組合均為未支援。
+未支援組合會被拒絕，而不是被隱式啟用。
