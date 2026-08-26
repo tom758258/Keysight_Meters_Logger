@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="{{HELP_LANG}}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{HELP_TITLE}}</title>
+    <link rel="stylesheet" href="help.css">
+</head>
+<body>
+
+    <aside class="help-sidebar">
+        <div class="help-sidebar-title" id="toc-title">{{HELP_TOC_LABEL}}</div>
+        <nav id="toc" aria-labelledby="toc-title"></nav>
+    </aside>
+
+    <main id="help-content">
+{{HELP_CONTENT}}
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const content = document.getElementById("help-content");
+
+            // Wrap plain <pre><code> blocks in the presentation wrapper.
+            content.querySelectorAll("pre").forEach(pre => {
+                if (!pre.parentElement.classList.contains("code-wrapper")) {
+                    const wrapper = document.createElement("div");
+                    wrapper.className = "code-wrapper";
+                    pre.parentNode.insertBefore(wrapper, pre);
+                    wrapper.appendChild(pre);
+                }
+            });
+
+            // Add one copy button per code block.
+            const copyLabel = "{{HELP_COPY_LABEL}}";
+            const copiedLabel = "{{HELP_COPIED_LABEL}}";
+            content.querySelectorAll(".code-wrapper").forEach(wrapper => {
+                if (wrapper.querySelector(".copy-btn")) {
+                    return;
+                }
+                const pre = wrapper.querySelector("pre");
+                if (!pre) {
+                    return;
+                }
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "copy-btn";
+                btn.innerText = copyLabel;
+                let resetTimer = null;
+                btn.addEventListener("click", () => {
+                    if (!navigator.clipboard) {
+                        console.warn("Clipboard is unavailable in this context.");
+                        return;
+                    }
+                    navigator.clipboard.writeText(pre.innerText).then(() => {
+                        btn.classList.add("copied");
+                        btn.innerText = copiedLabel;
+                        if (resetTimer) {
+                            clearTimeout(resetTimer);
+                        }
+                        resetTimer = setTimeout(() => {
+                            btn.classList.remove("copied");
+                            btn.innerText = copyLabel;
+                        }, 2000);
+                    }).catch(() => {
+                        console.warn("Copy to clipboard failed.");
+                    });
+                });
+                wrapper.appendChild(btn);
+            });
+
+            // Build the sidebar TOC from content h2/h3 headings.
+            // Renderer-provided heading IDs are preserved; a simple
+            // deterministic fallback ID is assigned otherwise.
+            const toc = document.getElementById("toc");
+            const headings = content.querySelectorAll("h2, h3");
+            const usedIds = new Set();
+            content.querySelectorAll("[id]").forEach(el => usedIds.add(el.id));
+            headings.forEach(heading => {
+                let id = heading.id;
+                if (!id) {
+                    const base = heading.textContent.trim().toLowerCase().replace(/\s+/g, "-") || "section";
+                    id = base;
+                    let suffix = 2;
+                    while (usedIds.has(id)) {
+                        id = base + "-" + suffix;
+                        suffix += 1;
+                    }
+                    heading.id = id;
+                }
+                usedIds.add(id);
+                const link = document.createElement("a");
+                link.href = "#" + id;
+                link.innerText = heading.textContent;
+                link.className = "toc-link" + (heading.tagName === "H3" ? " toc-h3" : "");
+                toc.appendChild(link);
+            });
+
+            // Wrap tables so wide ones scroll horizontally.
+            content.querySelectorAll("table").forEach(table => {
+                if (!table.parentElement.classList.contains("table-wrapper")) {
+                    const wrapper = document.createElement("div");
+                    wrapper.className = "table-wrapper";
+                    table.parentNode.insertBefore(wrapper, table);
+                    wrapper.appendChild(table);
+                }
+            });
+
+            // Highlight the active section while scrolling.
+            const tocLinks = toc.querySelectorAll(".toc-link");
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        tocLinks.forEach(link => {
+                            link.classList.toggle(
+                                "active",
+                                link.getAttribute("href") === "#" + entry.target.id
+                            );
+                        });
+                    }
+                });
+            }, { rootMargin: "0px 0px -80% 0px", threshold: 0 });
+            headings.forEach(heading => observer.observe(heading));
+        });
+    </script>
+</body>
+</html>
