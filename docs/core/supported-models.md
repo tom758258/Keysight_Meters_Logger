@@ -115,6 +115,8 @@ Gate time accepts `0.01`, `0.1`, or `1.0` seconds and defaults to `0.1`.
 Frequency timeout accepts `auto` or `1s` and defaults to `auto`. Period does
 not expose a timeout option. Explicit Period timeout values are rejected.
 
+DCV Ratio readings use unit `ratio`. Frequency readings use `Hz`, and Period readings use `s`.
+
 Current terminal selection is available only for the 34461A current profiles.
 Selecting the 10 A range requires the 10 A terminal, and selecting the 10 A
 terminal with a manual range requires the 10 A range. Operators must confirm
