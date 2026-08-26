@@ -178,7 +178,11 @@ async function createMainWindow(readyUrl) {
     try {
       const target = new URL(url);
       if (target.origin === allowedOrigin && target.pathname.startsWith("/help/")) {
-        void shell.openExternal(url).catch((error) => {
+        const preference = THEME_PREFERENCES.has(nativeTheme.themeSource)
+          ? nativeTheme.themeSource
+          : "system";
+        target.searchParams.set("theme", preference);
+        void shell.openExternal(target.href).catch((error) => {
           console.error(`Could not open Help: ${error.message}`);
         });
       }

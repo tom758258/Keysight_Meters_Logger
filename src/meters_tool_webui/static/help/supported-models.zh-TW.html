@@ -8,13 +8,18 @@
         (() => {
             let preference = "system";
             try {
-                const prefix = "meters-tool.webui.theme=";
-                const saved = document.cookie
-                    .split(";")
-                    .map((part) => part.trim())
-                    .find((part) => part.startsWith(prefix))
-                    ?.slice(prefix.length);
-                if (["system", "light", "dark"].includes(saved)) preference = saved;
+                const queryTheme = new URLSearchParams(location.search).get("theme");
+                if (["system", "light", "dark"].includes(queryTheme)) {
+                    preference = queryTheme;
+                } else {
+                    const prefix = "meters-tool.webui.theme=";
+                    const saved = document.cookie
+                        .split(";")
+                        .map((part) => part.trim())
+                        .find((part) => part.startsWith(prefix))
+                        ?.slice(prefix.length);
+                    if (["system", "light", "dark"].includes(saved)) preference = saved;
+                }
             } catch (_error) {}
             document.documentElement.dataset.theme = preference;
         })();
@@ -344,6 +349,24 @@ Frequency timeout 可選 <code>auto</code> 或 <code>1s</code>，default 為 <co
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
+            try {
+                const themeOverride = new URLSearchParams(location.search).get("theme");
+                if (["system", "light", "dark"].includes(themeOverride)) {
+                    document.querySelectorAll('a[href]').forEach((anchor) => {
+                        const raw = anchor.getAttribute("href");
+                        if (!raw || raw.startsWith("#")) return;
+                        if (/^(mailto|tel|javascript):/i.test(raw)) return;
+                        try {
+                            const url = new URL(raw, location.href);
+                            if (url.origin !== location.origin) return;
+                            if (!url.pathname.endsWith(".html")) return;
+                            url.searchParams.set("theme", themeOverride);
+                            anchor.setAttribute("href", url.pathname + url.search + url.hash);
+                        } catch (_error) {}
+                    });
+                }
+            } catch (_error) {}
+
             const content = document.getElementById("help-content");
 
             // Wrap plain <pre><code> blocks in the presentation wrapper.

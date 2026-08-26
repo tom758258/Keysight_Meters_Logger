@@ -410,6 +410,18 @@ def test_desktop_native_theme_tracks_the_host_scoped_webui_cookie():
         assert unsupported_window_option not in main
 
 
+def test_desktop_help_theme_bridge_uses_query_override_in_external_browser():
+    main = DESKTOP_MAIN.read_text(encoding="utf-8-sig")
+
+    assert 'target.origin === allowedOrigin && target.pathname.startsWith("/help/")' in main
+    assert "nativeTheme.themeSource" in main
+    assert "THEME_PREFERENCES.has(nativeTheme.themeSource)" in main
+    assert 'searchParams.set("theme"' in main
+    assert "shell.openExternal(target.href)" in main
+    assert "shell.openExternal(url)" not in main
+    assert 'return { action: "deny" }' in main
+
+
 def test_windows_python_313_builds_desktop_directory_with_node_22():
     workflow = TESTS_WORKFLOW.read_text(encoding="utf-8")
 

@@ -112,7 +112,14 @@ def test_help_theme_preference_bridge(tmp_path: Path) -> None:
     for name in ("webui.html", "webui.zh-TW.html", "supported-models.html", "supported-models.zh-TW.html"):
         page = (output_dir / name).read_text(encoding="utf-8")
         assert "meters-tool.webui.theme" in page
+        assert "URLSearchParams" in page
+        # Query theme must be resolved before cookie fallback.
+        assert page.index("URLSearchParams") < page.index("document.cookie")
+        # Theme query must be resolved before stylesheet.
         assert page.index("meters-tool.webui.theme") < page.index('href="help.css"')
+        # Valid query theme must override cookie and propagate to Help HTML links.
+        assert 'searchParams.set("theme"' in page or "searchParams.set('theme'" in page
+        assert 'a[href]' in page
 
 
 def test_tracked_webui_help_runtime_bundle_matches_generator(tmp_path: Path) -> None:
