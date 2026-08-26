@@ -227,6 +227,15 @@ wheels = [
 ]
 
 [[package]]
+name = "markdown"
+version = "3.10.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/29/6f/da4c6aea59b3001f2e8c0ec7497475aadaf3b021c10cab5b2858f0f32b26/markdown-3.10.3.tar.gz", hash = "sha256:3589362618f743188b4d955b874402bc814f4f83f544dc207719f4baa7d9c45f", size = 372596, upload-time = "2026-07-30T19:05:29.005Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/64/69/4a5af2bc115a9a33fefe51709749de8262be3f9ba063d1753a837cdbc49c/markdown-3.10.3-py3-none-any.whl", hash = "sha256:fa6c92a00a4a3c98b22728c64a935ae1928250ae65058a6ded814d2cc29a4cea", size = 110757, upload-time = "2026-07-30T19:05:27.883Z" },
+]
+
+[[package]]
 name = "meters-tool"
 version = "3.1.0"
 source = { editable = "." }
@@ -242,6 +251,7 @@ all = [
 dev = [
     { name = "build" },
     { name = "httpx2" },
+    { name = "markdown" },
     { name = "pyinstaller", marker = "sys_platform == 'win32'" },
     { name = "pytest" },
     { name = "ruff" },
@@ -257,6 +267,7 @@ requires-dist = [
     { name = "fastapi", marker = "extra == 'all'", specifier = ">=0.115.0" },
     { name = "fastapi", marker = "extra == 'webui'", specifier = ">=0.115.0" },
     { name = "httpx2", marker = "extra == 'dev'", specifier = ">=2.5.0" },
+    { name = "markdown", marker = "extra == 'dev'", specifier = ">=3.6" },
     { name = "pyinstaller", marker = "sys_platform == 'win32' and extra == 'dev'", specifier = ">=6.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },
     { name = "pyvisa", specifier = ">=1.14.1" },

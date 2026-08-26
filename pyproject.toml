@@ -23,6 +23,7 @@ dev = [
     "build",
     "pyinstaller>=6.0; sys_platform == 'win32'",
     "ruff>=0.15.20",
+    "Markdown>=3.6",
 ]
 all = [
     "fastapi>=0.115.0",
