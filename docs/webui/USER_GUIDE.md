@@ -1,13 +1,15 @@
-# Meters Tool WebUI User Guide
+# Meters Tool WebUI / Desktop User Guide
 
-This guide is for operators who receive the built WebUI launcher and use it to
-record measurements from a supported digital multimeter. It avoids developer details and
-focuses on the normal measurement workflow.
+This guide is for operators who use either `Meters Tool.exe` or
+`meters-tool-webui-launcher.exe` to record measurements from a supported digital
+multimeter. Both provide the same local acquisition interface and normal
+measurement workflow.
 
-## What The WebUI Does
+## What The WebUI / Desktop Interface Does
 
-The WebUI starts a local browser page for configuring and monitoring an
-acquisition run. It can:
+Meters Tool provides the same local acquisition interface either in the Electron
+Desktop application window or in a normal browser through the WebUI launcher.
+It can:
 
 - Find connected VISA instruments.
 - Start one measurement run at a time.
@@ -19,7 +21,23 @@ acquisition run. It can:
 The WebUI runs on the same Windows computer that has access to the instrument.
 It is not a cloud service.
 
-## Start The WebUI
+## Choose Desktop Or Browser WebUI
+
+### Desktop Application
+
+For a release build, extract `meters-tool-<version>-windows-x64.zip`, open the
+extracted `meters-tool-<version>` application directory, and double-click:
+
+```text
+Meters Tool.exe
+```
+
+Desktop opens the shared WebUI inside the application window. No separate WebUI
+Launcher is required, no port selection is required, and no manual browser URL
+is required. After startup, use the same Screen Overview and workflow documented
+below.
+
+### Browser WebUI
 
 For a release build, extract `meters-tool-<version>-windows-x64.zip`, open the
 `meters-tool-<version>` folder, and double-click:
@@ -53,10 +71,11 @@ The actual port may be higher; use the URL shown in the launcher window.
 
 ## Screen Overview
 
-The WebUI is a local acquisition console. The main areas are:
+The WebUI / Desktop interface is the same local acquisition console in both
+entry points. The main areas are:
 
 - Top-right toolbar: language, theme, and `Help` controls.
-- `Help`: opens the built-in User Guide in a new browser tab.
+- `Help`: opens the bundled User Guide.
 - `Device / Resource`: the instrument address, last scanned live resource,
   `Scan Device` button, `Supported devices` list, and `Device options` gear for
   execution mode and model selection. It starts expanded and can collapse to a
@@ -74,7 +93,7 @@ current supported connection coverage without hard-coding a transient USB/LAN
 matrix. For the exact current Product support scope, see
 [Supported Models](../core/supported-models.md).
 
-## Browser Language
+## Language
 
 The top-right appearance and language controls are labeled settings. Use the
 globe-and-text button to switch between English and Traditional Chinese. The
@@ -97,18 +116,20 @@ and Current terminal, and wrap naturally on very narrow screens.
 
 ## Help
 
-Click `Help` in the top-right toolbar. The User Guide opens in a new browser
-tab and uses the currently selected WebUI language. Change the WebUI language
-before opening Help when a different language is wanted. Desktop provides the
-same Help because it uses the same WebUI.
+Click `Help` in the top-right toolbar. In Browser WebUI, the bundled User Guide
+opens in a new browser tab. In Desktop, it opens in the system default browser.
+The guide follows the currently selected WebUI language, and both entry points
+use the same underlying Help content. Change the WebUI language before opening
+Help when a different language is wanted.
 
-## Browser Theme
+## Theme
 
 Use the theme button beside the language button to cycle through `System`,
 `Light`, and `Dark`. `System` follows the browser or operating-system color
 scheme and updates when that setting changes. The selected preference is saved
-in the browser and restored on later visits. Switching theme is immediate and
-does not reload the page or reset the current form, run, Live data, or status.
+for the interface and restored on later browser visits or Desktop starts.
+Switching theme is immediate and does not reload the page or reset the current
+form, run, Live data, or status.
 In Electron Desktop, `System` also keeps the native window UI aligned with the
 operating-system appearance. Selecting `Light` or `Dark` applies that preference
 to the native window UI as well, and Desktop restores it on later starts.
@@ -144,7 +165,7 @@ instrument. Concurrent control can interfere with SCPI responses or instrument
 state. Meters Tool does not enforce this with an automatic lock.
 
 1. Turn on the Keysight 34460A or 34461A and connect it to the computer.
-2. Start the WebUI.
+2. Start Desktop or the Browser WebUI.
 3. Click `Scan Device`.
 4. Select or copy the detected VISA resource into `VISA resource`.
 5. Leave `Expected model` in `Device options` on Auto-detect unless you need to
@@ -276,7 +297,7 @@ signal source connected to the instrument.
 ## Live Data Chart Scale
 
 The `Live data` panel has chart scale controls in the `Trend` section. These
-settings affect only the browser chart display. They do not affect instrument
+settings affect only the interface chart display. They do not affect instrument
 settings, SCPI commands, CSV output, or recorded values.
 
 The trend chart shows Y-axis labels on the left side of each grid line using
@@ -309,7 +330,7 @@ does not know that hardware range while Auto Range is enabled. If the first
 sample is `5.000 V` and the selected manual Range is `0.010 V`, the chart shows
 `4.990 V` to `5.010 V`. Values outside `baseline +/- selected Range` may be
 clamped to the chart boundary. Like the other chart scale modes, Range step
-affects only the browser chart display and does not change instrument settings,
+affects only the interface chart display and does not change instrument settings,
 SCPI commands, CSV output, or recorded values.
 
 ## CSV Output
@@ -332,15 +353,23 @@ cleanup continue normally when CSV output is disabled.
 
 ## Stop And Exit
 
-Use `Stop` in the browser to stop the current acquisition run. The WebUI keeps
-the latest readings visible after the run stops so you can review them.
+### Desktop Application
 
-Use `Quit` in the small running launcher window to stop the local WebUI server
-and close the launcher. Closing only the browser tab does not stop the server.
+Use `Stop` when intentionally ending the current acquisition run. When finished
+with Desktop, close the Desktop application window normally. Desktop requests
+graceful shutdown and cleanup before exiting. If Desktop reports that cleanup is
+not complete, wait for cleanup to finish and then close the window again.
+
+### Browser WebUI
+
+Use `Stop` to stop the active acquisition run. The WebUI keeps the latest
+readings visible after the run stops so you can review them. Then use `Quit` in
+the small running launcher window to stop the local WebUI server and close the
+launcher. Closing only the browser tab does not stop the server.
 
 ## Common Problems
 
-### The browser does not open
+### The Browser WebUI does not open
 
 Open the running URL shown in the launcher window. The default starting address
 is:

@@ -302,7 +302,7 @@ Windows wrapper 合約的 CI 工作會另外執行
 * [CLI 使用者指南](docs/cli/USER_GUIDE.zh-TW.md)
 * [CLI README](docs/cli/README.zh-TW.md)
 * [WebUI README](docs/webui/README.zh-TW.md)
-* [WebUI 使用者指南](docs/webui/USER_GUIDE.zh-TW.md)
+* [WebUI／Desktop 使用者指南](docs/webui/USER_GUIDE.zh-TW.md)
 * [Monorepo 架構](docs/architecture/monorepo-layout.md)
 * [測試指南](docs/testing-guidelines.md)
 * [貢獻指南](docs/CONTRIBUTING.md)

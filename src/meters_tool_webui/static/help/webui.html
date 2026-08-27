@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meters Tool WebUI User Guide</title>
+    <title>Meters Tool WebUI / Desktop User Guide</title>
     <script>
         (() => {
             let preference = "system";
@@ -34,13 +34,15 @@
     </aside>
 
     <main id="help-content">
-<h1 id="meters-tool-webui-user-guide">Meters Tool WebUI User Guide</h1>
-<p>This guide is for operators who receive the built WebUI launcher and use it to
-record measurements from a supported digital multimeter. It avoids developer details and
-focuses on the normal measurement workflow.</p>
-<h2 id="what-the-webui-does">What The WebUI Does</h2>
-<p>The WebUI starts a local browser page for configuring and monitoring an
-acquisition run. It can:</p>
+<h1 id="meters-tool-webui-desktop-user-guide">Meters Tool WebUI / Desktop User Guide</h1>
+<p>This guide is for operators who use either <code>Meters Tool.exe</code> or
+<code>meters-tool-webui-launcher.exe</code> to record measurements from a supported digital
+multimeter. Both provide the same local acquisition interface and normal
+measurement workflow.</p>
+<h2 id="what-the-webui-desktop-interface-does">What The WebUI / Desktop Interface Does</h2>
+<p>Meters Tool provides the same local acquisition interface either in the Electron
+Desktop application window or in a normal browser through the WebUI launcher.
+It can:</p>
 <ul>
 <li>Find connected VISA instruments.</li>
 <li>Start one measurement run at a time.</li>
@@ -51,7 +53,17 @@ acquisition run. It can:</p>
 </ul>
 <p>The WebUI runs on the same Windows computer that has access to the instrument.
 It is not a cloud service.</p>
-<h2 id="start-the-webui">Start The WebUI</h2>
+<h2 id="choose-desktop-or-browser-webui">Choose Desktop Or Browser WebUI</h2>
+<h3 id="desktop-application">Desktop Application</h3>
+<p>For a release build, extract <code>meters-tool-&lt;version&gt;-windows-x64.zip</code>, open the
+extracted <code>meters-tool-&lt;version&gt;</code> application directory, and double-click:</p>
+<pre><code class="language-text">Meters Tool.exe
+</code></pre>
+<p>Desktop opens the shared WebUI inside the application window. No separate WebUI
+Launcher is required, no port selection is required, and no manual browser URL
+is required. After startup, use the same Screen Overview and workflow documented
+below.</p>
+<h3 id="browser-webui">Browser WebUI</h3>
 <p>For a release build, extract <code>meters-tool-&lt;version&gt;-windows-x64.zip</code>, open the
 <code>meters-tool-&lt;version&gt;</code> folder, and double-click:</p>
 <pre><code class="language-text">meters-tool-webui-launcher.exe
@@ -72,10 +84,11 @@ manual retry tries only that port once and leaves the window open if it fails.</
 </code></pre>
 <p>The actual port may be higher; use the URL shown in the launcher window.</p>
 <h2 id="screen-overview">Screen Overview</h2>
-<p>The WebUI is a local acquisition console. The main areas are:</p>
+<p>The WebUI / Desktop interface is the same local acquisition console in both
+entry points. The main areas are:</p>
 <ul>
 <li>Top-right toolbar: language, theme, and <code>Help</code> controls.</li>
-<li><code>Help</code>: opens the built-in User Guide in a new browser tab.</li>
+<li><code>Help</code>: opens the bundled User Guide.</li>
 <li><code>Device / Resource</code>: the instrument address, last scanned live resource,
   <code>Scan Device</code> button, <code>Supported devices</code> list, and <code>Device options</code> gear for
   execution mode and model selection. It starts expanded and can collapse to a
@@ -92,7 +105,7 @@ is derived from Core capability and support metadata, so it reflects the
 current supported connection coverage without hard-coding a transient USB/LAN
 matrix. For the exact current Product support scope, see
 <a href="supported-models.html">Supported Models</a>.</p>
-<h2 id="browser-language">Browser Language</h2>
+<h2 id="language">Language</h2>
 <p>The top-right appearance and language controls are labeled settings. Use the
 globe-and-text button to switch between English and Traditional Chinese. The
 button names the current language: English shows <code>English</code>, and Traditional
@@ -110,16 +123,18 @@ diagnostic text remains unchanged.</p>
 stay beside their field titles at ordinary desktop widths, including AC filter
 and Current terminal, and wrap naturally on very narrow screens.</p>
 <h2 id="help">Help</h2>
-<p>Click <code>Help</code> in the top-right toolbar. The User Guide opens in a new browser
-tab and uses the currently selected WebUI language. Change the WebUI language
-before opening Help when a different language is wanted. Desktop provides the
-same Help because it uses the same WebUI.</p>
-<h2 id="browser-theme">Browser Theme</h2>
+<p>Click <code>Help</code> in the top-right toolbar. In Browser WebUI, the bundled User Guide
+opens in a new browser tab. In Desktop, it opens in the system default browser.
+The guide follows the currently selected WebUI language, and both entry points
+use the same underlying Help content. Change the WebUI language before opening
+Help when a different language is wanted.</p>
+<h2 id="theme">Theme</h2>
 <p>Use the theme button beside the language button to cycle through <code>System</code>,
 <code>Light</code>, and <code>Dark</code>. <code>System</code> follows the browser or operating-system color
 scheme and updates when that setting changes. The selected preference is saved
-in the browser and restored on later visits. Switching theme is immediate and
-does not reload the page or reset the current form, run, Live data, or status.
+for the interface and restored on later browser visits or Desktop starts.
+Switching theme is immediate and does not reload the page or reset the current
+form, run, Live data, or status.
 In Electron Desktop, <code>System</code> also keeps the native window UI aligned with the
 operating-system appearance. Selecting <code>Light</code> or <code>Dark</code> applies that preference
 to the native window UI as well, and Desktop restores it on later starts.</p>
@@ -150,7 +165,7 @@ instrument. Concurrent control can interfere with SCPI responses or instrument
 state. Meters Tool does not enforce this with an automatic lock.</p>
 <ol>
 <li>Turn on the Keysight 34460A or 34461A and connect it to the computer.</li>
-<li>Start the WebUI.</li>
+<li>Start Desktop or the Browser WebUI.</li>
 <li>Click <code>Scan Device</code>.</li>
 <li>Select or copy the detected VISA resource into <code>VISA resource</code>.</li>
 <li>Leave <code>Expected model</code> in <code>Device options</code> on Auto-detect unless you need to
@@ -252,7 +267,7 @@ waits longer.</p>
 signal source connected to the instrument.</p>
 <h2 id="live-data-chart-scale">Live Data Chart Scale</h2>
 <p>The <code>Live data</code> panel has chart scale controls in the <code>Trend</code> section. These
-settings affect only the browser chart display. They do not affect instrument
+settings affect only the interface chart display. They do not affect instrument
 settings, SCPI commands, CSV output, or recorded values.</p>
 <p>The trend chart shows Y-axis labels on the left side of each grid line using
 the active scale mode.</p>
@@ -280,7 +295,7 @@ does not know that hardware range while Auto Range is enabled. If the first
 sample is <code>5.000 V</code> and the selected manual Range is <code>0.010 V</code>, the chart shows
 <code>4.990 V</code> to <code>5.010 V</code>. Values outside <code>baseline +/- selected Range</code> may be
 clamped to the chart boundary. Like the other chart scale modes, Range step
-affects only the browser chart display and does not change instrument settings,
+affects only the interface chart display and does not change instrument settings,
 SCPI commands, CSV output, or recorded values.</p>
 <h2 id="csv-output">CSV Output</h2>
 <p><code>CSV output</code> is checked by default. Clear it to run without creating a CSV.
@@ -296,12 +311,18 @@ completed run CSV using the Windows default app. It is disabled while a run is
 active and after a no-CSV run. Live data, captured samples, status, Stop, and
 cleanup continue normally when CSV output is disabled.</p>
 <h2 id="stop-and-exit">Stop And Exit</h2>
-<p>Use <code>Stop</code> in the browser to stop the current acquisition run. The WebUI keeps
-the latest readings visible after the run stops so you can review them.</p>
-<p>Use <code>Quit</code> in the small running launcher window to stop the local WebUI server
-and close the launcher. Closing only the browser tab does not stop the server.</p>
+<h3 id="desktop-application_1">Desktop Application</h3>
+<p>Use <code>Stop</code> when intentionally ending the current acquisition run. When finished
+with Desktop, close the Desktop application window normally. Desktop requests
+graceful shutdown and cleanup before exiting. If Desktop reports that cleanup is
+not complete, wait for cleanup to finish and then close the window again.</p>
+<h3 id="browser-webui_1">Browser WebUI</h3>
+<p>Use <code>Stop</code> to stop the active acquisition run. The WebUI keeps the latest
+readings visible after the run stops so you can review them. Then use <code>Quit</code> in
+the small running launcher window to stop the local WebUI server and close the
+launcher. Closing only the browser tab does not stop the server.</p>
 <h2 id="common-problems">Common Problems</h2>
-<h3 id="the-browser-does-not-open">The browser does not open</h3>
+<h3 id="the-browser-webui-does-not-open">The Browser WebUI does not open</h3>
 <p>Open the running URL shown in the launcher window. The default starting address
 is:</p>
 <pre><code class="language-text">http://127.0.0.1:8767/

@@ -1,7 +1,7 @@
 # Meters Tool WebUI README
 
 This document is the WebUI behavior and API guide for the WebUI component. For
-normal operator workflows and field explanations, use the [WebUI User Guide](USER_GUIDE.md).
+normal operator workflows and field explanations, use the [WebUI / Desktop User Guide](USER_GUIDE.md).
 
 For release notes, use the package changelog. For Core API and ownership rules,
 use the Core integration guide. Keep this guide focused on durable public
@@ -54,7 +54,7 @@ The WebUI must use Core public APIs instead of depending on CLI adapter code or
 directly reaching into acquisition engine internals.
 
 Core validates measurement requests and protects instrument-facing limits. The
-WebUI user guide explains fields in UI terms; this README keeps WebUI behavior,
+WebUI / Desktop User Guide explains fields in UI terms; this README keeps WebUI behavior,
 API, and integration boundaries in one place.
 
 ## Package And Entry Point
@@ -243,7 +243,7 @@ Main areas:
 - Live data panel with latest value, sample time, trigger source, trend chart,
   statistics, recent sample table, and selected-sample metadata.
 
-The `Supported devices` button opens a compact WebUI connection list. It displays the connections currently supported by the WebUI (derived from Core capability metadata). For the operator-facing connection list, see the [WebUI User Guide](USER_GUIDE.md); for full model capabilities and exact product support policy, see [Supported Models](../core/supported-models.md).
+The `Supported devices` button opens a compact WebUI connection list. It displays the connections currently supported by the WebUI (derived from Core capability metadata). For the operator-facing connection list, see the [WebUI / Desktop User Guide](USER_GUIDE.md); for full model capabilities and exact product support policy, see [Supported Models](../core/supported-models.md).
 
 ### Browser Language
 
@@ -271,7 +271,7 @@ JavaScript modules.
 
 ### Built-in Help
 
-`Help` is in the top-right toolbar. Clicking it opens the bundled WebUI User
+`Help` is in the top-right toolbar. Clicking it opens the bundled WebUI / Desktop User
 Guide in a new browser tab. The opened guide follows the currently selected
 WebUI language, with English and Traditional Chinese supported. Electron
 Desktop reuses the same WebUI and therefore the same Help behavior. The
@@ -920,7 +920,7 @@ Live panel has no samples:
 
 ## Documentation Map
 
-- [WebUI User Guide](USER_GUIDE.md): operator-facing WebUI usage guide.
+- [WebUI / Desktop User Guide](USER_GUIDE.md): operator-facing WebUI / Desktop usage guide.
 - [WebUI README](README.md): this WebUI behavior, API, and integration guide.
 - [WebUI Change Rules](web-ui-change-rules.md): maintainer and agent-facing
   rules for UI changes.

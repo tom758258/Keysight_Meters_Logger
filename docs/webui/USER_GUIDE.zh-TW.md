@@ -1,10 +1,13 @@
-# Meters Tool WebUI 使用者指南
+# Meters Tool WebUI / Desktop 使用者指南
 
-本指南適用於取得已建置之 WebUI 啟動器，並使用它來記錄支援的數位萬用電表量測資料的操作人員。本指南避開了開發人員細節，專注於標準的量測工作流程。
+本指南適用於使用 `Meters Tool.exe` 或 `meters-tool-webui-launcher.exe`，
+記錄支援數位萬用電表量測資料的操作人員。兩者提供相同的本機擷取介面與
+一般量測工作流程。
 
-## WebUI 的功能
+## WebUI / Desktop 介面的功能
 
-WebUI 會啟動一個本機瀏覽器頁面，用於設定與監控擷取作業 (acquisition run)。它的功能包含：
+Meters Tool 在 Desktop 應用程式視窗或透過 WebUI launcher 開啟的一般瀏覽器中，
+提供相同的本機擷取介面。其功能包含：
 
 - 尋找已連線的 VISA 儀器。
 - 每次啟動一個量測作業。
@@ -15,7 +18,22 @@ WebUI 會啟動一個本機瀏覽器頁面，用於設定與監控擷取作業 (
 
 WebUI 執行於與儀器連接的同一台 Windows 電腦上。它不是一項雲端服務。
 
-## 啟動 WebUI
+## 選擇 Desktop 或瀏覽器 WebUI
+
+### Desktop 應用程式
+
+使用發佈版本時，請解壓縮 `meters-tool-<version>-windows-x64.zip`，開啟
+解壓縮後的 `meters-tool-<version>` 應用程式資料夾，然後雙擊：
+
+```text
+Meters Tool.exe
+```
+
+Desktop 會在應用程式視窗中開啟共用的 WebUI。不需要另外啟動 WebUI
+Launcher、不需要選擇 Port，也不需要手動在瀏覽器輸入 URL。啟動後，請使用
+下方相同的畫面總覽與操作流程。
+
+### 瀏覽器 WebUI
 
 使用發佈版本時，請解壓縮 `meters-tool-<version>-windows-x64.zip`，開啟
 `meters-tool-<version>` 資料夾，然後雙擊：
@@ -48,10 +66,10 @@ http://127.0.0.1:8767/
 
 ## 畫面總覽
 
-WebUI 是一個本機擷取主控台。主要區域包含：
+WebUI / Desktop 介面在兩種入口中都是相同的本機擷取主控台。主要區域包含：
 
 - 右上角工具列：語言、主題與 `說明`（英文介面為 `Help`）控制項。
-- `說明`：在新的瀏覽器分頁開啟內建使用指南。
+- `說明`：開啟隨附的使用指南。
 - `Device / Resource` (裝置/資源列)：儀器位址、最近一次掃描回應的實機資源、`Scan Device` 按鈕、`支援裝置` 清單，以及 `Device options` 齒輪中的執行模式與型號選擇器。此列預設展開，可收合成能辨識目前執行模式的摘要。
 - `Run Setup` (作業設定)：CSV 輸出路徑與執行次數設定。
 - `Measurement` (量測)：量測類型與相關選項。
@@ -61,7 +79,7 @@ WebUI 是一個本機擷取主控台。主要區域包含：
 
 點擊 `支援裝置` 可查看 WebUI 支援連線清單。此清單由 Core capability 與支援元資料衍生，會反映目前支援的連線範圍，而不會硬編一份暫時的 USB/LAN support matrix。精確的目前 Product support scope 請見 [Supported Models](../core/supported-models.zh-TW.md)。
 
-## 瀏覽器語言
+## 語言
 
 右上角的外觀與語言控制是各自帶標籤的設定項。使用地球與文字按鈕，在 English 與繁體中文之間切換。該按鈕會顯示目前語言：English 顯示 `English`，繁體中文顯示 `繁體中文`；螢幕閱讀器標籤則描述切換後的目的地語言。
 
@@ -71,11 +89,14 @@ WebUI 是一個本機擷取主控台。主要區域包含：
 
 ## 說明
 
-點擊右上角工具列的 `說明`。內建使用指南會在新的瀏覽器分頁開啟，並使用目前選取的 WebUI 語言。若要使用不同語言，請先切換 WebUI 語言，再開啟說明。Desktop 使用相同的 WebUI，因此提供相同的說明。
+點擊右上角工具列的 `說明`（英文介面為 `Help`）。在瀏覽器 WebUI 中，隨附的
+使用指南會在新的瀏覽器分頁開啟；在 Desktop 中，則會使用系統預設瀏覽器開啟。
+指南會依目前選取的 WebUI 語言顯示，兩種入口使用相同的隨附說明內容。若要使用
+不同語言，請先切換 WebUI 語言，再開啟說明。
 
-## 瀏覽器主題
+## 主題
 
-使用語言按鈕旁的主題按鈕，依序切換 `系統`、`淺色` 與 `深色`。`系統` 會跟隨瀏覽器或作業系統的色彩配置，並在設定變更時同步更新。選取的偏好會儲存在瀏覽器中，之後開啟頁面時會自動還原。切換主題會立即生效，不會重新載入頁面，也不會重設目前的表單、作業、Live data 或狀態。
+使用語言按鈕旁的主題按鈕，依序切換 `系統`、`淺色` 與 `深色`。`系統` 會跟隨瀏覽器或作業系統的色彩配置，並在設定變更時同步更新。選取的偏好會儲存於介面中，之後再次開啟瀏覽器或啟動 Desktop 時會自動還原。切換主題會立即生效，不會重新載入頁面，也不會重設目前的表單、作業、Live data 或狀態。
 
 在 Electron Desktop 中，`系統` 也會讓原生視窗介面跟隨作業系統外觀。選取 `淺色` 或 `深色` 時，該偏好也會套用至原生視窗介面，並在之後啟動 Desktop 時還原。
 
@@ -96,7 +117,7 @@ Execution mode 僅存在於目前頁面，Start／Preview request pending 或 ac
 進行實機執行前，請確認沒有其他 Meters CLI、WebUI、logger、測試程序或外部 VISA 應用程式正在控制同一台實體儀器。同時控制可能干擾 SCPI 回應或儀器狀態。Meters Tool 不會以自動鎖定強制此前提。
 
 1. 開啟 Keysight 34460A 或 34461A 電源並將其連接至電腦。
-2. 啟動 WebUI。
+2. 啟動 Desktop 或瀏覽器 WebUI。
 3. 點擊 `Scan Device`。
 4. 選取或將偵測到的 VISA 資源複製到 `VISA resource` 欄位中。
 5. 只有在需要強制指定型號時，才在 `Device options` 中將 `Expected model` 改選 `Require 34460A` 或 `Require 34461A`；否則請維持 `Auto-detect`。
@@ -169,7 +190,7 @@ WebUI 使用電腦固定的預設 System VISA runtime。它不提供 PyVISA back
 
 ## 即時資料圖表縮放 (Live Data Chart Scale)
 
-`Live data`（即時資料）面板在 `Trend` 區域有圖表縮放控制項。這些設定僅影響瀏覽器圖表顯示。它們不影響儀器設定、SCPI 指令、CSV 輸出或記錄的數值。
+`Live data`（即時資料）面板在 `Trend` 區域有圖表縮放控制項。這些設定僅影響介面圖表顯示。它們不影響儀器設定、SCPI 指令、CSV 輸出或記錄的數值。
 
 趨勢圖表使用作用中的縮放模式，在每條網格線的左側顯示 Y 軸標籤。
 
@@ -179,7 +200,7 @@ WebUI 使用電腦固定的預設 System VISA runtime。它不提供 PyVISA back
 
 `Manual span`（手動跨度）使用第一個數值取樣為中心，以及操作人員輸入的固定正數跨度。跨度使用原始量測單位：`V` 代表伏特，`A` 代表安培，`Ohm` 代表歐姆，`Hz` 代表赫茲，`s` 代表秒。對於電壓，`0.01` 代表 `0.01 V`，而不是 `0.01 mV`。如果第一個取樣是 `5.000 V` 且手動跨度是 `0.010 V`，則圖表顯示 `4.990 V` 到 `5.010 V`。超出 `baseline +/- span` 的值會被裁切到圖表邊界，目前版本不會另外顯示 `clipped indicator`。
 
-`Range step`（量程步進）使用手動選取的 `Range` 作為圖表顯示跨度。僅在 `Auto Range` 關閉且選取手動量程時可用。它不反映儀器的實際自動選擇量程，因為在啟用自動量程時 WebUI 無法得知該硬體量程。如果第一個取樣是 `5.000 V` 且選取的手動 Range 是 `0.010 V`，則圖表顯示 `4.990 V` 到 `5.010 V`。超出 `baseline +/- selected Range` 的值可能會被裁切到圖表邊界。與其他圖表縮放模式一樣，Range step 僅影響瀏覽器圖表顯示，不會改變儀器設定、SCPI 指令、CSV 輸出或記錄的數值。
+`Range step`（量程步進）使用手動選取的 `Range` 作為圖表顯示跨度。僅在 `Auto Range` 關閉且選取手動量程時可用。它不反映儀器的實際自動選擇量程，因為在啟用自動量程時 WebUI 無法得知該硬體量程。如果第一個取樣是 `5.000 V` 且選取的手動 Range 是 `0.010 V`，則圖表顯示 `4.990 V` 到 `5.010 V`。超出 `baseline +/- selected Range` 的值可能會被裁切到圖表邊界。與其他圖表縮放模式一樣，Range step 僅影響介面圖表顯示，不會改變儀器設定、SCPI 指令、CSV 輸出或記錄的數值。
 
 ## CSV 輸出
 
@@ -193,14 +214,21 @@ WebUI 使用電腦固定的預設 System VISA runtime。它不提供 PyVISA back
 
 ## 停止與離開
 
-在瀏覽器中使用 `Stop` 來停止目前的擷取作業。WebUI 會在作業停止後保留畫面上最新的讀值，以供您檢視。
+### Desktop 應用程式
 
-在 Launcher 的 Running／Quit 小視窗中使用 `Quit` 來停止本機 WebUI
-伺服器並關閉 Launcher。僅關閉瀏覽器分頁不會停止伺服器。
+使用 `Stop` 來有意結束目前的擷取作業。完成 Desktop 操作後，請正常關閉
+Desktop 應用程式視窗。Desktop 會在離開前要求優雅關閉並完成清理。如果 Desktop
+顯示清理尚未完成，請等待清理完成後，再次關閉視窗。
+
+### 瀏覽器 WebUI
+
+使用 `Stop` 來停止目前的擷取作業。WebUI 會在作業停止後保留畫面上最新的讀值，
+以供您檢視。接著在 Launcher 的 Running／Quit 小視窗中使用 `Quit`，以停止
+本機 WebUI 伺服器並關閉 Launcher。僅關閉瀏覽器分頁不會停止伺服器。
 
 ## 常見問題
 
-### 瀏覽器未開啟
+### 瀏覽器 WebUI 未開啟
 
 請手動開啟 Launcher 視窗顯示的執行中 URL。預設起始網址為：
 

@@ -339,7 +339,7 @@ guidance.
 * [CLI User Guide](docs/cli/USER_GUIDE.md)
 * [CLI README](docs/cli/README.md)
 * [WebUI README](docs/webui/README.md)
-* [WebUI User Guide](docs/webui/USER_GUIDE.md)
+* [WebUI / Desktop User Guide](docs/webui/USER_GUIDE.md)
 * [Monorepo Architecture](docs/architecture/monorepo-layout.md)
 * [Testing Guidelines](docs/testing-guidelines.md)
 * [Contributing Guide](docs/CONTRIBUTING.md)

@@ -1,6 +1,6 @@
 # Meters Tool WebUI 說明文件
 
-本文件是 WebUI 元件的 WebUI 行為與 API 指南。對於一般的操作人員工作流程與欄位說明，請參閱 [WebUI 使用者指南](USER_GUIDE.zh-TW.md)。
+本文件是 WebUI 元件的 WebUI 行為與 API 指南。對於一般的操作人員工作流程與欄位說明，請參閱 [WebUI／Desktop 使用者指南](USER_GUIDE.zh-TW.md)。
 
 關於版本發佈說明，請參閱套件變更日誌 (changelog)。關於 Core API 和擁有權規則，請參閱 Core 整合指南。請將本指南專注於長期的公開 WebUI 行為與整合邊界。
 
@@ -34,7 +34,7 @@ Core 擁有以下內容的擁有權：
 
 WebUI 必須使用 Core 的公開 API，不可依賴 CLI 配接器程式碼或直接存取擷取引擎內部運作。
 
-Core 會驗證量測請求並保護儀器端的限制。WebUI 使用者指南以 UI 術語說明各個欄位；本 README 則將 WebUI 行為、API 與整合邊界集中整理於一處。
+Core 會驗證量測請求並保護儀器端的限制。WebUI／Desktop 使用者指南以 UI 術語說明各個欄位；本 README 則將 WebUI 行為、API 與整合邊界集中整理於一處。
 
 ## 套件與進入點 (Entry Point)
 
@@ -197,7 +197,7 @@ http://127.0.0.1:8767/
 - 用於裝置/資源設定、執行設定 (run configuration)、量測設定、觸發設定、即時資料 (Live data) 與狀態詳細資料的可摺疊設定面板。
 - 即時資料面板包含最新讀值、取樣時間、觸發來源、趨勢圖表、統計資料、最近取樣表格以及所選取樣的 metadata。
 
-`支援裝置` 按鈕會開啟一個精簡的 WebUI 連線清單，僅顯示目前 WebUI 正式支援的連線方式（由 Core 能力 metadata 衍生）。如需操作人員所見之連線清單，請參閱 [WebUI 使用者指南](USER_GUIDE.zh-TW.md)；確切的產品支援型號與連線範圍請參閱 [支援型號](../core/supported-models.md)。
+`支援裝置` 按鈕會開啟一個精簡的 WebUI 連線清單，僅顯示目前 WebUI 正式支援的連線方式（由 Core 能力 metadata 衍生）。如需操作人員所見之連線清單，請參閱 [WebUI／Desktop 使用者指南](USER_GUIDE.zh-TW.md)；確切的產品支援型號與連線範圍請參閱 [支援型號](../core/supported-models.md)。
 
 ### 瀏覽器語言
 
@@ -209,7 +209,7 @@ English／繁體中文呈現使用以下術語規則。繁體中文的 Measureme
 
 ### 內建說明
 
-`說明` 位於右上角工具列。點擊後會在新的瀏覽器分頁開啟隨附的 WebUI 使用者指南。開啟的指南會依目前選取的 WebUI 語言顯示，支援 English 與繁體中文。Desktop 重用相同的 WebUI，因此使用相同的說明行為。隨附的說明為離線文件，不依賴外部文件網站。
+`說明` 位於右上角工具列。點擊後會在新的瀏覽器分頁開啟隨附的 WebUI／Desktop 使用者指南。開啟的指南會依目前選取的 WebUI 語言顯示，支援 English 與繁體中文。Desktop 重用相同的 WebUI，因此使用相同的說明行為。隨附的說明為離線文件，不依賴外部文件網站。
 
 ## 執行模式
 
@@ -669,7 +669,7 @@ Open CSV 按鈕被停用：
 
 ## 說明文件地圖
 
-- [WebUI 使用者指南](USER_GUIDE.zh-TW.md)：面向操作人員的 WebUI 使用指南。
+- [WebUI／Desktop 使用者指南](USER_GUIDE.zh-TW.md)：面向操作人員的 WebUI／Desktop 使用指南。
 - [WebUI README](README.zh-TW.md)：本 WebUI 行為、API 與整合指南。
 - [WebUI 變更規則](web-ui-change-rules.md)：維護者與面向 Agent 的 UI 變更規則。
 - [WebUI 變更日誌](../../CHANGELOG.md)：專案版本發佈說明。
