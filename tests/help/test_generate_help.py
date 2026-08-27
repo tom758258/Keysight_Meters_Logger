@@ -144,9 +144,32 @@ def test_tracked_webui_help_runtime_bundle_matches_generator(tmp_path: Path) -> 
         "help.css",
     ]
     for name in webui_runtime_files:
-        fresh = (output_dir / name).read_bytes()
-        tracked = (runtime_help_dir / name).read_bytes()
+        fresh = (output_dir / name).read_text(encoding="utf-8")
+        tracked = (runtime_help_dir / name).read_text(encoding="utf-8")
         assert fresh == tracked, f"tracked WebUI Help asset is stale: {name}"
         # Also guard that no cli artifacts were copied into WebUI static tree
     assert not (runtime_help_dir / "cli.html").exists()
     assert not (runtime_help_dir / "cli.zh-TW.html").exists()
+
+
+def test_tracked_cli_help_runtime_bundle_matches_generator(tmp_path: Path) -> None:
+    output_dir = tmp_path / "help"
+    result = run_generator(output_dir)
+    assert result.returncode == 0, result.stderr
+
+    runtime_help_dir = REPO_ROOT / "src" / "meters_tool_cli" / "help"
+    assert runtime_help_dir.is_dir(), f"CLI runtime Help directory is missing: {runtime_help_dir}"
+
+    cli_runtime_files = [
+        "cli.html",
+        "cli.zh-TW.html",
+        "supported-models.html",
+        "supported-models.zh-TW.html",
+        "help.css",
+    ]
+    for name in cli_runtime_files:
+        fresh = (output_dir / name).read_text(encoding="utf-8")
+        tracked = (runtime_help_dir / name).read_text(encoding="utf-8")
+        assert fresh == tracked, f"tracked CLI Help asset is stale: {name}"
+    assert not (runtime_help_dir / "webui.html").exists()
+    assert not (runtime_help_dir / "webui.zh-TW.html").exists()

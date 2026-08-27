@@ -4,7 +4,9 @@ import argparse
 import json
 import signal  # noqa: F401  # compatibility patch path
 import sys
+import webbrowser
 from datetime import datetime, timezone
+from pathlib import Path
 
 from meters_tool_core import (
     SUPPORT_POLICY_MODE_PRODUCT,
@@ -103,6 +105,31 @@ __all__ = [
 ]
 
 FALLBACK_CLI_VERSION = FALLBACK_PACKAGE_VERSION
+
+_USER_GUIDE_FILENAMES = {
+    "en": "cli.html",
+    "zh-TW": "cli.zh-TW.html",
+}
+
+
+def _resolve_user_guide_path(lang: str) -> Path:
+    return Path(__file__).resolve().parent / "help" / _USER_GUIDE_FILENAMES[lang]
+
+
+def cmd_user_guide(lang: str = "en") -> int:
+    guide_path = _resolve_user_guide_path(lang)
+    if not guide_path.is_file():
+        print(f"Bundled CLI user guide not found: {guide_path}", file=sys.stderr)
+        return 1
+    try:
+        opened = webbrowser.open_new_tab(guide_path.as_uri())
+    except (OSError, webbrowser.Error) as exc:
+        print(f"Failed to open bundled CLI user guide: {guide_path} ({exc})", file=sys.stderr)
+        return 1
+    if not opened:
+        print(f"Failed to open bundled CLI user guide: {guide_path}", file=sys.stderr)
+        return 1
+    return 0
 
 
 def get_cli_version() -> str:
@@ -611,6 +638,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_wait_ready(args.port, args.output_format, args.timeout_ms)
     if args.command == "start-trigger-record":
         return cmd_start(args)
+    if args.command == "user-guide":
+        return cmd_user_guide(args.lang)
     return 2
 
 if __name__ == "__main__":

@@ -47,6 +47,10 @@ include = [
 ]
 
 [tool.setuptools.package-data]
+meters_tool_cli = [
+    "help/*.html",
+    "help/*.css",
+]
 meters_tool_webui = [
     "static/*.html",
     "static/*.css",

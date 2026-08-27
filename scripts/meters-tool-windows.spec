@@ -16,7 +16,12 @@ cli_analysis = Analysis(
     [str(source_path / "meters_tool_cli" / "cli.py")],
     pathex=[str(source_path)],
     binaries=[],
-    datas=[],
+    datas=[
+        (
+            str(source_path / "meters_tool_cli" / "help"),
+            "meters_tool_cli/help",
+        ),
+    ],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

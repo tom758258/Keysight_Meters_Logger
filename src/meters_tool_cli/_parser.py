@@ -508,6 +508,20 @@ def _add_wait_ready_parser(sub) -> None:
     _add_client_output_arguments(wait, include_dry_run=False)
 
 
+def _add_user_guide_parser(sub) -> None:
+    user_guide = sub.add_parser(
+        "user-guide",
+        formatter_class=MetersHelpFormatter,
+        help="open the bundled offline CLI user guide",
+    )
+    user_guide.add_argument(
+        "--lang",
+        choices=["en", "zh-TW"],
+        default="en",
+        help="guide language",
+    )
+
+
 def build_parser(version_provider) -> argparse.ArgumentParser:
     default_profile = get_default_instrument_profile()
     supported_models = " or ".join(supported_instrument_models())
@@ -538,5 +552,6 @@ def build_parser(version_provider) -> argparse.ArgumentParser:
     _add_stop_parser(sub)
     _add_status_parser(sub)
     _add_wait_ready_parser(sub)
+    _add_user_guide_parser(sub)
 
     return parser

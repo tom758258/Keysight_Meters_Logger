@@ -30,6 +30,7 @@ class CliArgsTests(unittest.TestCase):
             "stop",
             "status",
             "wait-ready",
+            "user-guide",
         ]:
             self.assertIn(command, help_text)
 

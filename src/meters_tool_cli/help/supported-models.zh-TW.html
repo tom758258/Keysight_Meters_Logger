@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>支援型號</title>
+    <script>
+        (() => {
+            let preference = "system";
+            try {
+                const queryTheme = new URLSearchParams(location.search).get("theme");
+                if (["system", "light", "dark"].includes(queryTheme)) {
+                    preference = queryTheme;
+                } else {
+                    const prefix = "meters-tool.webui.theme=";
+                    const saved = document.cookie
+                        .split(";")
+                        .map((part) => part.trim())
+                        .find((part) => part.startsWith(prefix))
+                        ?.slice(prefix.length);
+                    if (["system", "light", "dark"].includes(saved)) preference = saved;
+                }
+            } catch (_error) {}
+            document.documentElement.dataset.theme = preference;
+        })();
+    </script>
+    <link rel="stylesheet" href="help.css">
+</head>
+<body>
+
+    <aside class="help-sidebar">
+        <div class="help-sidebar-title" id="toc-title">章節導覽</div>
+        <nav id="toc" aria-labelledby="toc-title"></nav>
+    </aside>
+
+    <main id="help-content">
+<h1 id="支援型號">支援型號</h1>
+<p>本文件說明 Meters Tool 使用者目前可用的 Product-open 支援範圍。
+它是支援型號、連線、backend、量測、觸發與重要限制的共用使用者參考文件。</p>
+<h2 id="型號設定檔">型號設定檔</h2>
+<p>Meters Tool 目前支援以下儀器型號：</p>
+<table>
+<thead>
+<tr>
+<th>Model ID</th>
+<th>儀器</th>
+<th style="text-align: right;">讀值記憶體</th>
+<th style="text-align: right;">最大電流</th>
+<th>外部觸發</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>keysight-34461a</code></td>
+<td>Keysight 34461A</td>
+<td style="text-align: right;">10000</td>
+<td style="text-align: right;">使用 10A terminal 時最高 10 A</td>
+<td>支援</td>
+</tr>
+<tr>
+<td><code>keysight-34460a</code></td>
+<td>Keysight 34460A</td>
+<td style="text-align: right;">1000</td>
+<td style="text-align: right;">3 A</td>
+<td>base scope 不支援</td>
+</tr>
+</tbody>
+</table>
+<p>CLI 與 WebUI 的 live 執行在未指定 model 時，會依連接儀器身分偵測 34460A/34461A。
+明確選擇 model 只是 expected-model check：不一致時會在設定前失敗，不會解鎖其他支援範圍。
+Dry-run 與 simulation 可使用所選的 planning model。</p>
+<h2 id="精確範圍實機支援">精確範圍實機支援</h2>
+<p>live Product 支援採精確範圍制。Meters 目前提供一個獨立支援的 Product workflow，<code>start-trigger-record</code>。
+只有在偵測到的 model、workflow、精確 transport/backend 連線範圍、量測與觸發模式同時受支援時，live 執行才是 Product-open。
+支援不會在 USB/system-VISA、TCPIP/system-VISA 與 TCPIP/pyvisa-py 之間轉移。
+硬性 model/profile 限制仍會強制執行。</p>
+<p>不在目前 Product-open matrix 內的要求，包括未知 model、不支援的連線或功能組合，以及硬性安全限制，都會 fail closed。</p>
+<p>在 live 模式中，CLI <code>--model</code> 與 WebUI <code>Expected model</code> 只是 expected-model guard。
+runtime driver/profile 由連接儀器 <code>*IDN?</code> 決定。selected/detected 不一致會在儀器設定前失敗。
+Dry-run 與 simulator 執行使用 selected/no-hardware planning profile，不查詢實機。</p>
+<table>
+<thead>
+<tr>
+<th>能力 / workflow</th>
+<th>34461A</th>
+<th>34460A</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>立即 DC/AC 電壓/電流</td>
+<td>支援</td>
+<td>USB/system-VISA 範圍支援</td>
+</tr>
+<tr>
+<td>2W/4W 電阻</td>
+<td>支援</td>
+<td>USB/system-VISA 範圍支援</td>
+</tr>
+<tr>
+<td>Software trigger/timer</td>
+<td>支援</td>
+<td>USB/system-VISA 範圍支援</td>
+</tr>
+<tr>
+<td>Custom buffered workflows</td>
+<td>支援</td>
+<td>支援，受限於 1000-reading memory</td>
+</tr>
+<tr>
+<td>Frequency</td>
+<td>支援</td>
+<td>USB/system-VISA 範圍支援</td>
+</tr>
+<tr>
+<td>Period</td>
+<td>支援，不提供 Period timeout 選項</td>
+<td>支援，不提供 Period timeout 選項</td>
+</tr>
+<tr>
+<td>External simple/custom</td>
+<td>支援</td>
+<td>base 34460A profile 未支援</td>
+</tr>
+<tr>
+<td>DCV Ratio</td>
+<td>支援</td>
+<td>僅 USB/system-VISA 支援</td>
+</tr>
+<tr>
+<td>10 A / current-terminal</td>
+<td>支援，需操作人員確認接線</td>
+<td>不支援</td>
+</tr>
+<tr>
+<td>超過 model memory 的 buffer drain</td>
+<td>最高 10000 readings</td>
+<td>超過 1000 不支援</td>
+</tr>
+<tr>
+<td>LAN/TCPIP 搭配 system VISA</td>
+<td>34461A 支援</td>
+<td>目前不支援</td>
+</tr>
+<tr>
+<td>LAN/TCPIP 搭配 pyvisa-py <code>@py</code></td>
+<td>選用的 CLI-only 34461A 範圍支援</td>
+<td>目前不支援</td>
+</tr>
+</tbody>
+</table>
+<h3 id="精確範圍詳細資訊">精確範圍詳細資訊</h3>
+<ul>
+<li><strong>接線安全與 10 A 路徑</strong>：選擇 10 A current terminal 需要操作人員手動確認實體導線接線，以避免硬體損壞。</li>
+<li><strong>讀值記憶體限制</strong>：34461A custom runs 超過 10,000 readings、34460A custom runs 超過 1,000 readings 時，都需要明確確認 overflow-risk。Buffer drain 仍受限於 model reading-memory limit。</li>
+<li><strong>Fail-Closed Policy</strong>：上方 matrix 中未明確標示為 open 的任何 model、transport、backend、量測或觸發組合，均為未支援並 fail closed。</li>
+</ul>
+<h2 id="visa-backend-支援">VISA Backend 支援</h2>
+<p>VISA backend 支援是精確連線範圍的一部分，而不是 model capability。
+除非介面明確提供另一個受支援 backend，正常 Product 作業使用電腦的 System VISA runtime。
+選用 backend scopes 互相獨立：選擇另一個 backend 不會解鎖未支援的 model、transport、量測或其他 Product 支援。
+WebUI 不提供 backend selector。</p>
+<h2 id="量測能力">量測能力</h2>
+<p>34460A 與 34461A profiles 目前提供相同的量測名稱，順序如下：</p>
+<ul>
+<li><code>current-dc</code></li>
+<li><code>voltage-dc</code></li>
+<li><code>voltage-dc-ratio</code></li>
+<li><code>current-ac</code></li>
+<li><code>voltage-ac</code></li>
+<li><code>frequency</code></li>
+<li><code>period</code></li>
+<li><code>resistance-2w</code></li>
+<li><code>resistance-4w</code></li>
+</ul>
+<p>每個受支援量測都有下表列出的 model-specific 範圍與限制。</p>
+<table>
+<thead>
+<tr>
+<th>Measurement</th>
+<th>34461A 範圍選項</th>
+<th>34460A 範圍選項</th>
+<th>NPLC 選項</th>
+<th>AC filter</th>
+<th>Gate time</th>
+<th>Frequency timeout</th>
+<th>Current terminal</th>
+<th>DCV input Z</th>
+<th>Auto Zero</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>current-dc</code></td>
+<td>0.0001, 0.001, 0.01, 0.1, 1, 3, 10 A</td>
+<td>0.0001, 0.001, 0.01, 0.1, 1, 3 A</td>
+<td>0.02, 0.2, 1, 10, 100</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>34461A: 3, 10; 34460A: none</td>
+<td>none</td>
+<td>on, off, once</td>
+</tr>
+<tr>
+<td><code>voltage-dc</code></td>
+<td>0.1, 1, 10, 100, 1000 V</td>
+<td>同 34461A</td>
+<td>0.02, 0.2, 1, 10, 100</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>default, 10m, auto</td>
+<td>on, off, once</td>
+</tr>
+<tr>
+<td><code>voltage-dc-ratio</code></td>
+<td>0.1, 1, 10, 100, 1000 V</td>
+<td>同 34461A</td>
+<td>0.02, 0.2, 1, 10, 100</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>default, 10m, auto</td>
+<td>on/default only</td>
+</tr>
+<tr>
+<td><code>current-ac</code></td>
+<td>0.0001, 0.001, 0.01, 0.1, 1, 3, 10 A</td>
+<td>0.0001, 0.001, 0.01, 0.1, 1, 3 A</td>
+<td>none</td>
+<td>3, 20, 200 Hz</td>
+<td>none</td>
+<td>none</td>
+<td>34461A: 3, 10; 34460A: none</td>
+<td>none</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>voltage-ac</code></td>
+<td>0.1, 1, 10, 100, 750 V</td>
+<td>同 34461A</td>
+<td>none</td>
+<td>3, 20, 200 Hz</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>frequency</code></td>
+<td>0.1, 1, 10, 100, 750 V</td>
+<td>同 34461A</td>
+<td>none</td>
+<td>3, 20, 200 Hz; default 20</td>
+<td>0.01, 0.1, 1 s; default 0.1</td>
+<td>auto, 1s; default auto</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>period</code></td>
+<td>0.1, 1, 10, 100, 750 V</td>
+<td>同 34461A</td>
+<td>none</td>
+<td>3, 20, 200 Hz; default 20</td>
+<td>0.01, 0.1, 1 s; default 0.1</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>resistance-2w</code></td>
+<td>100, 1000, 10000, 100000, 1000000, 10000000, 100000000 Ohm</td>
+<td>同 34461A</td>
+<td>0.02, 0.2, 1, 10, 100</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>on, off, once</td>
+</tr>
+<tr>
+<td><code>resistance-4w</code></td>
+<td>100, 1000, 10000, 100000, 1000000, 10000000, 100000000 Ohm</td>
+<td>同 34461A</td>
+<td>0.02, 0.2, 1, 10, 100</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+</tr>
+</tbody>
+</table>
+<p>Auto Zero 支援 <code>current-dc</code>、<code>voltage-dc</code> 與 <code>resistance-2w</code> 的 <code>on</code>、<code>off</code>、<code>once</code>。
+<code>voltage-dc-ratio</code> 的 Auto Zero 僅接受 <code>default</code>／<code>on</code> 狀態。
+AC、Frequency 與 Period 量測不使用 NPLC 或 Auto Zero。Resistance 4-wire 拒絕 once Auto Zero 選項。</p>
+<p>DCV input impedance 適用於 voltage-dc 與 voltage-dc-ratio。允許值為 default、10m、auto；default 保留目前儀器設定狀態。</p>
+<p>AC bandwidth/filter selection 適用於 <code>current-ac</code>、<code>voltage-ac</code>、<code>frequency</code> 與 <code>period</code>。允許值為 <code>3</code>、<code>20</code>、<code>200</code> Hz。
+未設定時保留既有 AC current/voltage 行為。Frequency 與 Period 則套用有效 default <code>20</code> Hz filter。</p>
+<p>Frequency 與 Period 使用電壓範圍選項 <code>0.1</code>、<code>1</code>、<code>10</code>、<code>100</code>、<code>750</code> V。Auto Range 是 default。
+Gate time 可選 <code>0.01</code>、<code>0.1</code> 或 <code>1.0</code> 秒，default 為 <code>0.1</code>。
+Frequency timeout 可選 <code>auto</code> 或 <code>1s</code>，default 為 <code>auto</code>。Period 不提供 timeout 選項。明確指定 Period timeout 值會被拒絕。</p>
+<p>DCV Ratio 讀值單位為 <code>ratio</code>。Frequency 讀值使用 <code>Hz</code>，Period 使用 <code>s</code>。</p>
+<p>Current terminal selection 僅適用於 34461A current profiles。
+選擇 10 A range 需要使用 10 A terminal；在 manual range 下選擇 10 A terminal 則需要 10 A range。
+操作人員必須確認 range、terminal 與實體導線接線，以避免硬體損壞。
+34460A current profiles 最高僅支援 3 A，且沒有 34461A 式的 10 A terminal 路徑。</p>
+<h2 id="觸發能力">觸發能力</h2>
+<p>34461A 支援：</p>
+<ul>
+<li>software</li>
+<li>software timer</li>
+<li>external</li>
+<li>immediate</li>
+<li>immediate-custom</li>
+<li>software-custom</li>
+<li>external-custom</li>
+</ul>
+<p>34460A base scope 支援：</p>
+<ul>
+<li>software</li>
+<li>software timer</li>
+<li>immediate</li>
+<li>immediate-custom</li>
+<li>software-custom</li>
+</ul>
+<p>34460A base scope 不支援外部觸發模式，因為該型號的 LAN/LXI/external trigger 能力為選配。</p>
+<h2 id="讀值記憶體">讀值記憶體</h2>
+<p>Custom runs 會比較要求的 reading count 與 model reading-memory limit。</p>
+<ul>
+<li>34461A custom runs 超過 10000 readings 時，需要明確確認 overflow-risk。</li>
+<li>34460A custom runs 超過 1000 readings 時，需要明確確認 overflow-risk。</li>
+<li>Buffer drain 仍受限於 model reading-memory limit，不會因該確認而放寬。</li>
+</ul>
+<h2 id="未支援範圍">未支援範圍</h2>
+<p>本文件未列出的 model 目前不支援 Product mode。
+未列為 Product-open 的 model、connection/backend、量測、trigger mode 或 workflow 組合均為未支援。
+未支援組合會被拒絕，而不是被隱式啟用。</p>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            try {
+                const themeOverride = new URLSearchParams(location.search).get("theme");
+                if (["system", "light", "dark"].includes(themeOverride)) {
+                    document.querySelectorAll('a[href]').forEach((anchor) => {
+                        const raw = anchor.getAttribute("href");
+                        if (!raw || raw.startsWith("#")) return;
+                        if (/^(mailto|tel|javascript):/i.test(raw)) return;
+                        try {
+                            const url = new URL(raw, location.href);
+                            if (url.origin !== location.origin) return;
+                            if (!url.pathname.endsWith(".html")) return;
+                            url.searchParams.set("theme", themeOverride);
+                            anchor.setAttribute("href", url.pathname + url.search + url.hash);
+                        } catch (_error) {}
+                    });
+                }
+            } catch (_error) {}
+
+            const content = document.getElementById("help-content");
+
+            // Wrap plain <pre><code> blocks in the presentation wrapper.
+            content.querySelectorAll("pre").forEach(pre => {
+                if (!pre.parentElement.classList.contains("code-wrapper")) {
+                    const wrapper = document.createElement("div");
+                    wrapper.className = "code-wrapper";
+                    pre.parentNode.insertBefore(wrapper, pre);
+                    wrapper.appendChild(pre);
+                }
+            });
+
+            // Add one copy button per code block.
+            const copyLabel = "複製";
+            const copiedLabel = "已複製";
+            content.querySelectorAll(".code-wrapper").forEach(wrapper => {
+                if (wrapper.querySelector(".copy-btn")) {
+                    return;
+                }
+                const pre = wrapper.querySelector("pre");
+                if (!pre) {
+                    return;
+                }
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "copy-btn";
+                btn.innerText = copyLabel;
+                let resetTimer = null;
+                btn.addEventListener("click", () => {
+                    if (!navigator.clipboard) {
+                        console.warn("Clipboard is unavailable in this context.");
+                        return;
+                    }
+                    navigator.clipboard.writeText(pre.innerText).then(() => {
+                        btn.classList.add("copied");
+                        btn.innerText = copiedLabel;
+                        if (resetTimer) {
+                            clearTimeout(resetTimer);
+                        }
+                        resetTimer = setTimeout(() => {
+                            btn.classList.remove("copied");
+                            btn.innerText = copyLabel;
+                        }, 2000);
+                    }).catch(() => {
+                        console.warn("Copy to clipboard failed.");
+                    });
+                });
+                wrapper.appendChild(btn);
+            });
+
+            // Build the sidebar TOC from content h2/h3 headings.
+            // Renderer-provided heading IDs are preserved; a simple
+            // deterministic fallback ID is assigned otherwise.
+            const toc = document.getElementById("toc");
+            const headings = content.querySelectorAll("h2, h3");
+            const usedIds = new Set();
+            content.querySelectorAll("[id]").forEach(el => usedIds.add(el.id));
+            headings.forEach(heading => {
+                let id = heading.id;
+                if (!id) {
+                    const base = heading.textContent.trim().toLowerCase().replace(/\s+/g, "-") || "section";
+                    id = base;
+                    let suffix = 2;
+                    while (usedIds.has(id)) {
+                        id = base + "-" + suffix;
+                        suffix += 1;
+                    }
+                    heading.id = id;
+                }
+                usedIds.add(id);
+                const link = document.createElement("a");
+                link.href = "#" + id;
+                link.innerText = heading.textContent;
+                link.className = "toc-link" + (heading.tagName === "H3" ? " toc-h3" : "");
+                toc.appendChild(link);
+            });
+
+            // Wrap tables so wide ones scroll horizontally.
+            content.querySelectorAll("table").forEach(table => {
+                if (!table.parentElement.classList.contains("table-wrapper")) {
+                    const wrapper = document.createElement("div");
+                    wrapper.className = "table-wrapper";
+                    table.parentNode.insertBefore(wrapper, table);
+                    wrapper.appendChild(table);
+                }
+            });
+
+            // Highlight the active section while scrolling.
+            const tocLinks = toc.querySelectorAll(".toc-link");
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        tocLinks.forEach(link => {
+                            link.classList.toggle(
+                                "active",
+                                link.getAttribute("href") === "#" + entry.target.id
+                            );
+                        });
+                    }
+                });
+            }, { rootMargin: "0px 0px -80% 0px", threshold: 0 });
+            headings.forEach(heading => observer.observe(heading));
+        });
+    </script>
+</body>
+</html>

@@ -325,11 +325,19 @@ def test_windows_bundle_builder_and_spec_define_shared_onedir_contract():
     assert '"meters_tool_webui/static"' in spec
     assert '"_internal/meters_tool_webui/static"' not in spec
 
+    cli_analysis = spec[spec.index("cli_analysis = Analysis(") : spec.index("cli_pyz = PYZ(")]
+    assert 'source_path / "meters_tool_cli" / "help"' in cli_analysis
+    assert '"meters_tool_cli/help"' in cli_analysis
+    assert '"meters_tool_cli/help"' not in launcher_analysis
+    assert '"meters_tool_cli/help"' not in host_analysis
+
     collect = spec[spec.index("bundle = COLLECT(") :]
     for entry in (
         "cli_exe",
         "launcher_exe",
         "host_exe",
+        "cli_analysis.datas",
+        "cli_analysis.binaries",
         "host_analysis.binaries",
         "host_analysis.datas",
     ):

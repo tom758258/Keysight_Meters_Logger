@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meters Tool CLI User Guide</title>
+    <script>
+        (() => {
+            let preference = "system";
+            try {
+                const queryTheme = new URLSearchParams(location.search).get("theme");
+                if (["system", "light", "dark"].includes(queryTheme)) {
+                    preference = queryTheme;
+                } else {
+                    const prefix = "meters-tool.webui.theme=";
+                    const saved = document.cookie
+                        .split(";")
+                        .map((part) => part.trim())
+                        .find((part) => part.startsWith(prefix))
+                        ?.slice(prefix.length);
+                    if (["system", "light", "dark"].includes(saved)) preference = saved;
+                }
+            } catch (_error) {}
+            document.documentElement.dataset.theme = preference;
+        })();
+    </script>
+    <link rel="stylesheet" href="help.css">
+</head>
+<body>
+
+    <aside class="help-sidebar">
+        <div class="help-sidebar-title" id="toc-title">Contents</div>
+        <nav id="toc" aria-labelledby="toc-title"></nav>
+    </aside>
+
+    <main id="help-content">
+<h1 id="meters-tool-cli-user-guide">Meters Tool CLI User Guide</h1>
+<p>This guide is for operators who receive the built CLI executable or an
+already-installed <code>meters-tool</code> command and use it to record measurements
+from a supported digital multimeter. It focuses on the normal measurement workflow and common settings.</p>
+<h2 id="start-the-cli">Start The CLI</h2>
+<p>For a release build, extract <code>meters-tool-&lt;version&gt;-windows-x64.zip</code>, open
+PowerShell in the extracted <code>meters-tool-&lt;version&gt;</code> folder, and check the CLI:</p>
+<pre><code class="language-powershell">.\meters-tool.exe --version
+</code></pre>
+<p>The executable name remains unversioned inside the versioned bundle folder.</p>
+<h2 id="first-live-run">First Live Run</h2>
+<p>Use this flow when checking a new computer, VISA runtime, connection, or
+instrument setup.</p>
+<p>Before a real live run, ensure no other Meters CLI, WebUI, logger, test
+process, or external VISA application is controlling the same physical
+instrument. Concurrent control can interfere with SCPI responses or instrument
+state. Meters Tool does not enforce this with an automatic lock.</p>
+<ol>
+<li>Turn on the Keysight 34460A or 34461A and connect it to the computer.</li>
+<li>List resources that currently answer <code>*IDN?</code>:</li>
+</ol>
+<pre><code class="language-powershell">.\meters-tool.exe list-resources --live-only
+</code></pre>
+<ol start="3">
+<li>Copy the resource string for the instrument and set it once for this
+   PowerShell session:</li>
+</ol>
+<pre><code class="language-powershell">$env:METER_RESOURCE = &quot;USB0::...::INSTR&quot;
+</code></pre>
+<p>The value can be any live VISA resource returned by discovery, including
+   USB or TCPIP/LAN resources.</p>
+<ol start="4">
+<li>Run one bounded immediate-mode sample:</li>
+</ol>
+<pre><code class="language-powershell">.\meters-tool.exe start-trigger-record `
+  --resource &quot;$env:METER_RESOURCE&quot; `
+  --measurement voltage-dc `
+  --trigger-mode immediate `
+  --max-samples 1 `
+  --csv &quot;.\data\cli_smoke.csv&quot;
+</code></pre>
+<ol start="5">
+<li>Confirm the command exits, the CSV file exists, and the CSV has one data
+   row.</li>
+<li>Compare the CSV value with the front-panel reading before trusting longer
+   captures.</li>
+</ol>
+<p>Use an explicit <code>--resource</code> value for live acquisition. Passing
+<code>"$env:METER_RESOURCE"</code> still gives the CLI an explicit resource; do
+not rely on a script or unattended workflow to guess which instrument should be
+used.</p>
+<p>Live starts auto-detect 34460A or 34461A from the connected instrument IDN when
+<code>--model</code> is omitted. Add <code>--model 34460A</code> or <code>--model 34461A</code> only when Start
+must require that IDN match; a live mismatch fails before setup, and the
+selected model never overrides the IDN-selected profile. <code>--model</code> also accepts
+the stable IDs <code>keysight-34460a</code> and <code>keysight-34461a</code>. In live mode, any
+model value remains an expected-model guard and does not unlock another support
+scope. Dry-run and simulate commands use the selected model profile and need
+<code>--model</code> unless the resource is the deterministic simulator resource
+<code>SIM::34460A</code> or <code>SIM::34461A</code>. Model names are normalized and validated by Core
+profile logic, so unknown models fail with a clear validation error.</p>
+<h2 id="live-support-scope-reminder">Live Support Scope Reminder</h2>
+<p>A VISA resource that answers <code>*IDN?</code> or appears in <code>list-resources</code> is not by
+itself Product-open for every model and transport/backend combination. Model,
+transport, backend, measurement, and trigger support are exact and must match
+Core policy. Unsupported combinations fail closed instead of being unlocked by
+<code>--model</code> or a scan result.</p>
+<p>For the exact current support matrix, see <a href="supported-models.html">Supported Models</a>.</p>
+<p>By default, the CLI uses the computer's System VISA runtime, such as Keysight
+IO Libraries Suite or NI-VISA. Backend selection does not change or expand
+Product support. The official standalone CLI executable supports only the fixed
+System VISA path and does not bundle optional backends.</p>
+<h2 id="choosing-a-measurement">Choosing A Measurement</h2>
+<p>Choose the measurement type that matches the instrument wiring and the signal
+being measured:</p>
+<ul>
+<li><code>voltage-dc</code>: DC voltage.</li>
+<li><code>voltage-dc-ratio</code>: DC voltage ratio.</li>
+<li><code>current-dc</code>: DC current.</li>
+<li><code>voltage-ac</code>: AC voltage.</li>
+<li><code>current-ac</code>: AC current.</li>
+<li><code>frequency</code>: signal frequency in Hz.</li>
+<li><code>period</code>: signal period in seconds.</li>
+<li><code>resistance-2w</code>: 2-wire resistance.</li>
+<li><code>resistance-4w</code>: 4-wire resistance.</li>
+</ul>
+<p>Confirm the input terminals before measuring current or 4-wire resistance.
+For AC, Frequency, and Period modes, run a low-risk smoke test and compare the
+CSV value with the front-panel reading before using the setup for longer
+captures.</p>
+<h2 id="choosing-a-trigger-mode">Choosing A Trigger Mode</h2>
+<p>Use <code>--trigger-mode immediate</code> for the simplest workflow. The instrument starts
+capturing when the run starts. Add <code>--max-samples</code> unless you intentionally want
+a continuous run.</p>
+<p>Use <code>--trigger-mode software</code> when the run should wait for software trigger
+commands. Start the logger in one terminal, then send triggers from another:</p>
+<pre><code class="language-powershell">.\meters-tool.exe send-command
+</code></pre>
+<p>Use timer capture when the run should take software-triggered readings on a
+schedule. Set the timer interval explicitly and keep the run bounded while
+validating the setup.</p>
+<p>Use external or hardware trigger modes only when the physical trigger signal is
+connected and the operator understands the trigger edge and delay settings.
+Hardware trigger timeout is a protective re-arm condition, not automatically a
+failed measurement.</p>
+<h2 id="common-settings">Common Settings</h2>
+<p><code>--resource</code> is the VISA address of the instrument. Use a value returned by
+<code>list-resources --live-only</code> or a known operator-provided resource. In
+PowerShell examples, set <code>$env:METER_RESOURCE</code> once and pass
+<code>--resource "$env:METER_RESOURCE"</code> so copied commands continue to use
+the selected instrument.</p>
+<p><code>--visa-library</code> is an advanced CLI backend selector. Omit it for normal Product use and rely on System VISA.
+Selecting a backend does not unlock unsupported models, transports, measurements, or other Product support.</p>
+<p><code>list-resources --verify</code> opens discovered VISA resources and queries <code>*IDN?</code>.
+<code>list-resources --live-only</code> implies verification and hides stale entries.
+ASRL/RS-232 verification uses a short bounded timeout so a stale serial entry
+does not block later USB or TCPIP resources. The serial termination options
+<code>--serial-read-termination</code> and <code>--serial-write-termination</code> are CLI discovery
+compatibility settings for ASRL verification only; they are not acquisition
+settings.</p>
+<p><code>--csv</code> is the output file path. If omitted, the CLI creates a timestamped CSV
+path. Use an explicit path when you need predictable file locations for review
+or automation. Use <code>--no-csv</code> to disable CSV output for a run; it cannot be combined with <code>--csv</code>.</p>
+<p><code>--max-samples</code> bounds simple runs. Use it during smoke tests and validation so
+the command stops by itself.</p>
+<p><code>--auto-range</code> lets the instrument choose the range. Keep Auto Range enabled
+unless the measurement setup requires a fixed range.</p>
+<p><code>--range</code> selects a manual range when Auto Range is disabled. Choose a range
+that safely covers the expected signal.</p>
+<p><code>--nplc</code> controls integration time for DC and resistance measurements. Higher
+values are slower and can be more stable. AC, Frequency, and Period modes
+accept only the neutral default because they do not write NPLC SCPI.</p>
+<p><code>--auto-zero</code> controls offset handling for DC and resistance measurements.
+It can improve accuracy but may slow readings. AC, Frequency, and Period modes
+do not write Auto Zero SCPI.</p>
+<p><code>--ac-bandwidth-hz</code> applies to AC voltage, AC current, Frequency, and Period.
+Frequency and Period default to <code>20</code> Hz.</p>
+<p><code>--gate-time-s</code> applies only to Frequency and Period. Choose <code>0.01</code>, <code>0.1</code>, or
+<code>1</code> second; the default is <code>0.1</code> second.</p>
+<p><code>--freq-period-timeout</code> applies only to Frequency. Keep the default <code>auto</code>
+unless the measurement procedure requires the <code>1s</code> behavior. Period does not
+send a timeout command; specifying this option with Period is rejected.</p>
+<p><code>--current-terminal</code> applies to current measurements. Match it to the physical
+current terminal used on the instrument.</p>
+<p><code>--trigger-timeout-ms</code> controls how long trigger workflows wait before the
+protective timeout path is used. Increase it only when the measurement setup
+intentionally waits longer.</p>
+<p>For command options and CLI-level accepted values, ranges, and defaults, run
+<code>meters-tool &lt;command&gt; --help</code> (for example,
+<code>.\meters-tool.exe start-trigger-record --help</code>).
+Model-specific support and limits remain subject to Core validation and the
+Supported Models scope described above.</p>
+<h2 id="csv-output">CSV Output</h2>
+<p>With the default CSV output enabled, each captured sample is written as one
+row. Check the CSV after a smoke run for:</p>
+<ul>
+<li>at least one data row;</li>
+<li>expected <code>measurement_type</code>;</li>
+<li>expected <code>unit</code>;</li>
+<li>expected <code>trigger_source</code>;</li>
+<li>a value that matches the front panel closely enough for the test setup.</li>
+</ul>
+<p>The CSV is flushed after each captured sample, so completed rows should be
+available even during longer runs.</p>
+<h2 id="stop-a-run">Stop A Run</h2>
+<p>For bounded validation runs, prefer <code>--max-samples</code> so the run stops by itself.</p>
+<p>For a running worker, use one of these stop paths:</p>
+<ul>
+<li>press <code>q</code> in the logger terminal;</li>
+<li>press <code>Ctrl+C</code> or <code>Ctrl+Break</code>;</li>
+<li>run the stop command from another terminal:</li>
+</ul>
+<pre><code class="language-powershell">.\meters-tool.exe stop
+</code></pre>
+<p>After stopping, confirm the command exits cleanly and the CSV contains the
+expected rows.</p>
+<h2 id="common-problems">Common Problems</h2>
+<p>If <code>meters-tool.exe</code> is missing, confirm that the ZIP was fully extracted and
+that PowerShell is open in the versioned bundle folder containing the CLI
+executable and <code>_internal</code> directory.</p>
+<p>If <code>list-resources</code> shows stale resources, use <code>list-resources --verify</code> to see
+which resources answer and why others failed. Use <code>--live-only</code> when you only
+want resources that answered <code>*IDN?</code>. If an ASRL/RS-232 resource reports a
+termination-related stale result, retry discovery with
+<code>--serial-read-termination</code> or <code>--serial-write-termination</code>; those options only
+affect ASRL verification.</p>
+<p>If no live resource is found, check instrument power, USB/LAN/GPIB connection,
+VISA driver visibility, and whether another program is holding the instrument.</p>
+<p>If a run is blocked before opening the instrument, read the validation error and
+adjust the option it names. The CLI validates common settings before live I/O.</p>
+<p>If a hardware trigger run appears to wait, confirm the physical trigger signal,
+slope, delay, and timeout. Missing trigger edges can make the run wait or re-arm
+according to the configured timeout behavior.</p>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            try {
+                const themeOverride = new URLSearchParams(location.search).get("theme");
+                if (["system", "light", "dark"].includes(themeOverride)) {
+                    document.querySelectorAll('a[href]').forEach((anchor) => {
+                        const raw = anchor.getAttribute("href");
+                        if (!raw || raw.startsWith("#")) return;
+                        if (/^(mailto|tel|javascript):/i.test(raw)) return;
+                        try {
+                            const url = new URL(raw, location.href);
+                            if (url.origin !== location.origin) return;
+                            if (!url.pathname.endsWith(".html")) return;
+                            url.searchParams.set("theme", themeOverride);
+                            anchor.setAttribute("href", url.pathname + url.search + url.hash);
+                        } catch (_error) {}
+                    });
+                }
+            } catch (_error) {}
+
+            const content = document.getElementById("help-content");
+
+            // Wrap plain <pre><code> blocks in the presentation wrapper.
+            content.querySelectorAll("pre").forEach(pre => {
+                if (!pre.parentElement.classList.contains("code-wrapper")) {
+                    const wrapper = document.createElement("div");
+                    wrapper.className = "code-wrapper";
+                    pre.parentNode.insertBefore(wrapper, pre);
+                    wrapper.appendChild(pre);
+                }
+            });
+
+            // Add one copy button per code block.
+            const copyLabel = "Copy";
+            const copiedLabel = "Copied";
+            content.querySelectorAll(".code-wrapper").forEach(wrapper => {
+                if (wrapper.querySelector(".copy-btn")) {
+                    return;
+                }
+                const pre = wrapper.querySelector("pre");
+                if (!pre) {
+                    return;
+                }
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "copy-btn";
+                btn.innerText = copyLabel;
+                let resetTimer = null;
+                btn.addEventListener("click", () => {
+                    if (!navigator.clipboard) {
+                        console.warn("Clipboard is unavailable in this context.");
+                        return;
+                    }
+                    navigator.clipboard.writeText(pre.innerText).then(() => {
+                        btn.classList.add("copied");
+                        btn.innerText = copiedLabel;
+                        if (resetTimer) {
+                            clearTimeout(resetTimer);
+                        }
+                        resetTimer = setTimeout(() => {
+                            btn.classList.remove("copied");
+                            btn.innerText = copyLabel;
+                        }, 2000);
+                    }).catch(() => {
+                        console.warn("Copy to clipboard failed.");
+                    });
+                });
+                wrapper.appendChild(btn);
+            });
+
+            // Build the sidebar TOC from content h2/h3 headings.
+            // Renderer-provided heading IDs are preserved; a simple
+            // deterministic fallback ID is assigned otherwise.
+            const toc = document.getElementById("toc");
+            const headings = content.querySelectorAll("h2, h3");
+            const usedIds = new Set();
+            content.querySelectorAll("[id]").forEach(el => usedIds.add(el.id));
+            headings.forEach(heading => {
+                let id = heading.id;
+                if (!id) {
+                    const base = heading.textContent.trim().toLowerCase().replace(/\s+/g, "-") || "section";
+                    id = base;
+                    let suffix = 2;
+                    while (usedIds.has(id)) {
+                        id = base + "-" + suffix;
+                        suffix += 1;
+                    }
+                    heading.id = id;
+                }
+                usedIds.add(id);
+                const link = document.createElement("a");
+                link.href = "#" + id;
+                link.innerText = heading.textContent;
+                link.className = "toc-link" + (heading.tagName === "H3" ? " toc-h3" : "");
+                toc.appendChild(link);
+            });
+
+            // Wrap tables so wide ones scroll horizontally.
+            content.querySelectorAll("table").forEach(table => {
+                if (!table.parentElement.classList.contains("table-wrapper")) {
+                    const wrapper = document.createElement("div");
+                    wrapper.className = "table-wrapper";
+                    table.parentNode.insertBefore(wrapper, table);
+                    wrapper.appendChild(table);
+                }
+            });
+
+            // Highlight the active section while scrolling.
+            const tocLinks = toc.querySelectorAll(".toc-link");
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        tocLinks.forEach(link => {
+                            link.classList.toggle(
+                                "active",
+                                link.getAttribute("href") === "#" + entry.target.id
+                            );
+                        });
+                    }
+                });
+            }, { rootMargin: "0px 0px -80% 0px", threshold: 0 });
+            headings.forEach(heading => observer.observe(heading));
+        });
+    </script>
+</body>
+</html>
