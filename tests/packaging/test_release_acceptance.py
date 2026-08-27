@@ -111,6 +111,9 @@ def test_release_acceptance_builds_release_once_without_direct_distribution_buil
 
 def test_release_acceptance_validates_final_artifacts_and_checksums():
     script = release_acceptance_text()
+    artifact_smoke_start = script.index("function Invoke-ArtifactSmoke")
+    artifact_smoke_end = script.index("\ntry {", artifact_smoke_start)
+    artifact_smoke = script[artifact_smoke_start:artifact_smoke_end]
 
     for contract in (
         '"meters-tool-$packageVersion-windows-x64.zip"',
@@ -137,6 +140,22 @@ def test_release_acceptance_validates_final_artifacts_and_checksums():
         '${Label}_launcher_entry_point',
     ):
         assert contract in script
+
+    for contract in (
+        "cli_help_root = files('meters_tool_cli').joinpath('help')",
+        "required_cli_help = ('cli.html', 'cli.zh-TW.html', "
+        "'supported-models.html', 'supported-models.zh-TW.html', 'help.css')",
+        "missing_cli_help = [name for name in required_cli_help "
+        "if not cli_help_root.joinpath(name).is_file()]",
+        "assert not missing_cli_help",
+        "webui_help_root = static_root.joinpath('help')",
+        "required_webui_help = ('webui.html', 'webui.zh-TW.html', "
+        "'supported-models.html', 'supported-models.zh-TW.html', 'help.css')",
+        "missing_webui_help = [name for name in required_webui_help "
+        "if not webui_help_root.joinpath(name).is_file()]",
+        "assert not missing_webui_help",
+    ):
+        assert contract in artifact_smoke
 
     assert "Meters-Tool-Desktop-$packageVersion-portable.exe" not in script
     assert "foreach ($artifact in @($windowsBundleZip, $wheel, $sdist))" in script
