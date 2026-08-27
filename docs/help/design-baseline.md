@@ -6,10 +6,13 @@ This document records the information architecture, editorial style,
 support-boundary writing patterns, terminology style, and presentation traits
 observed in the current Meters Tool user-facing documentation. It is a
 developer/maintainer reference for designing the shared Help presentation
-layer planned for the next stage.
+layer planned for the next stage. This document is a historical design
+baseline recording the state observed before the shared Help implementation
+was completed; references to the legacy presentation describe the state
+observed when the baseline was created.
 
 - The Markdown USER_GUIDE and Supported Models files are the content sources.
-- The legacy Traditional Chinese HTML mirrors are presentation references
+- The legacy Traditional Chinese HTML mirrors were presentation references
   only; their body text is not authoritative content.
 - This baseline does not itself define the future template implementation,
   generator, packaging, or application integration.
@@ -25,10 +28,13 @@ Content sources:
 - `docs/webui/USER_GUIDE.md`
 - `docs/webui/USER_GUIDE.zh-TW.md`
 
-Presentation references only:
+Historical presentation references:
 
-- `docs/cli/USER_GUIDE.zh-TW.html`
-- `docs/webui/USER_GUIDE.zh-TW.html`
+- the former CLI Traditional Chinese USER_GUIDE HTML mirror
+- the former WebUI Traditional Chinese USER_GUIDE HTML mirror
+
+These mirrors were removed after the shared Help presentation and generated
+runtime Help replaced them.
 
 Shared Product support authority:
 
@@ -178,7 +184,7 @@ identifiers.
 
 ## 9. Existing Visual Baseline
 
-Both legacy HTML files currently share:
+At baseline time, both legacy HTML files shared:
 
 - a light-oriented reading layout on a white body;
 - a sticky left sidebar table of contents on desktop, about 280 px wide, on a
@@ -218,7 +224,7 @@ presentation.
 
 ## 10. Existing Interaction Baseline
 
-Both legacy files implement identical inline behavior:
+Both legacy files implemented identical inline behavior:
 
 - automatic TOC generation into the sidebar from document headings;
 - anchor navigation using generated heading IDs;
@@ -239,9 +245,9 @@ Do not treat the current inline script structure, exact observer options, or
 specific DOM query details as contracts. The future JavaScript architecture
 is a separate decision.
 
-## 11. Current Gaps / Future Decisions
+## 11. Baseline-Time Gaps / Future Decisions
 
-Real gaps relevant to upcoming Help stages:
+Gaps recorded when this baseline was created:
 
 - No shared Help template exists yet; the two legacy HTML files are separate
   hand-maintained copies.
