@@ -43,8 +43,8 @@ Shared Product support authority:
 
 Supported Models is the shared user-facing authority for exact Product-open
 support scope, and both guides link to it. It is not the source of CLI/WebUI
-editorial or visual style. Legacy HTML bodies are separately maintained and
-have drifted from the current Markdown guides, so only their presentation
+editorial or visual style. Legacy HTML bodies were separately maintained and
+had drifted from the current Markdown guides, so only their presentation
 traits are evidence here, never their wording.
 
 ## 3. Shared Information Architecture

@@ -243,7 +243,7 @@
 
         <h2>文件集</h2>
         <ul>
-            <li><a href="USER_GUIDE.zh-TW.html">CLI 使用者指南</a> - 操作人員工作流程與常見設定指引。</li>
+            <li><a href="USER_GUIDE.zh-TW.md">CLI 使用者指南</a> - 操作人員工作流程與常見設定指引。</li>
             <li><a href="README.zh-TW.html">CLI README</a> - 詳細的 CLI 參考與自動化指南。</li>
             <li><a href="../core/supported-models.md">支援型號</a> - 目前型號與確切範圍的支援狀態。</li>
             <li><a href="../../CHANGELOG.md">變更日誌</a> - 版本發佈說明與歷史紀錄。</li>
@@ -257,7 +257,7 @@
         <p>適用於支援的數位萬用電表的 CLI 優先 Python 記錄器，支援透過 VISA 進行 DC/AC 電流、DC/AC 電壓、DCV 比率、頻率、週期以及 2 線式或 4 線式電阻量測。<br>
         它預設為每個擷取樣本記錄一列 CSV，並支援軟體、外接硬體、立即與自訂/緩衝觸發工作流程。CSV 可透過 <code>--no-csv</code> 停用。透過 <code>--timer-interval-s</code> 可在軟體模式中啟用軟體計時器擷取。</p>
         
-        <p>對於標準操作人員的工作流程，請從 <a href="USER_GUIDE.zh-TW.html">CLI 使用者指南</a> 開始。本 README 則將詳細的指令參考、JSON/JSONL 合約、範例及 CLI 特有的行為彙整於一處。</p>
+        <p>對於標準操作人員的工作流程，請從 <a href="USER_GUIDE.zh-TW.md">CLI 使用者指南</a> 開始。本 README 則將詳細的指令參考、JSON/JSONL 合約、範例及 CLI 特有的行為彙整於一處。</p>
         
         <p><code>meters-tool</code> 是目前的單一 distribution 基準。其套件版本是 root <code>pyproject.toml</code> 內的 <code>[project].version</code>。CLI 保留其匯入套件、主控台指令、JSON/JSONL 合約、包裝器腳本和測試，同時與 Core 和 WebUI 共享同一個版本號。它繼續透過 CLI 公開 Core 量測欄位：<br>
         <code>voltage-dc-ratio</code>、<code>frequency</code>、<code>period</code>、<code>--auto-zero once</code>、<code>--ac-bandwidth-hz</code>、<code>--gate-time-s</code>、<code>--freq-period-timeout</code> 和 <code>--current-terminal</code>。Core 的啟動驗證、dry-run 規劃、執行階段協調、公開整合匯出以及量測命名，仍與僅限配接器的 CLI 事務保持分離。</p>
@@ -479,7 +479,7 @@ keysight-34460a</code></pre></div>
         <p>成功完成 live validation 只代表取得驗證證據。執行 <code>live-cli-check.ps1</code> 本身不會自動把 pending support entry 提升為 Product-open，也不會自動修改 supported-model matrix；support metadata 與文件的變更仍必須由專案明確進行。</p>
 
         <h2>基本工作流程</h2>
-        <p>對於包含常見設定說明的引導式操作人員路徑，請參閱 <a href="USER_GUIDE.zh-TW.html">CLI 使用者指南</a>。簡要參考流程如下：</p>
+        <p>對於包含常見設定說明的引導式操作人員路徑，請參閱 <a href="USER_GUIDE.zh-TW.md">CLI 使用者指南</a>。簡要參考流程如下：</p>
         <ol>
             <li>列出 VISA 資源。</li>
             <li>選擇資源字串。</li>
