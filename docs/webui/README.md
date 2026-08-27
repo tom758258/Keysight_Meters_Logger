@@ -271,11 +271,12 @@ JavaScript modules.
 
 ### Built-in Help
 
-`Help` is in the top-right toolbar. Clicking it opens the bundled WebUI / Desktop User
-Guide in a new browser tab. The opened guide follows the currently selected
-WebUI language, with English and Traditional Chinese supported. Electron
-Desktop reuses the same WebUI and therefore the same Help behavior. The
-bundled Help does not depend on an external documentation website.
+`Help` is in the top-right toolbar. In Browser WebUI, clicking it opens the
+bundled WebUI / Desktop User Guide in a new browser tab. In Electron Desktop,
+the guide opens in the system default browser. The opened guide follows the
+currently selected WebUI language, with English and Traditional Chinese
+supported. Both entry points use the same bundled Help content, which does not
+depend on an external documentation website.
 
 ## Execution Modes
 
