@@ -187,6 +187,7 @@ http://127.0.0.1:8767/
 
 主要區域：
 
+- 右上角工具列：語言、主題與 `Help` 控制項。
 - 標頭：`Meters Tool` 和 `Local acquisition console`。
 - `Device / Resource` 列：`VISA resource`、`Live resource`（實機資源）、`Scan Device`、`支援裝置` 清單，以及 `Device options` 齒輪中的執行模式、型號選擇器與型號支援摘要。此列預設展開，可收合成包含目前執行模式的資源/型號摘要。
 - `Expected model` 選擇器預設為 `Auto-detect`，會在 Start 時使用連接中的儀器 IDN。若明確選擇 `Require 34460A` 或 `Require 34461A`，仍會讀取 IDN，只有在符合時才啟動。偵測到的 IDN 選擇設定檔仍為實機執行階段設定檔。
@@ -205,6 +206,10 @@ http://127.0.0.1:8767/
 English／繁體中文呈現使用以下術語規則。繁體中文的 Measurement options 控制項顯示 `自動量程（Auto range）`；精簡摘要繼續使用 `自動量程`。選用標記與欄位標題保持同一行，包括 AC filter 與 Current terminal，僅在 viewport 太窄時自然換行。
 
 此 UI 刻意不設計前端建置步驟、Node 套件管理器、外部 CDN 或框架執行階段。靜態資產皆為純 HTML、CSS 和原生的 JavaScript 模組。
+
+### 內建說明
+
+`Help` 位於右上角工具列。點擊後會在新的瀏覽器分頁開啟隨附的 WebUI 使用者指南。開啟的指南會依目前選取的 WebUI 語言顯示，支援 English 與繁體中文。Desktop 重用相同的 WebUI，因此使用相同的 Help 行為。隨附的 Help 為離線文件，不依賴外部文件網站。
 
 ## 執行模式
 

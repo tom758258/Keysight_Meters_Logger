@@ -25,6 +25,23 @@ For normal operator workflows, start with the [CLI User Guide](USER_GUIDE.md).
 This README keeps the detailed command reference, JSON/JSONL contracts, examples,
 and CLI-specific behavior in one place.
 
+## Bundled User Guide
+
+Open the bundled offline CLI User Guide in the default browser:
+
+```powershell
+meters-tool user-guide
+meters-tool user-guide --lang en
+meters-tool user-guide --lang zh-TW
+```
+
+The default guide language is English. Use `--lang en` or `--lang zh-TW` to
+select the guide language explicitly. The guide is bundled with the CLI and
+does not require a network documentation site.
+
+`meters-tool <command> --help` is the command and options reference, while
+`meters-tool user-guide` opens the operator workflow guide.
+
 `meters-tool` is the single-distribution baseline. Its package version is
 `[project].version` in the root `pyproject.toml`. The CLI keeps its import
 package, console command, JSON/JSONL contracts, wrapper scripts, and tests

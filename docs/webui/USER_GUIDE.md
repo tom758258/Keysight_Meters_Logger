@@ -55,6 +55,8 @@ The actual port may be higher; use the URL shown in the launcher window.
 
 The WebUI is a local acquisition console. The main areas are:
 
+- Top-right toolbar: language, theme, and `Help` controls.
+- `Help`: opens the built-in User Guide in a new browser tab.
 - `Device / Resource`: the instrument address, last scanned live resource,
   `Scan Device` button, `Supported devices` list, and `Device options` gear for
   execution mode and model selection. It starts expanded and can collapse to a
@@ -92,6 +94,13 @@ In Traditional Chinese, the Measurement options control displays
 `自動量程（Auto range）`; summaries use the shorter `自動量程`. Optional markers
 stay beside their field titles at ordinary desktop widths, including AC filter
 and Current terminal, and wrap naturally on very narrow screens.
+
+## Help
+
+Click `Help` in the top-right toolbar. The User Guide opens in a new browser
+tab and uses the currently selected WebUI language. Change the WebUI language
+before opening Help when a different language is wanted. Desktop provides the
+same Help because it uses the same WebUI.
 
 ## Browser Theme
 

@@ -42,6 +42,13 @@
 <pre><code class="language-powershell">.\meters-tool.exe --version
 </code></pre>
 <p>版本號位於 bundle 資料夾名稱中；資料夾內的執行檔名稱不含版本號。</p>
+<h2 id="開啟使用指南">開啟使用指南</h2>
+<p>發佈版本的 CLI 可以在預設瀏覽器中開啟隨附的離線使用指南：</p>
+<pre><code class="language-powershell">.\meters-tool.exe user-guide
+.\meters-tool.exe user-guide --lang en
+.\meters-tool.exe user-guide --lang zh-TW
+</code></pre>
+<p>預設指南語言為 English。若要開啟繁體中文，請使用 <code>--lang zh-TW</code>。指南隨 CLI 一起提供，不需要線上文件網站。若需要確切的 CLI 指令選項、可接受值、範圍或預設值，請使用 <code>.\meters-tool.exe &lt;command&gt; --help</code>。</p>
 <h2 id="首次實機執行">首次實機執行</h2>
 <p>在檢查新的電腦、VISA 執行階段、連線或儀器設定時，請使用此流程。</p>
 <p>進行實機執行前，請確認沒有其他 Meters CLI、WebUI、logger、測試程序或外部 VISA 應用程式正在控制同一台實體儀器。同時控制可能干擾 SCPI 回應或儀器狀態。Meters Tool 不會以自動鎖定強制此前提。</p>

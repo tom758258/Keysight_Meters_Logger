@@ -13,6 +13,18 @@
 
 版本號位於 bundle 資料夾名稱中；資料夾內的執行檔名稱不含版本號。
 
+## 開啟使用指南
+
+發佈版本的 CLI 可以在預設瀏覽器中開啟隨附的離線使用指南：
+
+```powershell
+.\meters-tool.exe user-guide
+.\meters-tool.exe user-guide --lang en
+.\meters-tool.exe user-guide --lang zh-TW
+```
+
+預設指南語言為 English。若要開啟繁體中文，請使用 `--lang zh-TW`。指南隨 CLI 一起提供，不需要線上文件網站。若需要確切的 CLI 指令選項、可接受值、範圍或預設值，請使用 `.\meters-tool.exe <command> --help`。
+
 ## 首次實機執行
 
 在檢查新的電腦、VISA 執行階段、連線或儀器設定時，請使用此流程。

@@ -19,6 +19,20 @@
 
 對於標準操作人員的工作流程，請從 [CLI 使用者指南](USER_GUIDE.zh-TW.md) 開始。本 README 則將詳細的指令參考、JSON/JSONL 合約、範例及 CLI 特有的行為彙整於一處。
 
+## 內建使用指南
+
+在預設瀏覽器中開啟隨附的離線 CLI 操作使用指南：
+
+```powershell
+meters-tool user-guide
+meters-tool user-guide --lang en
+meters-tool user-guide --lang zh-TW
+```
+
+預設指南語言為 English。使用 `--lang en` 或 `--lang zh-TW` 可明確選擇指南語言。指南隨 CLI 一起提供，不需要連線至網路上的文件網站。
+
+`meters-tool <command> --help` 是 CLI 指令與選項參考；`meters-tool user-guide` 則會開啟操作工作流程指南。
+
 `meters-tool` 是目前的單一 distribution 基準。其套件版本是 root `pyproject.toml` 內的 `[project].version`。CLI 保留其匯入套件、主控台指令、JSON/JSONL 合約、包裝器腳本和測試，同時與 Core 和 WebUI 共享同一個版本號。它繼續透過 CLI 公開 Core 量測欄位：
 `voltage-dc-ratio`、`frequency`、`period`、`--auto-zero once`、`--ac-bandwidth-hz`、`--gate-time-s`、`--freq-period-timeout` 和 `--current-terminal`。Core 的啟動驗證、dry-run 規劃、執行階段協調、公開整合匯出以及量測命名，仍與僅限配接器的 CLI 事務保持分離。
 

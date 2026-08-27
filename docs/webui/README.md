@@ -222,6 +222,7 @@ The current WebUI layout is a direct acquisition console, not a landing page.
 Main areas:
 
 - Header: `Meters Tool` and `Local acquisition console`.
+- Top-right toolbar: language, theme, and `Help` controls.
 - Device / Resource row: `VISA resource`, `Live resource`, `Scan Device`, a
   `Supported devices` list, and a `Device options` gear for execution mode, the
   model selector, and model support summary. The row starts expanded and can
@@ -267,6 +268,14 @@ terminal, and may wrap naturally only when the viewport is too narrow.
 The UI intentionally has no frontend build step, Node package manager, external
 CDN, or framework runtime. Static assets are plain HTML, CSS, and native
 JavaScript modules.
+
+### Built-in Help
+
+`Help` is in the top-right toolbar. Clicking it opens the bundled WebUI User
+Guide in a new browser tab. The opened guide follows the currently selected
+WebUI language, with English and Traditional Chinese supported. Electron
+Desktop reuses the same WebUI and therefore the same Help behavior. The
+bundled Help does not depend on an external documentation website.
 
 ## Execution Modes
 

@@ -16,6 +16,7 @@ Meters Tool 是供支援的數位萬用電表使用的 Python 資料擷取與紀
 * 使用 dry-run 模式預覽儀器命令
 * 使用內建模擬器在沒有硬體的情況下測試工作流程
 * 透過 CLI 或本機 WebUI 進行操作
+* CLI 與 WebUI/Desktop 提供英文與繁體中文的內建離線說明／使用指南
 * 在瀏覽器 WebUI 中即時切換英文與繁體中文，不需重新載入頁面，也不會重設目前執行、表單值、即時樣本、圖表、狀態或其他執行階段 UI 狀態；手動選擇會保存在瀏覽器中
 * 產生 JSON 與 JSONL 輸出，供自動化、agent 與 orchestrator 使用
 * 預設產生時間戳記 CSV，可透過 CLI `--no-csv` 或 WebUI `CSV 輸出` checkbox 明確停用

@@ -29,6 +29,8 @@ Live instrument access requires a separately installed VISA implementation. Mete
 * Preview instrument commands using dry-run mode
 * Test workflows without hardware using the built-in simulator
 * Operate through either the CLI or local WebUI
+* Use bundled offline Help/User Guides for CLI and WebUI/Desktop in English and
+  Traditional Chinese
 * Switch the browser WebUI between English and Traditional Chinese at runtime
   without reloading the page or resetting the active run, form values, live
   samples, chart state, status, or other runtime UI state; the manual choice is

@@ -44,6 +44,16 @@ PowerShell in the extracted <code>meters-tool-&lt;version&gt;</code> folder, and
 <pre><code class="language-powershell">.\meters-tool.exe --version
 </code></pre>
 <p>The executable name remains unversioned inside the versioned bundle folder.</p>
+<h2 id="open-the-user-guide">Open The User Guide</h2>
+<p>The release CLI can open its bundled offline User Guide in the default browser:</p>
+<pre><code class="language-powershell">.\meters-tool.exe user-guide
+.\meters-tool.exe user-guide --lang en
+.\meters-tool.exe user-guide --lang zh-TW
+</code></pre>
+<p>The default guide language is English. Use <code>--lang zh-TW</code> for Traditional
+Chinese. The guide is bundled with the CLI and does not require an online
+documentation site. For exact command options, accepted values, ranges, or
+defaults, use <code>.\meters-tool.exe &lt;command&gt; --help</code>.</p>
 <h2 id="first-live-run">First Live Run</h2>
 <p>Use this flow when checking a new computer, VISA runtime, connection, or
 instrument setup.</p>
