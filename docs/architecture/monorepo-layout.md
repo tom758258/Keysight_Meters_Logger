@@ -9,6 +9,8 @@ desktop/
 tests/
   core/
   cli/
+  help/
+  packaging/
   webui/
 docs/
   architecture/

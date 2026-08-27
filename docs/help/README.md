@@ -57,7 +57,3 @@ recreate the removed legacy documentation HTML mirrors.
 
 Validate the generated bundle and tracked runtime synchronization with
 `tests/help/test_generate_help.py`.
-
-[`design-baseline.md`](design-baseline.md) is historical design evidence from
-before the shared Help implementation. It is not current Help implementation
-or maintenance instruction.

@@ -67,10 +67,16 @@ desktop/
 tests/
   core/
   cli/
+  help/
+  packaging/
   webui/
 docs/
-  core/
+  architecture/
   cli/
+  contracts/
+  core/
+  help/
+  skill/
   webui/
 scripts/
 ```
