@@ -451,8 +451,12 @@ def test_desktop_build_validates_help_artifact_layout():
         assert name in script
     for name in ("supported-models.html", "supported-models.zh-TW.html", "help.css"):
         assert name in script
-    assert "CLI Help must not contain webui.html" in script
-    assert "WebUI Help must not contain cli.html" in script
+    for fragment in (
+        'Join-Path $cliHelpDirectory "webui.html"',
+        'Join-Path $cliHelpDirectory "webui.zh-TW.html"',
+        'Join-Path $webuiHelpDirectory "cli.html"',
+        'Join-Path $webuiHelpDirectory "cli.zh-TW.html"',
+    ):
+        assert fragment in script
     assert 'Join-Path $DesktopDirectory "meters_tool_cli\\help"' in script
     assert 'Join-Path $DesktopDirectory "meters_tool_webui\\static\\help"' in script
-    assert "Duplicate Help outside _internal" in script
