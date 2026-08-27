@@ -8,7 +8,7 @@ runtime integration.
 Adapters such as CLI and WebUI consume Core through `meters_tool_core` and
 the package contracts documented here, then maintain their own package-local
 documentation and user-facing workflows. Core does not maintain
-adapter-specific JSON, terminal, websocket, wrapper, or UI contracts.
+adapter-specific JSON, terminal, HTTP/SSE payload, wrapper, or UI contracts.
 
 This contract does not change SCPI, VISA timeout behavior, trigger wait
 strategy, stop flow, cleanup order, measurement behavior, or public runtime
@@ -88,7 +88,7 @@ Before constructing `StartRequest`, adapters should:
 - Map adapter-owned display labels to Core-owned request values such as
   `auto_zero`, `ac_bandwidth_hz`, `gate_time_s`, `freq_period_timeout`, and
   `current_terminal`.
-- Keep display labels, localized strings, terminal output options, websocket
+- Keep display labels, localized strings, terminal output options, HTTP/SSE
   payloads, wrapper compatibility fields, and other adapter schema outside
   Core.
 
@@ -415,8 +415,8 @@ returned as `StartRunResult`, including `ok`, `reason`, `captured`, `errors`,
 data. A disabled CSV output does not change sample events, summaries, worker
 lifecycle, control-plane behavior, exit meanings, or cleanup sequencing.
 
-Adapters own serialization. Core does not define terminal output, HTTP
-payloads, websocket messages, artifact formats, or localized display text.
+Adapters own serialization. Core does not define terminal output, HTTP/SSE
+payloads, artifact formats, or localized display text.
 
 ```python
 class EventSink:

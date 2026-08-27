@@ -18,6 +18,8 @@
   update, so the browser reliably loads the current interface after upgrading.
 - Adds a shared Meters application icon to the user-facing Windows Desktop,
   CLI, and WebUI Launcher executables.
+- Adds bundled offline Help for CLI and WebUI/Desktop, including the CLI
+  `user-guide` command and English / Traditional Chinese operator guides.
 
 ## v3.0.0
 

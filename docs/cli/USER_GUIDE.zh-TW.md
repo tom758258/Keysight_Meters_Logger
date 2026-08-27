@@ -70,7 +70,7 @@ live 啟動省略 `--model` 時，連接儀器的 `*IDN?` 決定 runtime profile
 
 精確的目前支援矩陣，請參閱 [支援型號](../core/supported-models.zh-TW.md)。
 
-CLI 預設使用電腦的 System VISA runtime，例如 Keysight IO Libraries Suite 或 NI-VISA。backend 選擇不會改變或擴充 Product 支援。官方 standalone CLI 執行檔只支援固定的 System VISA 路徑，不 bundle 選用 backend。
+CLI 預設使用電腦的 System VISA runtime，例如 Keysight IO Libraries Suite 或 NI-VISA。backend 選擇不會改變或擴充 Product 支援。Windows 發佈版 CLI 執行檔只支援固定的 System VISA 路徑，不會 bundle 選用 backend。
 
 ## 選擇量測類型
 
@@ -165,7 +165,7 @@ CLI 預設使用電腦的 System VISA runtime，例如 Keysight IO Libraries Sui
 
 ## 常見問題
 
-如果缺少 `meters-tool.exe`，請確認 ZIP 已完整解壓縮，且 PowerShell 位於同時包含 CLI 執行檔與 `_internal` 目錄的版本化 bundle 資料夾中。
+如果找不到 `meters-tool.exe`，請完整解壓縮 ZIP，開啟版本化發佈資料夾，並確認其中存在 `meters-tool.exe`。
 
 如果 `list-resources` 顯示過期的資源，請使用 `list-resources --verify` 來查看哪些資源有回應，以及其他資源失敗的原因。如果您只想要對 `*IDN?` 做出回應的資源，請使用 `--live-only`。如果 ASRL/RS-232 資源回報了與結束字元相關的過期結果，請使用 `--serial-read-termination` 或 `--serial-write-termination` 重試偵測；這些選項僅影響 ASRL 驗證。
 

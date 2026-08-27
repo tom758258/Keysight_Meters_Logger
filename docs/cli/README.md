@@ -151,9 +151,9 @@ uv pip install pyvisa-py pyserial psutil zeroconf
 Current Product-open connection scopes under System VISA (such as USB/system-VISA or LAN/TCPIP)
 and the optional CLI `@py` backend are documented in [Supported Models](../core/supported-models.md).
 Support-policy validation status does not imply that a distribution bundles
-the backend package. The current official standalone Meters Tool executable
-supports the default System VISA path only; `@py` is not bundled or part of the
-supported standalone runtime.
+the backend package. The current Windows release CLI executable supports the
+default System VISA path only; `@py` is not bundled or part of the Windows
+release bundle.
 
 ## Development
 
@@ -180,9 +180,9 @@ uv sync --all-extras --link-mode=copy --reinstall-package meters-tool
 This targeted reinstall is not needed for every development run and does not
 require pip.
 
-On Windows, the full pytest run may need an elevated PowerShell session because
-VISA-related discovery or local environment access can require administrator
-permissions.
+On Windows, if pytest encounters a temporary-directory permission issue, use
+the repository-local `.tmp_tests` fallback described in the root README, for
+example `--basetemp .tmp_tests\pytest_tmp`.
 
 After installation, use the `meters-tool` console script for project
 commands:
@@ -532,8 +532,8 @@ uv run meters-tool start-trigger-record `
 
 `--backend "@py"` is accepted as an alias for `--visa-library "@py"`. This
 option is intended for CLI diagnostics and optional installed-environment
-backend checks. The current official standalone CLI executable supports only
-the default System VISA path and does not bundle `@py`. The WebUI also uses the
+backend checks. The current bundled Windows CLI executable supports only the
+default System VISA path and does not bundle `@py`. The WebUI also uses the
 fixed default System VISA runtime and accepts no backend override. The `@bt`
 selector is reserved for a future `pyvisa_bt` identity only; this project does
 not provide that backend and live use with `@bt` remains fail-closed.

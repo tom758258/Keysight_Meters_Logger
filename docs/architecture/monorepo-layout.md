@@ -11,18 +11,28 @@ tests/
   cli/
   webui/
 docs/
-  core/
+  architecture/
   cli/
-  webui/
   contracts/
+  core/
+  help/
+  skill/
+  webui/
 scripts/
 ```
 
 `desktop/` is the Node/Electron packaging shell for the local Desktop
 application. It is not a fourth Python import package and is not part of the
 root Python distribution metadata. It launches the private WebUI Desktop host,
-reuses the existing FastAPI/static WebUI, and does not own Core or instrument
-behavior.
+reuses the existing FastAPI/static WebUI, and does not own or duplicate Core,
+instrument, acquisition, or cleanup behavior.
+
+## Dependency and Ownership
+
+CLI and WebUI depend on Core; Core must not import CLI or WebUI. CLI and WebUI
+are peer adapters and do not depend on each other. The thin Node/Electron
+Desktop shell reuses WebUI and does not become a fourth Python package or own
+Core behavior.
 
 ## Package Names
 

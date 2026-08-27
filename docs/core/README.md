@@ -13,7 +13,7 @@ policy, runtime events and results, control-plane interfaces, and acquisition
 safety rules.
 
 CLI and WebUI own their input parsing, display text, localization, terminal and
-browser workflows, serialization, websocket or HTTP payloads, and other
+browser workflows, serialization, HTTP/SSE payloads, and other
 adapter-specific contracts. Core must not import `meters_tool_cli` or
 `meters_tool_webui`.
 
@@ -44,7 +44,7 @@ Before constructing `StartRequest`, adapters should:
 - convert toggles to booleans or the documented Core semantic values;
 - normalize adapter-owned aliases;
 - map localized labels and display choices to canonical Core values;
-- keep terminal formatting, localized strings, browser labels, websocket
+- keep terminal formatting, localized strings, browser labels, HTTP/SSE
   payload details, wrapper compatibility fields, and other adapter schemas
   outside Core.
 

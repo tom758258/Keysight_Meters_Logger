@@ -84,7 +84,7 @@ CLI 在開發／已安裝 Python 環境中，可在 pyvisa-py 已安裝且可載
 uv pip install pyvisa-py pyserial psutil zeroconf
 ```
 
-System VISA（例如 USB/system-VISA 或 LAN/TCPIP）與選用的 CLI `@py` backend 目前 Product-open 的連線範圍記載於 [支援型號](../core/supported-models.md)。Support-policy validation status 不代表 distribution 已包含該 backend 套件。目前官方 standalone Meters Tool 執行檔只支援預設 System VISA 路徑；`@py` 未被 bundle，也不屬於受支援的 standalone runtime。
+System VISA（例如 USB/system-VISA 或 LAN/TCPIP）與選用的 CLI `@py` backend 目前 Product-open 的連線範圍記載於 [支援型號](../core/supported-models.md)。Support-policy validation status 不代表 distribution 已包含該 backend 套件。目前隨附於 Windows 發佈 bundle 的 CLI 執行檔只支援預設 System VISA 路徑；`@py` 未被 bundle，也不屬於 Windows 發佈 bundle 的內容。
 
 ## 開發
 
@@ -106,7 +106,7 @@ uv sync --all-extras --link-mode=copy --reinstall-package meters-tool
 
 這個針對性的重新安裝不需要每次開發都執行，也不需要 pip。
 
-在 Windows 上，完整的 pytest 執行可能需要系統管理員權限的 PowerShell 視窗，因為 VISA 相關的探測或本機環境存取可能需要系統管理員權限。
+在 Windows 上，如果 pytest 遇到暫存目錄權限問題，請使用根 README 所述的 repository-local `.tmp_tests` fallback，例如 `--basetemp .tmp_tests\pytest_tmp`。
 
 安裝後，使用 `meters-tool` 主控台指令來執行專案命令：
 
@@ -421,7 +421,7 @@ uv run meters-tool start-trigger-record `
   --max-samples 1
 ```
 
-`--backend "@py"` 可作為 `--visa-library "@py"` 的別名。此選項供 CLI 診斷與已安裝環境中的選用 backend 檢查使用。目前官方 standalone CLI 執行檔只支援預設 System VISA 路徑，且不 bundle `@py`。WebUI 同樣使用固定的預設 System VISA runtime，且不接受 backend override。`@bt` selector 僅保留給未來的 `pyvisa_bt` identity；本專案不提供該 backend，以 `@bt` 進行的 live 使用仍會 fail closed。
+`--backend "@py"` 可作為 `--visa-library "@py"` 的別名。此選項供 CLI 診斷與已安裝環境中的選用 backend 檢查使用。目前隨附於 Windows 發佈 bundle 的 CLI 執行檔只支援預設 System VISA 路徑，且不 bundle `@py`。WebUI 同樣使用固定的預設 System VISA runtime，且不接受 backend override。`@bt` selector 僅保留給未來的 `pyvisa_bt` identity；本專案不提供該 backend，以 `@bt` 進行的 live 使用仍會 fail closed。
 
 pyvisa-py 的 Product-open 範圍記載於 [支援型號](../core/supported-models.md)；這項 validation metadata 不表示特定 distribution 已包含 pyvisa-py。Windows 上的 USBTMC 可能需要 WinUSB/libusb 設定，通常不比 Keysight IO Libraries Suite 或 NI-VISA 簡單。使用 pyvisa-py 與 pyserial 的 RS-232/ASRL 在支援序列 I/O 的儀器上通常直接，但目前 Meters 設定檔以 USB/LAN Truevolt DMM 為目標。`PYVISA_LIBRARY="@py"` 仍會直接影響 PyVISA，但本專案建議在 CLI 指令中明確使用 `--visa-library "@py"`，讓測試可重現。
 

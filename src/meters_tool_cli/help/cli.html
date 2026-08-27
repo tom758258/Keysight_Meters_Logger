@@ -114,7 +114,7 @@ Core policy. Unsupported combinations fail closed instead of being unlocked by
 <p>For the exact current support matrix, see <a href="supported-models.html">Supported Models</a>.</p>
 <p>By default, the CLI uses the computer's System VISA runtime, such as Keysight
 IO Libraries Suite or NI-VISA. Backend selection does not change or expand
-Product support. The official standalone CLI executable supports only the fixed
+Product support. The bundled Windows CLI executable supports only the fixed
 System VISA path and does not bundle optional backends.</p>
 <h2 id="choosing-a-measurement">Choosing A Measurement</h2>
 <p>Choose the measurement type that matches the instrument wiring and the signal
@@ -221,9 +221,8 @@ available even during longer runs.</p>
 <p>After stopping, confirm the command exits cleanly and the CSV contains the
 expected rows.</p>
 <h2 id="common-problems">Common Problems</h2>
-<p>If <code>meters-tool.exe</code> is missing, confirm that the ZIP was fully extracted and
-that PowerShell is open in the versioned bundle folder containing the CLI
-executable and <code>_internal</code> directory.</p>
+<p>If <code>meters-tool.exe</code> is missing, fully extract the ZIP, open the versioned
+release folder, and confirm that <code>meters-tool.exe</code> exists there.</p>
 <p>If <code>list-resources</code> shows stale resources, use <code>list-resources --verify</code> to see
 which resources answer and why others failed. Use <code>--live-only</code> when you only
 want resources that answered <code>*IDN?</code>. If an ASRL/RS-232 resource reports a

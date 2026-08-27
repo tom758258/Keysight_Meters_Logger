@@ -10,7 +10,7 @@ trigger handling, cleanup order, JSON schema, or public API.
 
 ## Adapter Role
 
-`src/meters_tool_cli/cli.py` owns command-line concerns:
+`meters_tool_cli` owns command-line adapter concerns:
 
 - `argparse` parser setup and help text.
 - Legacy CLI alias normalization.

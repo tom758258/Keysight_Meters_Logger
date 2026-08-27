@@ -115,9 +115,11 @@ planning, simple and surgical changes, and text-file hygiene.
   `README.md` or focused contributor documentation. Include in `USER_GUIDE.md`
   only the minimum information required for normal user operation.
 - English documentation is the default. Modify localized documentation only
-  when the task explicitly includes it. If a modified localized Markdown file
-  already has a corresponding HTML mirror, update that mirror in the same
-  change.
+  when the task explicitly includes it. Canonical Help content is maintained
+  in Markdown; when canonical Help Markdown changes, regenerate the
+  corresponding tracked runtime Help with the maintained generator. Never
+  hand-edit generated Help HTML or recreate removed legacy README / USER_GUIDE
+  HTML mirrors.
 - Do not place personal filesystem paths, real VISA resources, instrument
   serial numbers, private lab addresses, or link-local/private network
   addresses in tracked public documentation.

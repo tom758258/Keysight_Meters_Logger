@@ -6,7 +6,7 @@ Core 包含供 CLI 與 WebUI 元件整合支援的數位萬用電表時使用的
 
 Core 負責共享請求模型、請求驗證、dry-run 規劃、執行階段工作階段協調、儀器設定檔 metadata、實機支援政策、執行階段事件與結果、控制面介面，以及擷取安全規則。
 
-CLI 與 WebUI 負責各自的輸入解析、顯示文字、在地化、終端機與瀏覽器工作流程、序列化、websocket 或 HTTP payload，以及其他配接器專屬合約。Core 不得 import `meters_tool_cli` 或 `meters_tool_webui`。
+CLI 與 WebUI 負責各自的輸入解析、顯示文字、在地化、終端機與瀏覽器工作流程、序列化、HTTP/SSE payload，以及其他配接器專屬合約。Core 不得 import `meters_tool_cli` 或 `meters_tool_webui`。
 
 Core 可以透過 `StartRequest` 與 `InstrumentConfig` 傳遞選用的 `visa_library` 值。未設定時，live VISA 工作階段會使用 `pyvisa.ResourceManager()`，也就是系統預設的 VISA 執行階段。CLI 診斷可以傳入像 `@py` 這類明確值；一般 WebUI 執行則會保持未設定。
 
@@ -23,7 +23,7 @@ Core 可以透過 `StartRequest` 與 `InstrumentConfig` 傳遞選用的 `visa_li
 - 將切換選項轉換為布林值或文件定義的 Core 語意值；
 - 正規化配接器擁有的 alias；
 - 將在地化標籤與顯示選項對應至 canonical Core 值；
-- 將終端機格式、在地化字串、瀏覽器標籤、websocket payload 細節、wrapper 相容欄位及其他配接器 schema 保留在 Core 之外。
+- 將終端機格式、在地化字串、瀏覽器標籤、HTTP/SSE payload 細節、wrapper 相容欄位及其他配接器 schema 保留在 Core 之外。
 
 CLI 的 `argparse.Namespace` 與 WebUI 的表單或 JSON 物件不得直接成為 Core 驗證合約。它們必須先轉換為 `StartRequest`。
 

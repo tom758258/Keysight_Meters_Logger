@@ -83,7 +83,7 @@
 <h2 id="實機支援範圍提醒">實機支援範圍提醒</h2>
 <p>某個 VISA resource 能回應 <code>*IDN?</code> 或出現在 <code>list-resources</code> 中，本身不代表所有型號與 transport/backend 組合都已 Product-open。型號、transport、backend、量測與觸發支援都是精確範圍，且必須符合 Core policy。未列出的組合會 fail closed，而不是透過 <code>--model</code> 或掃描結果被解鎖。</p>
 <p>精確的目前支援矩陣，請參閱 <a href="supported-models.zh-TW.html">支援型號</a>。</p>
-<p>CLI 預設使用電腦的 System VISA runtime，例如 Keysight IO Libraries Suite 或 NI-VISA。backend 選擇不會改變或擴充 Product 支援。官方 standalone CLI 執行檔只支援固定的 System VISA 路徑，不 bundle 選用 backend。</p>
+<p>CLI 預設使用電腦的 System VISA runtime，例如 Keysight IO Libraries Suite 或 NI-VISA。backend 選擇不會改變或擴充 Product 支援。Windows 發佈版 CLI 執行檔只支援固定的 System VISA 路徑，不會 bundle 選用 backend。</p>
 <h2 id="選擇量測類型">選擇量測類型</h2>
 <p>請選擇與儀器接線及待測訊號相符的量測類型：</p>
 <ul>
@@ -144,7 +144,7 @@
 </code></pre>
 <p>停止後，請確認指令已乾淨地退出，並且 CSV 中包含預期的資料列。</p>
 <h2 id="常見問題">常見問題</h2>
-<p>如果缺少 <code>meters-tool.exe</code>，請確認 ZIP 已完整解壓縮，且 PowerShell 位於同時包含 CLI 執行檔與 <code>_internal</code> 目錄的版本化 bundle 資料夾中。</p>
+<p>如果找不到 <code>meters-tool.exe</code>，請完整解壓縮 ZIP，開啟版本化發佈資料夾，並確認其中存在 <code>meters-tool.exe</code>。</p>
 <p>如果 <code>list-resources</code> 顯示過期的資源，請使用 <code>list-resources --verify</code> 來查看哪些資源有回應，以及其他資源失敗的原因。如果您只想要對 <code>*IDN?</code> 做出回應的資源，請使用 <code>--live-only</code>。如果 ASRL/RS-232 資源回報了與結束字元相關的過期結果，請使用 <code>--serial-read-termination</code> 或 <code>--serial-write-termination</code> 重試偵測；這些選項僅影響 ASRL 驗證。</p>
 <p>如果找不到任何作用中 (live) 的資源，請檢查儀器電源、USB/LAN/GPIB 連線、VISA 驅動程式的可見度，以及是否有其他程式正在佔用該儀器。</p>
 <p>如果在開啟儀器前作業就被阻擋，請閱讀驗證錯誤訊息，並調整其指出的選項設定。CLI 會在進行實機 I/O 之前驗證常見設定。</p>

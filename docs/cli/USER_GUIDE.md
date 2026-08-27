@@ -101,7 +101,7 @@ For the exact current support matrix, see [Supported Models](../core/supported-m
 
 By default, the CLI uses the computer's System VISA runtime, such as Keysight
 IO Libraries Suite or NI-VISA. Backend selection does not change or expand
-Product support. The official standalone CLI executable supports only the fixed
+Product support. The bundled Windows CLI executable supports only the fixed
 System VISA path and does not bundle optional backends.
 
 ## Choosing A Measurement
@@ -242,9 +242,8 @@ expected rows.
 
 ## Common Problems
 
-If `meters-tool.exe` is missing, confirm that the ZIP was fully extracted and
-that PowerShell is open in the versioned bundle folder containing the CLI
-executable and `_internal` directory.
+If `meters-tool.exe` is missing, fully extract the ZIP, open the versioned
+release folder, and confirm that `meters-tool.exe` exists there.
 
 If `list-resources` shows stale resources, use `list-resources --verify` to see
 which resources answer and why others failed. Use `--live-only` when you only

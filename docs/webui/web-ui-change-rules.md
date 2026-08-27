@@ -81,10 +81,11 @@ Developer runtime entry point:
 .\.venv\Scripts\meters-tool-webui.exe --port 8767
 ```
 
-Operator releases normally start from the built launcher executable documented
-in `USER_GUIDE.md`. The launcher begins its bounded automatic port search at
-`8767`; the actual local port may be higher when another process already owns a
-candidate.
+Operator releases may start from Electron Desktop or Browser WebUI, as
+documented in `USER_GUIDE.md`. Both reuse the same WebUI application and
+operator workflow. The Browser WebUI launcher begins its bounded automatic port
+search at `8767`; the actual local port may be higher when another process
+already owns a candidate.
 
 Default starting URL:
 
