@@ -438,3 +438,21 @@ def test_windows_python_313_builds_desktop_directory_with_node_22():
     assert ".\\scripts\\build_desktop.ps1" in workflow
     assert ".\\scripts\\build_release.ps1" not in workflow
     assert ".tmp_tests\\ci-release" not in workflow
+
+
+def test_desktop_build_validates_help_artifact_layout():
+    script = BUILD_DESKTOP.read_text(encoding="utf-8-sig")
+
+    assert 'Join-Path $DesktopDirectory "_internal\\meters_tool_cli\\help"' in script
+    assert 'Join-Path $DesktopDirectory "_internal\\meters_tool_webui\\static\\help"' in script
+    for name in ("cli.html", "cli.zh-TW.html"):
+        assert name in script
+    for name in ("webui.html", "webui.zh-TW.html"):
+        assert name in script
+    for name in ("supported-models.html", "supported-models.zh-TW.html", "help.css"):
+        assert name in script
+    assert "CLI Help must not contain webui.html" in script
+    assert "WebUI Help must not contain cli.html" in script
+    assert 'Join-Path $DesktopDirectory "meters_tool_cli\\help"' in script
+    assert 'Join-Path $DesktopDirectory "meters_tool_webui\\static\\help"' in script
+    assert "Duplicate Help outside _internal" in script
