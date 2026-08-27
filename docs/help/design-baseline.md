@@ -5,8 +5,8 @@
 This document records the information architecture, editorial style,
 support-boundary writing patterns, terminology style, and presentation traits
 observed in the current Meters Tool user-facing documentation. It is a
-developer/maintainer reference for designing the shared Help presentation
-layer planned for the next stage. This document is a historical design
+developer/maintainer reference that informed the shared Help presentation
+layer later implemented in the repository. This document is a historical design
 baseline recording the state observed before the shared Help implementation
 was completed; references to the legacy presentation describe the state
 observed when the baseline was created.
@@ -234,7 +234,7 @@ Both legacy files implemented identical inline behavior:
 - responsive layout behavior that stacks the sidebar above the content on
   narrow viewports.
 
-Actual current limitations relevant to the next stage:
+Limitations recorded at baseline time:
 
 - The generated TOC is based on h2 entries only, in both files.
 - Future Supported Models pages need heading support below h2 because that

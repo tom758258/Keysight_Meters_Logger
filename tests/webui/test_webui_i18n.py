@@ -85,7 +85,7 @@ assert.equal(ZH_TW_MESSAGES["run.csv_output"], "CSV 輸出");
 assert.match(ZH_TW_MESSAGES["device.expected_model_help"], /IDN/);
 assert.match(ZH_TW_MESSAGES["live_data.time_utc_plus_8"], /UTC\+8/);
 
-const p23Keys = [
+const generalMessageKeys = [
   "app.unofficial_tool_version",
   "common.off", "common.on", "common.unset",
   "error.trigger_metadata_invalid_json", "error.trigger_metadata_not_object",
@@ -111,13 +111,13 @@ const p23Keys = [
   "trigger.option.software_custom", "trigger.option_label",
   "trigger.summary.mode", "trigger.summary.timer", "validation.interval_range",
 ];
-for (const key of p23Keys) {
+for (const key of generalMessageKeys) {
   assert.equal(typeof EN_MESSAGES[key], "string", `missing en key ${key}`);
   assert.equal(typeof ZH_TW_MESSAGES[key], "string", `missing zh-TW key ${key}`);
   assert.notEqual(EN_MESSAGES[key], "");
   assert.notEqual(ZH_TW_MESSAGES[key], "");
 }
-const p24Keys = [
+const runtimeMessageKeys = [
   "accessibility.collapse_device_resource", "accessibility.expand_device_resource",
   "accessibility.toggle_sample_details", "common.default", "device.auto_detect",
   "device.resource_summary", "error.command_no_active_run",
@@ -150,13 +150,13 @@ const p24Keys = [
   "status.show_details", "status.waiting_trigger", "validation.check_run_settings",
   "validation.visa_resource_required",
 ];
-for (const key of p24Keys) {
+for (const key of runtimeMessageKeys) {
   assert.equal(typeof EN_MESSAGES[key], "string", `missing en key ${key}`);
   assert.equal(typeof ZH_TW_MESSAGES[key], "string", `missing zh-TW key ${key}`);
   assert.notEqual(EN_MESSAGES[key], "");
   assert.notEqual(ZH_TW_MESSAGES[key], "");
 }
-const p25Keys = [
+const supportMessageKeys = [
   "support.limit.no_10a_current_path",
   "support.limit.no_base_profile_external_trigger",
   "support.limit.no_current_terminal_selection",
@@ -183,7 +183,7 @@ const p25Keys = [
   "support.workflow.software",
   "support.workflow.software_timer",
 ];
-for (const key of p25Keys) {
+for (const key of supportMessageKeys) {
   assert.equal(typeof EN_MESSAGES[key], "string", `missing en key ${key}`);
   assert.equal(typeof ZH_TW_MESSAGES[key], "string", `missing zh-TW key ${key}`);
   assert.notEqual(EN_MESSAGES[key], "");
@@ -260,7 +260,7 @@ assertContainsTokens(
   }),
   ["34460A", "live_validated_full_suite", "usb", "system_visa"]
 );
-assert.equal(productionZh.t("p23.unknown_key"), "p23.unknown_key");
+assert.equal(productionZh.t("test.unknown_key"), "test.unknown_key");
 
 assert.equal(i18n.getLocale(), "en");
 assert.equal(i18n.setLocale("zh-TW"), "zh-TW");

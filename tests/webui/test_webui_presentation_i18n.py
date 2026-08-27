@@ -422,7 +422,7 @@ process.stdout.write(JSON.stringify({ ok: true }));
     assert completed.stdout == '{"ok":true}'
 
 
-def test_p26_production_sources_keep_locale_out_of_runtime_contracts():
+def test_production_sources_keep_locale_out_of_runtime_contracts():
     sources = "\n".join(
         (STATIC_DIR / name).read_text(encoding="utf-8")
         for name in (

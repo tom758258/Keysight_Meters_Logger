@@ -149,7 +149,7 @@ def main() -> int:
                 server_socket = None
                 return 0
 
-        # P2 intentionally leaves stdin EOF lifecycle semantics undefined.
+        # Stdin EOF lifecycle semantics intentionally remain undefined.
         server_thread.join()
         if server_errors:
             raise RuntimeError("Desktop WebUI server stopped") from server_errors[0]
