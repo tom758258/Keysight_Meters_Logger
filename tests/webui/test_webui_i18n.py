@@ -603,7 +603,7 @@ class _StaticTextBindingParser(HTMLParser):
             self.unbound_text.append(text)
 
 
-def test_static_html_bindings_cover_p2_2_prose_and_preserve_fallbacks():
+def test_static_html_bindings_cover_static_prose_and_preserve_fallbacks():
     html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
     en_source = (STATIC_DIR / "locale_en.js").read_text(encoding="utf-8")
     catalog_entries = re.findall(
