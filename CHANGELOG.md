@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v3.1.1
+- Fixes piped JSONL event delivery by flushing CLI machine-output events to
+  stdout immediately, ensuring readiness and other runtime events are visible
+  to pipe-based clients without waiting for the process to exit.
+
 ## v3.1.0
 
 - Adds the `meters-tool manifest --json` machine introspection command for
