@@ -8,6 +8,7 @@ import subprocess
 import sys
 import threading
 import time
+import urllib.request
 from pathlib import Path
 
 
@@ -68,6 +69,62 @@ def read_event_until(lines: queue.Queue[str], event_name: str, timeout_s: float 
         if payload.get("event") == event_name:
             return payload
     raise AssertionError(f"timed out waiting for {event_name}; last line: {last_line!r}")
+
+
+def test_piped_jsonl_ready_is_visible_before_worker_exit():
+    env = subprocess_env()
+    env.pop("PYTHONUNBUFFERED", None)
+    process = subprocess.Popen(
+        [
+            sys.executable,
+            "-m",
+            "meters_tool_cli",
+            "start-trigger-record",
+            "--resource",
+            "SIM::34461A",
+            "--simulate",
+            "--measurement",
+            "voltage-dc",
+            "--trigger-mode",
+            "software",
+            "--max-samples",
+            "2",
+            "--status-format",
+            "jsonl",
+            "--sw-trigger-port",
+            "0",
+            "--no-csv",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    lines = start_stdout_reader(process)
+
+    try:
+        ready = read_event_until(lines, "ready", timeout_s=10.0)
+        assert process.poll() is None
+        assert ready["event"] == "ready"
+        assert ready["schema_version"] == 2
+        assert ready["service"] == "keysight-meter"
+        assert ready["run_id"]
+        for key in ("status_url", "command_url", "stop_url"):
+            assert ready[key]
+
+        request = urllib.request.Request(ready["stop_url"], method="POST")
+        with urllib.request.urlopen(request, timeout=5) as response:
+            assert response.status == 202
+        assert process.wait(timeout=10) == 0
+    finally:
+        if process.poll() is None:
+            process.terminate()
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait(timeout=5)
 
 
 def test_simulator_worker_subprocess_control_plane(tmp_path: Path):

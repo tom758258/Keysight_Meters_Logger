@@ -20,6 +20,8 @@ class CliEventEmitter:
 
     def _emit_json(self, payload: dict) -> None:
         self._print(json.dumps(payload, sort_keys=True))
+        if self._print is print:
+            sys.stdout.flush()
 
     def status(self, message: str, **fields) -> None:  # noqa: ANN003
         if self._output_format == "jsonl":
